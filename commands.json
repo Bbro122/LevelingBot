@@ -1,0 +1,36 @@
+[
+      {
+        "name": "settings",
+        "description": "Game settings"
+      },
+      {
+        "name": "join",
+        "description": "Joins a currently active game in the server"
+      },
+      {
+        "name": "run",
+        "description": "Hosts a new game in the current server",
+        "options":[{
+          "name": "input",
+          "description": "input",
+          "type": "STRING"
+        }]
+      },
+      {
+        "name": "create",
+        "description": "Create a new game in the server"
+      },
+      {
+        "name": "level",
+        "description":"See your current level in the server."
+      },
+      {
+        "name": "test",
+        "description":"TEST TEST TEST"
+      },
+      {
+        "name": "leaderboard",
+        "description":"display the top 10 users"
+      }
+
+]
