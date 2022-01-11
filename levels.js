@@ -4,17 +4,10 @@
 //  ____| |___   |   |___| |    |
 //______________________________/
 const fs = require('fs')
-//const { channelMention, time } = require('@discordjs/builders');
 const { Client, Intents } = require('discord.js');
 const { MessageActionRow, MessageButton, MessageEmbed, MessageAttachment, WebhookClient } = require('discord.js');
-const allIntents = new Intents(32767);
-const client = new Client({ 
-  partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],
-  intents: [allIntents],
-  fetchAllMembers: true
-}); 
+const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],intents: [new Intents(32767);],fetchAllMembers: true}); 
 let timeouts = []
-const webhookClient = new WebhookClient({url:'https://discord.com/api/webhooks/926990643341979679/cJtzboy2vdV2HIwculeaXwVjzX_blVwaeoAF0sBJl5MJpWCMzihy4WtE0m8MzXPYVs_Q'});
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
