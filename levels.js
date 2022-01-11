@@ -26,6 +26,9 @@ function read() {
 function write(file) {
     if (file.name == 'users') {fs.writeFileSync('./userdata.json',JSON.stringify(file))}
 }
+function scramble() {
+    
+}
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
