@@ -27,7 +27,18 @@ function write(file) {
     if (file.name == 'users') {fs.writeFileSync('./userdata.json',JSON.stringify(file))}
 }
 function scramble() {
-    
+    let words = require('./scramble.json')
+    let word = words[math.random()*]
+    let word = words[Math.floor(Math.random()*(words.length))]
+    let wordArr = []
+    for (let i = 0; i < word.length; i++) {
+	    wordArr.push(word.charAt(i))
+    }
+    for (let i = wordArr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [wordArr[i], wordArr[j]] = [wordArr[j], wordArr[i]];
+    }
+    console.log(wordArr.join(''))
 }
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
