@@ -8,6 +8,7 @@ const { Client, Intents } = require('discord.js');
 const { MessageActionRow, MessageButton, MessageEmbed, MessageAttachment, WebhookClient } = require('discord.js');
 const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],intents: [new Intents(32767);],fetchAllMembers: true}); 
 let timeouts = []
+let miniTimer = {}
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
@@ -16,8 +17,13 @@ let timeouts = []
 function level(lvl) {
     return (5 * (lvl**2) + (50 * lvl) + 100)
 }
-function createTimeout(id) {
-    let timeout = {id:id,timeout:setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout),1),60000)}
+function createTimeout(id,time) {
+    let timeout = {}
+    if (time) {
+	timeout = {id:id,timeout:setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout),1),time)}
+    } else {
+	timeout = {id:id,timeout:setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout),1),60000)}  
+    }
     timeouts.push(timeout)
 }
 function read() {
@@ -27,6 +33,7 @@ function write(file) {
     if (file.name == 'users') {fs.writeFileSync('./userdata.json',JSON.stringify(file))}
 }
 function scramble() {
+    miniTimer = setTimeout(() => selectGame(),600000)
     let words = require('./scramble.json')
     let word = words[math.random()*]
     let word = words[Math.floor(Math.random()*(words.length))]
@@ -38,7 +45,6 @@ function scramble() {
         const j = Math.floor(Math.random() * (i + 1));
         [wordArr[i], wordArr[j]] = [wordArr[j], wordArr[i]];
     }
-    console.log(wordArr.join(''))
 }
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
