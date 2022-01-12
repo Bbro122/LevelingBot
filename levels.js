@@ -4,11 +4,12 @@
 //  ____| |___   |   |___| |    |
 //______________________________/
 const fs = require('fs')
-const { Client, Intents } = require('discord.js');
+const { Client, Intents, Message } = require('discord.js');
 const { MessageActionRow, MessageButton, MessageEmbed, MessageAttachment, WebhookClient } = require('discord.js');
-const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],intents: [new Intents(32767);],fetchAllMembers: true}); 
+const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],intents: [new Intents(32767)],fetchAllMembers: true}); 
 let timeouts = []
 let miniTimer = {}
+let currentWord = []
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
@@ -32,19 +33,19 @@ function read() {
 function write(file) {
     if (file.name == 'users') {fs.writeFileSync('./userdata.json',JSON.stringify(file))}
 }
-function scramble() {
+function scramble(interaction) {
     miniTimer = setTimeout(() => selectGame(),600000)
     let words = require('./scramble.json')
-    let word = words[math.random()*]
-    let word = words[Math.floor(Math.random()*(words.length))]
+    currentWord = words[Math.floor(Math.random()*(words.length))]
     let wordArr = []
-    for (let i = 0; i < word.length; i++) {
-	    wordArr.push(word.charAt(i))
+    for (let i = 0; i < currentWord.length; i++) {
+	    wordArr.push(currentWord.charAt(i))
     }
     for (let i = wordArr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [wordArr[i], wordArr[j]] = [wordArr[j], wordArr[i]];
     }
+    interaction.reply(wordArr.join(''))
 }
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
@@ -78,6 +79,10 @@ client.on('messageCreate',async msg => {
             createTimeout(msg.author.id)
         }
     }
+    if (msg.content.toLowerCase() == currentWord) {
+        msg.channel.send(`<@${msg.author.username}> got the word.`)
+        currentWord = ''
+    }
 }
 }
 })
@@ -100,6 +105,8 @@ client.on('interactionCreate',async interaction => {
        }
        let embed = {title:"Leaderboard",description:"",fields:fields}
        interaction.reply({embeds:[embed]})
+    } else if (interaction.commandName == 'scramble') {
+        scramble(interaction)
     }
 })
 client.login(require("./config.json").token2);

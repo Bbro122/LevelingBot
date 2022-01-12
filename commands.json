@@ -31,6 +31,10 @@
       {
         "name": "leaderboard",
         "description":"display the top 10 users"
+      },
+      {
+        "name": "scramble",
+        "description":"create a new scramble game."
       }
 
 ]
