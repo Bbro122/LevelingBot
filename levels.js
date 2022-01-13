@@ -30,6 +30,9 @@ function createTimeout(id,time) {
 function read() {
     return require("./userdata.json")
 }
+function selectGame() {
+    scramble({channel:client.channels.cache.get('909980741553758290')})
+}
 function write(file) {
     if (file.name == 'users') {fs.writeFileSync('./userdata.json',JSON.stringify(file))}
 }
@@ -45,7 +48,32 @@ function scramble(interaction) {
         const j = Math.floor(Math.random() * (i + 1));
         [wordArr[i], wordArr[j]] = [wordArr[j], wordArr[i]];
     }
-    interaction.reply(wordArr.join(''))
+    let embed = {
+        "type": "rich",
+        "title": `Unscramble the word`,
+        "description": wordArr.join(''),
+        "color": 0x00FFFF,
+        "footer": {
+          "text": `You have 10 minutes to unscramble for 20 xp`
+        }
+    }
+    let data = read()
+    let user = data.users.find(user => user.id == interaction.user.id)
+    if (user) {
+        let xpgain = Math.round(Math.random() * 10) + 15
+        user.xp = user.xp + xpgain
+        if (user.xp >= level(user.level)) {
+            user.level++
+            interaction.channel.send(`**Level Up! You\'re now level ${user.level}.** \n ${level(user.level) - user.xp} xp is needed for your next level.`)
+        }
+
+        write(data)
+    } else {
+        user = {id:interaction.user.id,xp:Math.round(Math.random() * 10) + 15,level:0}
+        data.users.push(user)
+        write(data)
+    }
+    interaction.channel.send({embeds:[embed]})
 }
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
@@ -54,6 +82,7 @@ function scramble(interaction) {
 //______________________________________________//
 client.on('ready',async () => {
     try{client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json'))}catch(err){console.log(err)}
+    selectGame({channel:bruh})
 })
 client.on('messageCreate',async msg => {
     if (msg.guild.id == '632995494305464331') {
