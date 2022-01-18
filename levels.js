@@ -57,22 +57,6 @@ function scramble(interaction) {
           "text": `You have 10 minutes to unscramble for 20 xp`
         }
     }
-    let data = read()
-    let user = data.users.find(user => user.id == interaction.user.id)
-    if (user) {
-        let xpgain = Math.round(Math.random() * 10) + 15
-        user.xp = user.xp + xpgain
-        if (user.xp >= level(user.level)) {
-            user.level++
-            interaction.channel.send(`**Level Up! You\'re now level ${user.level}.** \n ${level(user.level) - user.xp} xp is needed for your next level.`)
-        }
-
-        write(data)
-    } else {
-        user = {id:interaction.user.id,xp:Math.round(Math.random() * 10) + 15,level:0}
-        data.users.push(user)
-        write(data)
-    }
     interaction.channel.send({embeds:[embed]})
 }
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
@@ -82,7 +66,7 @@ function scramble(interaction) {
 //______________________________________________//
 client.on('ready',async () => {
     try{client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json'))}catch(err){console.log(err)}
-    selectGame({channel:bruh})
+    selectGame({channel:909980741553758290})
 })
 client.on('messageCreate',async msg => {
     if (msg.guild.id == '632995494305464331') {
@@ -110,7 +94,25 @@ client.on('messageCreate',async msg => {
     }
     if (msg.content.toLowerCase() == currentWord) {
         msg.channel.send(`<@${msg.author.username}> got the word.`)
+        let data = read()
+        let user = data.users.find(user => user.id == msg.author.id)
+        if (user) {
+            let xpgain = Math.round(Math.random() * 10) + 15
+            user.xp = user.xp + xpgain
+            if (user.xp >= level(user.level)) {
+                user.level++
+                msg.channel.send(`**Level Up! You\'re now level ${user.level}.** \n ${level(user.level) - user.xp} xp is needed for your next level.`)
+            }
+    
+            write(data)
+        } else {
+            user = {id:msg.author.id,xp:Math.round(Math.random() * 10) + 15,level:0}
+            data.users.push(user)
+            write(data)
+        }
         currentWord = ''
+    } else if (msg.channel.id == '931368551900672080') {
+        require('./counting.js')(client,msg)
     }
 }
 }
