@@ -138,6 +138,8 @@ client.on('interactionCreate',async interaction => {
        interaction.reply({embeds:[embed]})
     } else if (interaction.commandName == 'scramble') {
         scramble(interaction)
+    } else if (interaction.commandName == 'crash',interaction.user.id == '316243027423395841') {
+     	require('./crash.js')()
     }
 })
 client.login(require("./config.json").token2);
