@@ -1,11 +1,11 @@
-function newCount(client,msg) {
+
+async function newCount2(client, msg, giveXP) {
     let channel = msg.channel
-    let cnumber = parseInt(channel.topic)
-    if (cnumber+1 == parseInt(msg.content)) {
-        console.log(cnumber+1)
-        msg.channel.setTopic(toString(cnumber+1))
+    let num = parseInt((await channel.messages.fetch({limit:2})).last().content)
+    if (msg.content==num+1) {
+        require('./xpmanager.js').give(msg,0.5)
     } else {
         msg.delete()
     }
 }
-module.exports = newCount
+module.exports = newCount2
