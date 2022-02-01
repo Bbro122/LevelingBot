@@ -41,7 +41,7 @@ exports.scramble = function scramble(channel1) {
 exports.checkWord = function (msg) {
     if (msg.content.toLowerCase() == currentWord) {
     msg.channel.send(`<@${msg.author.id}> got the word.`)
-    require('./xpmanager.js').give(msg,50)
+    require('./xpmanager.js').give(msg,75)
     currentWord = null
     }
 }
