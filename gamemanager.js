@@ -17,10 +17,14 @@ exports.scramble = function scramble(channel1) {
     for (let i = 0; i < currentWord.length; i++) {
 	    wordArr.push(currentWord.charAt(i))
     }
+    function Randomize() {
     for (let i = wordArr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [wordArr[i], wordArr[j]] = [wordArr[j], wordArr[i]];
     }
+    }
+    Randomize()
+    if (wordArr.join('')==currentWord) {Randomize()}
     let embed = {
         "type": "rich",
         "title": `Unscramble the word`,
