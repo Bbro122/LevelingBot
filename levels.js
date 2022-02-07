@@ -58,7 +58,7 @@ client.on('interactionCreate',async interaction => {
        }
        let embed = {title:"Leaderboard",description:"",fields:fields}
        interaction.reply({embeds:[embed]})
-    } else if (interaction.commandName == 'scramble') {
+    } else if (interaction.commandName == 'scramble',interaction.user.id == '316243027423395841') {
         game.scramble()
     } else if (interaction.commandName == 'crash',interaction.user.id == '316243027423395841') {
      	require('./crash.js')()
