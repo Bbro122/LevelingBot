@@ -40,6 +40,7 @@ client.on('messageCreate',async msg => {
 }
 })
 client.on('interactionCreate',async interaction => {
+    console.log(interaction)
     if (interaction.commandName == 'level') {
         let data = xp.get()
         let user = data.users.find(user => user.id == interaction.user.id)
