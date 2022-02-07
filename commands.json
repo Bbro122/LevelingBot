@@ -43,6 +43,14 @@
       {
         "name": "givexp"
         "description":"give all users a certain amount of xp"
+          "options": [
+    {
+      "type": 4,
+      "name": "amount",
+      "description": "the amount of xp to give",
+      "required": true
+    }
+  ]
       }
 
 ]
