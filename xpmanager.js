@@ -1,6 +1,6 @@
 timeouts = []
 let fs = require('fs')
-exports.give = function giveXP(msg,amount,check) {
+exports.give = function giveXP(msg,amount,check,client) {
     function give() {
         let data = exports.get()
         let user = data.users.find(user => user.id == msg.author.id)
@@ -8,7 +8,13 @@ exports.give = function giveXP(msg,amount,check) {
             user.xp = user.xp + amount
             if (user.xp >= exports.level(user.level)) {
                 user.level++
+                if (msg.channel.id=='840394626220687360') {
+                    if (client) {
+                    client.channels.cache.get('740652127164301454').send(`<@${msg.author.id}> **Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`)
+                    }
+                } else {
                 msg.channel.send(`**Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`)
+                }
             }
     
             exports.write(data)

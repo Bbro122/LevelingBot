@@ -1,16 +1,23 @@
+let Client
 let channel = {}
 let currentWord;
-exports.selGame = function selectGame(channel1) {
+exports.selGame = function selectGame(channel1,client) {
     if (channel1) {
         channel = channel1
+    }
+    if (client) {
+        Client = client
     }
     exports.scramble()
 }
-exports.scramble = function scramble(channel1) {
+exports.scramble = function scramble(channel1,client) {
     if (channel1) {
         channel = channel1
     }
-    miniTimer = setTimeout(() => exports.selGame(),1800000)
+    if (client) {
+        Client = client
+    }
+    miniTimer = setTimeout(() => exports.selGame(),7200000)
     let words = require('./scramble.json')
     currentWord = words[Math.floor(Math.random()*(words.length))]
     let wordArr = []
@@ -41,7 +48,7 @@ exports.scramble = function scramble(channel1) {
 exports.checkWord = function (msg) {
     if (msg.content.toLowerCase() == currentWord) {
     msg.channel.send(`<@${msg.author.id}> got the word.`)
-    require('./xpmanager.js').give(msg,75)
+    require('./xpmanager.js').give(msg,50,false,Client)
     currentWord = null
     }
 }

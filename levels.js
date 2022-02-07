@@ -23,13 +23,13 @@ let game = require('./gamemanager.js')
 //______________________________________________//
 client.on('ready',async () => {
     try{client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json'))}catch(err){console.log(err)}
-    game.selGame(client.channels.cache.get('740652127164301454'))
+    game.selGame(client.channels.cache.get('740652127164301454'),client)
 })
 client.on('messageCreate',async msg => {
     if (msg.guild.id == '632995494305464331') {
     if (msg.author.bot == false) {
     if (msg.content.length > 5) {
-        xp.give(msg,15 + Math.floor(Math.random()*10),true)
+        xp.give(msg,15 + Math.floor(Math.random()*10),true,client)
     }
     if (msg.channel.id=='740652127164301454') {
         game.checkWord(msg)
