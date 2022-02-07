@@ -50,3 +50,12 @@ exports.timeout = function createTimeout(id,time) {
     }
     timeouts.push(timeout)
 }
+exports.giveall = function giveAll(interaction) {
+    interaction.guild.members.cache.forEach(member => {
+      let data = exports.get()
+      let user = data.users.find(user => user.id == member.id)
+      if (user) {
+      	user.xp = user.xp + interaction
+      }
+    })
+}
