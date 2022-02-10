@@ -53,7 +53,11 @@ client.on('interactionCreate',async interaction => {
        let fields = []
        for (let i = 0; i < data.length; i++) {
         if (i <= 9) {
+            if (client.users.cache.get(data[i].id)) {
             fields.push({"name":`${client.users.cache.get(data[i].id).username} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
+            } else {
+                fields.push({"name":`[Unknown Error- ${data[i].id}]`,"value":`Xp: ${data[i].xp}`,"inline":false})
+            }
         }
        }
        let embed = {title:"Leaderboard",description:"",fields:fields}
