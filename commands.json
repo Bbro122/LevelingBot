@@ -39,6 +39,18 @@
             {
         "name": "crash",
         "description":"forcefully kill the bot. What the fuck is wrong with you?"
+      },
+      {
+        "name": "givexp",
+        "description":"give all users a certain amount of xp",
+        "options": [
+          {
+            "type": 4,
+            "name": "amount",
+            "description": "the amount of xp to give",
+            "required": true
+          }
+        ]
       }
 
 ]

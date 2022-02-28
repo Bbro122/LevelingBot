@@ -40,6 +40,7 @@ client.on('messageCreate',async msg => {
 }
 })
 client.on('interactionCreate',async interaction => {
+    console.log(interaction.commandName)
     if (interaction.commandName == 'level') {
         let data = xp.get()
         let user = data.users.find(user => user.id == interaction.user.id)
@@ -49,6 +50,7 @@ client.on('interactionCreate',async interaction => {
             interaction.reply('**Level**: 0\n**Xp**: 0/100')
         }
     } else if (interaction.commandName == 'leaderboard') {
+       await interaction.guild.members.fetch()
        let data = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
        let fields = []
        for (let i = 0; i < data.length; i++) {
@@ -62,10 +64,13 @@ client.on('interactionCreate',async interaction => {
        }
        let embed = {title:"Leaderboard",description:"",fields:fields}
        interaction.reply({embeds:[embed]})
-    } else if (interaction.commandName == 'scramble') {
+    } else if (interaction.commandName == 'scramble'&&interaction.user.id == '316243027423395841') {
         game.scramble()
-    } else if (interaction.commandName == 'crash',interaction.user.id == '316243027423395841') {
+    } else if (interaction.commandName == 'crash'&&interaction.user.id == '316243027423395841') {
      	require('./crash.js')()
-    }
+    } else if (interaction.commandName == 'givexp'&&interaction.user.id == '316243027423395841') {
+        interaction.deferReply()
+        xp.giveall(interaction)
+   }
 })
 client.login(require("./config.json").token2);

@@ -38,7 +38,7 @@ exports.scramble = function scramble(channel1,client) {
         "description": wordArr.join(''),
         "color": 0x00FFFF,
         "footer": {
-          "text": `You have 10 minutes to unscramble for 20 xp`
+          "text": `You have 2 hours to unscramble for 50 xp`
         }
     }
     if (channel == {}) {

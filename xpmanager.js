@@ -50,3 +50,23 @@ exports.timeout = function createTimeout(id,time) {
     }
     timeouts.push(timeout)
 }
+exports.giveall = async function giveAll(interaction) {
+    let guild = interaction.guild
+    await guild.members.fetch()
+    let channel = interaction.channel
+    let amount = interaction.options.get('amount').value
+    let data = exports.get()
+     await guild.members.cache.forEach(member => {
+      let user = data.users.find(user => user.id == member.id)
+      if (user) {
+      	user.xp = user.xp + amount
+      } else {
+        user = {id:member.id,xp:amount,level:0}
+        if (user.xp >= exports.level(user.level)) {
+            user.level++
+            //channel.send(`<@${member.id}> **Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`)
+        }
+      }
+    })
+    exports.write(data)
+}
