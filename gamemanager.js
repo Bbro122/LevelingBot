@@ -1,6 +1,10 @@
 let Client
 let channel = {}
 let currentWord;
+let words = {"about","above","actor","adult","agree","alone","among","arise","abode","agile","angry","alive","array","words","grape","apple","china","shart","shant","chant","cramp","bands"}
+function wordle() {
+
+}
 exports.selGame = function selectGame(channel1,client) {
     if (channel1) {
         channel = channel1
