@@ -1,9 +1,10 @@
 let Client
 let channel = {}
 let currentWord;
-let words = {"about","above","actor","adult","agree","alone","among","arise","abode","agile","angry","alive","array","words","grape","apple","china","shart","shant","chant","cramp","bands"}
+let words = ["about","above","actor","adult","agree","alone","among","arise","abode","agile","angry","alive","array","words","grape","apple","china","shart","shant","chant","cramp","bands","basic","basin","seven","world","again","heart","pizza","water","happy","sixty","board","month","angel","death","music","fifty","three","party","piano","zebra"]
 function wordle() {
-
+    let word = words[Math.round(Math.random()*(words.length-1))]
+    console.log(word)
 }
 exports.selGame = function selectGame(channel1,client) {
     if (channel1) {
