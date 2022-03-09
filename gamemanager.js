@@ -2,9 +2,24 @@ let Client
 let channel = {}
 let currentWord;
 let words = ["about","above","actor","adult","agree","alone","among","arise","abode","agile","angry","alive","array","words","grape","apple","china","shart","shant","chant","cramp","bands","basic","basin","seven","world","again","heart","pizza","water","happy","sixty","board","month","angel","death","music","fifty","three","party","piano","zebra"]
+let word = ""
 function wordle() {
-    let word = words[Math.round(Math.random()*(words.length-1))]
-    console.log(word)
+    word = words[Math.round(Math.random()*(words.length-1))]
+}
+exports.guess = function(interaction) {
+    if (word !== ""&&guess.length <= 5) {
+	let split = word.split('')
+	let splitguess = guess.split('')
+	let correctletters = []
+	let semicorrect = []
+	for (let i = 0; i < #splitguess; i++) {
+	    if (splitguess[i] == split[i]) {
+	    	correctletters.push(i)
+	    } else if (split[i].includes(splitguess[i])) {
+			semicorrect = [i]
+		}
+	}
+    } else {interaction.reply("Invalid Word: Must be shorter than 5 characters")}
 }
 exports.selGame = function selectGame(channel1,client) {
     if (channel1) {
