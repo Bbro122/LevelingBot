@@ -4,18 +4,45 @@
 //  ____| |___   |   |___| |    |
 //______________________________/
 const fs = require('fs')
+const can = require('canvas')
 const { Client, Intents, Message } = require('discord.js');
 const { MessageActionRow, MessageButton, MessageEmbed, MessageAttachment, WebhookClient } = require('discord.js');
 const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],intents: [new Intents(32767)],fetchAllMembers: true}); 
 let miniTimer = {}
 let currentWord = []
 let xp = require('./xpmanager.js')
-let game = require('./gamemanager.js')
+let game = require('./gamemanager.js');
+const { assert } = require('console');
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
+async function getImage(xp, requirement, username, number, level, imagelink, rank) {
+    let canvas = can.createCanvas(1200, 300)
+    let context = canvas.getContext('2d')
+    context.fillStyle = '#171717'
+    context.fillRect(0, 0, 1200, 300)
+    context.fillStyle = '#171717'
+    context.fillRect(325, 200, 800, 50)
+    context.fillStyle = '#647DFF'
+    context.fillRect(325, 200, Math.round(xp / requirement * 800), 50)
+    context.drawImage(await can.loadImage(imagelink), 50, 50, 200, 200)
+    context.drawImage(await can.loadImage('./Overlay.png'), 0, 0, 1200, 300)
+    context.fillStyle = '#ffffff'
+    context.font = '40px Arial'
+    context.fillText(`Rank #${rank}`, 325, 100)
+    context.fillText(username, 325, 190)
+    let wid = context.measureText(username).width
+    context.font = '30px Arial'
+    context.fillText(number, 335 + wid, 192)
+    context.fillText(`${xp} / ${requirement} XP`, 1125 - context.measureText(`${xp} / ${requirement} XP`).width, 192)
+    context.fillStyle = '#00EDFF'
+    context.fillText("Level", 960, 75)
+    context.font = '60px Arial'
+    context.fillText(level, 1043, 75)
+    return canvas.toBuffer('image/png')
+}
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
@@ -44,8 +71,14 @@ client.on('interactionCreate',async interaction => {
     if (interaction.commandName == 'level') {
         let data = xp.get()
         let user = data.users.find(user => user.id == interaction.user.id)
+        let data2 = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
+        data2.findIndex(user2 => user2 == user)
         if (user) {
-            interaction.reply(`**Level**: ${user.level}\n**Xp**: ${user.xp}/${xp.level(user.level)}`)
+            getImage(user.xp,xp.level(user.level),interaction.user.username,interaction.user.discriminator,user.level,interaction.member.displayAvatarURL().replace('webp','png'),data2.findIndex(user2 => user2 == user)+1).then(buffer => {
+                const attachment = new MessageAttachment(buffer,"LevelCard.png")
+                interaction.reply({files:[attachment]})
+            })
+            //`**Level**: ${user.level}\n**Xp**: ${user.xp}/${xp.level(user.level)}`)
         } else {
             interaction.reply('**Level**: 0\n**Xp**: 0/100')
         }
@@ -53,15 +86,31 @@ client.on('interactionCreate',async interaction => {
        await interaction.guild.members.fetch()
        let data = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
        let fields = []
-       for (let i = 0; i < data.length; i++) {
+       if (client.users.cache.get(data[0].id)) {
+        fields.push({"name":`🥇 ${client.users.cache.get(data[0].id).username} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
+        } else {
+            fields.push({"name":`🥇 [Unknown Error- ${data[0].id}]`,"value":`Xp: ${data[0].xp}`,"inline":false})
+       }
+       if (client.users.cache.get(data[1].id)) {
+        fields.push({"name":`🥈 ${client.users.cache.get(data[1].id).username} (${data[1].level})`,"value":`Xp: ${data[1].xp}`,"inline":false})
+        } else {
+            fields.push({"name":`🥈 [Unknown Error- ${data[1].id}]`,"value":`Xp: ${data[1].xp}`,"inline":false})
+       }
+       if (client.users.cache.get(data[1].id)) {
+        fields.push({"name":`🥉 ${client.users.cache.get(data[2].id).username} (${data[2].level})`,"value":`Xp: ${data[2].xp}`,"inline":false})
+        } else {
+            fields.push({"name":`🥉 [Unknown Error- ${data[2].id}]`,"value":`Xp: ${data[2].xp}`,"inline":false})
+       }
+       for (let i = 3; i < data.length; i++) {
         if (i <= 9) {
             if (client.users.cache.get(data[i].id)) {
-            fields.push({"name":`${client.users.cache.get(data[i].id).username} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
+            fields.push({"name":`${i+1}. ${client.users.cache.get(data[i].id).username} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
             } else {
-                fields.push({"name":`[Unknown Error- ${data[i].id}]`,"value":`Xp: ${data[i].xp}`,"inline":false})
+                fields.push({"name":`${i+1}. [Unknown Error- ${data[i].id}]`,"value":`Xp: ${data[i].xp}`,"inline":false})
             }
         }
        }
+       assert()
        let embed = {title:"Leaderboard",description:"",fields:fields}
        interaction.reply({embeds:[embed]})
     } else if (interaction.commandName == 'scramble'&&interaction.user.id == '316243027423395841') {

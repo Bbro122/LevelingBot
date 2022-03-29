@@ -12,7 +12,7 @@ exports.guess = function(interaction) {
 	let splitguess = guess.split('')
 	let correctletters = []
 	let semicorrect = []
-	for (let i = 0; i < #splitguess; i++) {
+	for (let i = 0; i < splitguess.length; i++) {
 	    if (splitguess[i] == split[i]) {
 	    	correctletters.push(i)
 	    } else if (split[i].includes(splitguess[i])) {

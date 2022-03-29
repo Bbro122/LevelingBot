@@ -54,12 +54,12 @@
       },
       {
             "name": "guess",
-            "description":"Use a guess to figure out the word of the day"
+            "description":"Use a guess to figure out the word of the day",
             "options": [
             {
                   "type": 3,
-                  "name": "guess"
-                  "description": "must be a dicationary word"
+                  "name": "guess",
+                  "description": "must be a dicationary word",
                   "required": true
             }
             ]
