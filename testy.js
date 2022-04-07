@@ -1,1 +1,2 @@
-console.log(1%10)
+let d = new Date();
+console.log(d.getHours())
