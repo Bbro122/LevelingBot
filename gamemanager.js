@@ -38,6 +38,8 @@ exports.scramble = function scramble(channel1,client) {
         Client = client
     }
     miniTimer = setTimeout(() => exports.selGame(),7200000)
+    let time = new Date().getHours()
+    if (time >= 7&&time<=22) {
     let words = require('./scramble.json')
     currentWord = words[Math.floor(Math.random()*(words.length))]
     let wordArr = []
@@ -64,6 +66,7 @@ exports.scramble = function scramble(channel1,client) {
     if (channel == {}) {
     console.warn("Channel Unassigned")
     } else {channel.send({embeds:[embed]})}
+    }
 }
 exports.checkWord = function (msg) {
     if (msg.content.toLowerCase() == currentWord) {

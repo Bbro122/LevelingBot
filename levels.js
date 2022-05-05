@@ -18,6 +18,14 @@ const { assert } = require('console');
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
+function checkOwner(interaction) {
+    if (interaction.user.id=='316243027423395841') {
+        return true
+    } else {
+        interaction.reply("Unpermitted Access- This command is only usable by the regretful one.")
+        return false
+    }
+}
 async function getImage(xp, requirement, username, number, level, imagelink, rank) {
     let canvas = can.createCanvas(1200, 300)
     let context = canvas.getContext('2d')
@@ -114,13 +122,15 @@ client.on('interactionCreate',async interaction => {
        assert()
        let embed = {title:"Leaderboard",description:"",fields:fields}
        interaction.reply({embeds:[embed]})
-    } else if (interaction.commandName == 'scramble'&&interaction.user.id == '316243027423395841') {
+    } else if (interaction.commandName == 'scramble'&&checkOwner(interaction)) {
         game.scramble()
-    } else if (interaction.commandName == 'crash'&&interaction.user.id == '316243027423395841') {
+    } else if (interaction.commandName == 'crash'&&checkOwner(interaction)) {
      	require('./crash.js')()
-    } else if (interaction.commandName == 'givexp'&&interaction.user.id == '316243027423395841') {
+    } else if (interaction.commandName == 'givexp'&&checkOwner(interaction)) {
         interaction.deferReply()
         xp.giveall(interaction)
-   }
+    } else if (interaction.commandName == 'test'&&checkOwner(interaction)) {
+        require('./UnoMaster.js').startNewGame(interaction)
+    }
 })
 client.login(require("./config.json").token2);
