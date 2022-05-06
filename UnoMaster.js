@@ -15,6 +15,9 @@ function createButton(string,id,style,emoji) { // PRIMARY:Blue DANGER:Red SUCCES
 function row(array) {
   return {type: 'ACTION_ROW',components: array}
 }
+function startGame() {
+  
+}
 exports.startNewGame = async function startNewGame(interaction) {
   let gameChan = await interaction.guild.channels.create("Test")
   let msg = gameChan.send({embeds:[{
@@ -38,6 +41,17 @@ exports.command = function(interaction) {
       if (game.players.find(plr => plr.id == interaction.user.id)) {} else {
     game.players.push(newPlayer(interaction.user.id))
     console.log(game)
+      }
+    }
+  } else if (interaction.customId=='cancel') {
+    if (findgame(interaction.guild.id)) {
+      interaction.channel.delete()
+    }
+  } else if (interaction.customId=='start') {
+    let game = findgame(interaction.guild.id)
+    if (game) {
+      if (game.players.length>=1) {
+        startGame()
       }
     }
   }
