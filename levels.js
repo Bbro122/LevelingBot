@@ -13,6 +13,7 @@ let currentWord = []
 let xp = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 const { assert } = require('console');
+const unoids = ["join","start","cancel"]
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
@@ -131,6 +132,6 @@ client.on('interactionCreate',async interaction => {
         xp.giveall(interaction)
     } else if (interaction.commandName == 'test'&&checkOwner(interaction)) {
         require('./UnoMaster.js').startNewGame(interaction)
-    }
+    } else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
 })
 client.login(require("./config.json").token2);
