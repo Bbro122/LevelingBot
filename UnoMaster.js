@@ -45,7 +45,7 @@ exports.command = function(interaction) {
     }
   } else if (interaction.customId=='cancel') {
     if (findgame(interaction.guild.id)) {
-      interaction.channel.delete()
+      //interaction.channel.delete()
     }
   } else if (interaction.customId=='start') {
     let game = findgame(interaction.guild.id)
