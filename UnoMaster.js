@@ -31,10 +31,10 @@ exports.startNewGame = async function startNewGame(interaction) {
       "width": 450
     }}],components:[row([createButton("🎮 Join Match","join","SUCCESS",null),createButton("Start Match","start","SUCCESS","814199679704891423"),createButton("Cancel Match","cancel","DANGER","814199666778308638")])]})
   games.push(newGame(interaction.guild.id,msg,interaction.user.id))
-  interaction.reply(`[Unfinished] Game starting in <#${gameChan.id}>`)
+  //interaction.reply(`[Unfinished] Game starting in <#${gameChan.id}>`)
 }
 exports.command = function(interaction) {
-  interaction.deferReply()
+  //interaction.deferReply()
   if (interaction.customId=='join') {
     let game = findGame(interaction.guild.id)
     if (game) {
