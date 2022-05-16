@@ -1,6 +1,9 @@
-let time = new Date().getHours()
-if (time > 7&&time<22) {
-    console.log("no")
-} else {
-    console.log("yes")
-}
+const { createCanvas, loadImage } = require('canvas')
+const fs = require('fs')
+const canvas = createCanvas(200, 200)
+const ctx = canvas.getContext('2d')
+ctx.translate(100,100)
+ctx.rotate(Math.PI/4)
+ctx.translate(-100,-100)
+ctx.fillRect(50,50,100,100)
+fs.writeFileSync("./image.png",canvas.toBuffer())

@@ -78,7 +78,7 @@ client.on('messageCreate',async msg => {
 client.on('interactionCreate',async interaction => {
     console.log(interaction.commandName)
     if (interaction.commandName == 'level') {
-        interaction.deferReply()
+        await interaction.deferReply()
         let data = xp.get()
         let user = data.users.find(user => user.id == interaction.user.id)
         let data2 = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
@@ -90,7 +90,7 @@ client.on('interactionCreate',async interaction => {
             })
             //`**Level**: ${user.level}\n**Xp**: ${user.xp}/${xp.level(user.level)}`)
         } else {
-            interaction.editReply('**Level**: 0\n**Xp**: 0/100')
+            await interaction.editReply('**Level**: 0\n**Xp**: 0/100')
         }
     } else if (interaction.commandName == 'leaderboard') {
        await interaction.guild.members.fetch()
