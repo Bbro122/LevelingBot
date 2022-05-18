@@ -1,0 +1,11 @@
+const fs = require('fs')
+const can = require('canvas')
+const { Client, Intents, Message } = require('discord.js');
+const { MessageActionRow, MessageButton, MessageEmbed, MessageAttachment, WebhookClient } = require('discord.js');
+const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],intents: [new Intents(32767)],fetchAllMembers: true}); 
+let miniTimer = {}
+let currentWord = []
+let xp = require('./xpmanager.js')
+let game = require('./gamemanager.js');
+const { assert } = require('console');
+const unoids = ["join","start","cancel"]
