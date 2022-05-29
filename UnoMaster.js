@@ -2,31 +2,59 @@ const { get } = require('./xpmanager')
 const { MessageAttachment, MessageEmbed } = require('discord.js');
 const fs = require('fs')
 let can = require('canvas')
-
-async function dispCards(cards) {
-let canvas = can.createCanvas((cards.length<10) ? Math.round(460*(cards.length%10)):4590,Math.round(760+(760*Math.floor(cards.length/10))))
-for (let i = 0; i < cards.length; i++) {
-    const element = cards[i];
-    let context = canvas.getContext("2d")
-    context.drawImage(await can.loadImage(`./cards/${element}.png`),Math.round(460*(i%10)),Math.round(760*Math.floor(i/10)))
+const reso = 0.5
+function res(num) {
+    return num * reso
 }
-return canvas.toBuffer()
+async function rotatedImg(card) {
+  const canvas = can.createCanvas(450,700)
+  let ctx = canvas.getContext('2d')
+  ctx.translate(225,350)
+  ctx.rotate(3.14)
+  ctx.translate(-225,-350)
+  ctx.drawImage(await can.loadImage(`../cards/${card}.png`,450,700),0,0)
+  return canvas
 }
-
+async function dispBoard(hands, game, hidden) {
+  const canvas = can.createCanvas(res(7000), res(7000))
+  let ctx = canvas.getContext('2d')
+  let logo2 = await can.loadImage(`./cards/logo2.png`)
+  ctx.drawImage(await can.loadImage('./cards/background.png'), 0, 0, res(7000), res(7000))
+  ctx.drawImage(await can.loadImage('./cards/logo.png'), res(2500), res(2750), res(900), res(1400))
+  ctx.drawImage(await can.loadImage(`./cards/${game.deck[0]}.png`), res(3600), res(2750), res(900), res(1400))
+  ctx.translate(res(3500), res(3500))
+  ctx.rotate(3.14)
+  ctx.translate(-res(3500), -res(3500))
+  for (let i = 0; i < hands.length; i++) {
+    const hand = hands[i];
+    for (let i = 0; i < hand.length; i++) {
+      const card = hand[i]
+      if (i > 9) {
+        ctx.drawImage((hidden)?logo2:await rotatedImg(card), res(3500) - res(2300) - res(50) * (i - 10), res(50), res(450), res(700))
+      } else {
+        ctx.drawImage((hidden)?logo2:await rotatedImg(card), res(3500) - ((hand.length <= 10) ? res(230) * hand.length : res(2300)) + res(460) * i, res(50), res(450), res(700))
+      }
+    }
+    ctx.translate(res(3500), res(3500))
+    ctx.rotate((hands.length<3)?3.14:1.57)
+    ctx.translate(-res(3500), -res(3500))
+  }
+  return canvas.toBuffer()
+}
 const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"]
 let games = []
-function newGame(msg,host) {
-  return {id:msg.channelId, msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host.id }
+function newGame(msg, host) {
+  return { id: msg.channelId, msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host.id }
 }
 function findGame(chanId) {
   return games.find(game => game.id == chanId)
 }
 function newPlayer(plr) {
   console.log(plr)
-  return { "id": plr, "hand": []}
+  return { "id": plr, "hand": [] }
 }
-function createButton(string, id, style, emoji,disabled) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
-  return { type: 'BUTTON', label: string, customId: id, style: style, emoji: emoji, url: null, disabled: disabled}
+function createButton(string, id, style, emoji, disabled) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
+  return { type: 'BUTTON', label: string, customId: id, style: style, emoji: emoji, url: null, disabled: disabled }
 }
 function row(array) {
   return { type: 'ACTION_ROW', components: array }
@@ -37,22 +65,22 @@ function randomizeArray(array) {
   for (let i = 0; i < array.length; i++) {
     console.log(a.length)
     const randomElement = a[Math.floor(Math.random() * a.length)]
-    a.splice(a.indexOf(randomElement),1)
+    a.splice(a.indexOf(randomElement), 1)
     b.push(randomElement)
   }
   return b
 }
 async function startTurn(game) {
-  let player = game.players[game.round%game.players.length]
-  let cards = []
-  for (let i = 0; i < player.hand.length; i++) {
-    const element = game.player.hand[i]
-    cards.push("logo")  
+  let player = game.players[game.round % game.players.length]
+  let hands = []
+  for (let i = 0; i < game.players.length; i++) {
+    const player = game.players[(game.round+i) % game.players.length]
+    hands.push(player.hand)
   }
-  const attachment = new MessageAttachment(await dispCards(cards),'card.png');
+  const attachment = new MessageAttachment(await dispBoard(hands,game,true), 'board.png');
   game.msg.edit({
-    embeds: [{"type": "rich","title": `${player.id.displayName}'s Turn (${game.round})`,"description": `It is now your turn, you have 15 seconds to begin.`,"color": 0xed0606,"thumbnail": {"url": `attachment://cards.png`,"height": 700, "width": 450}}], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null,false)])]
-    ,files:[attachment]
+    embeds: [{ "type": "rich", "title": `${player.id.displayName}'s Turn (${game.round})`, "description": `It is now your turn, you have 15 seconds to begin.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])]
+    , files: [attachment]
   })
 }
 async function startGame(interaction) {
@@ -60,7 +88,7 @@ async function startGame(interaction) {
   game.deck = randomizeArray(game.deck)
   for (let i = 0; i < game.players.length; i++) {
     const element = game.players[i];
-    element.deck = [game.deck.pop(),game.deck.pop(),game.deck.pop(),game.deck.pop(),game.deck.pop(),game.deck.pop(),game.deck.pop()]
+    element.deck = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()]
     console.log(element.id.displayName + " " + element.deck)
   }
   startTurn(game)
@@ -79,7 +107,7 @@ exports.startNewGame = async function startNewGame(interaction) {
         "width": 450
       },
       "fields": [{ name: interaction.member.displayName, value: `Level ${require('./userdata.json').users.find(user => user.id = interaction.user.id).level}` }]
-    }], components: [row([createButton("🎮 Join Match", "join", "SUCCESS", null,false), createButton("Start Match", "start", "SUCCESS", "814199679704891423",false), createButton("Cancel Match", "cancel", "DANGER", "814199666778308638",false)])]
+    }], components: [row([createButton("🎮 Join Match", "join", "SUCCESS", null, false), createButton("Start Match", "start", "SUCCESS", "814199679704891423", false), createButton("Cancel Match", "cancel", "DANGER", "814199666778308638", false)])]
   })
   games.push(newGame(msg, interaction.member))
   interaction.reply(`[Unfinished] Game starting in <#${gameChan.id}>`)
@@ -97,7 +125,7 @@ exports.command = async function (interaction) {
         let user = require('./userdata.json').users.find(user => user.id == interaction.member.id)
         embed.description = `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`
         embed.fields.push({ name: interaction.member.displayName, value: `Level ${user.level}` })
-        await game.msg.edit({embeds:[embed]})
+        await game.msg.edit({ embeds: [embed] })
       }
     }
   } else if (interaction.customId == 'cancel') {
