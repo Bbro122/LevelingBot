@@ -65,7 +65,7 @@ function checkOwner(interaction) {
         return false;
     }
 }
-function getImage(xp, requirement, username, number, level, imagelink, rank) {
+function getImage(exp, requirement, username, number, level, imagelink, rank) {
     return __awaiter(this, void 0, void 0, function () {
         var canvas, context, _a, _b, _c, _d, wid;
         return __generator(this, function (_e) {
@@ -78,7 +78,7 @@ function getImage(xp, requirement, username, number, level, imagelink, rank) {
                     context.fillStyle = '#171717';
                     context.fillRect(325, 200, 800, 50);
                     context.fillStyle = '#647DFF';
-                    context.fillRect(325, 200, Math.round(xp / requirement * 800), 50);
+                    context.fillRect(325, 200, Math.round((exp - xp.level(level - 1)) / (requirement - xp.level(level - 1)) * 800), 50);
                     _b = (_a = context).drawImage;
                     return [4 /*yield*/, can.loadImage(imagelink)];
                 case 1:
@@ -94,7 +94,7 @@ function getImage(xp, requirement, username, number, level, imagelink, rank) {
                     wid = context.measureText(username).width;
                     context.font = '30px Arial';
                     context.fillText(number, 335 + wid, 192);
-                    context.fillText("".concat(xp, " / ").concat(requirement, " XP"), 1125 - context.measureText("".concat(xp, " / ").concat(requirement, " XP")).width, 192);
+                    context.fillText("".concat(exp - xp.level(level - 1), " / ").concat(requirement - xp.level(level - 1), " XP"), 1125 - context.measureText("".concat(exp - xp.level(level - 1), " / ").concat(requirement - xp.level(level - 1), " XP")).width, 192);
                     context.fillStyle = '#00EDFF';
                     context.fillText("Level", 960, 75);
                     context.font = '60px Arial';
@@ -172,31 +172,29 @@ client.on('interactionCreate', function (interaction) { return __awaiter(_this, 
                 data = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 fields = [];
                 if (client.users.cache.get(data[0].id)) {
-                    fields.push({ "name": "\uD83E\uDD47 ".concat(client.users.cache.get(data[0].id).username, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
+                    fields.push({ "name": "\uD83E\uDD47 ".concat(interaction.guild.members.cache.get(data[0].id).dislayName, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(data[0].id, "]"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
                 if (client.users.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD48 ".concat(client.users.cache.get(data[1].id).username, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
+                    fields.push({ "name": "\uD83E\uDD48 ".concat(interaction.guild.members.cache.get(data[1].id).dislayName, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD48 [Unknown Error- ".concat(data[1].id, "]"), "value": "Xp: ".concat(data[1].xp), "inline": false });
                 }
                 if (client.users.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD49 ".concat(client.users.cache.get(data[2].id).username, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
+                    fields.push({ "name": "\uD83E\uDD49 ".concat(interaction.guild.members.cache.get(data[2].id).dislayName, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD49 [Unknown Error- ".concat(data[2].id, "]"), "value": "Xp: ".concat(data[2].xp), "inline": false });
                 }
-                for (i = 3; i < data.length; i++) {
-                    if (i <= 9) {
-                        if (client.users.cache.get(data[i].id)) {
-                            fields.push({ "name": "".concat(i + 1, ". ").concat(client.users.cache.get(data[i].id).username, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
-                        }
-                        else {
-                            fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
-                        }
+                for (i = 3; i <= 9; i++) {
+                    if (interaction.guild.members.cache.get(data[i].id)) {
+                        fields.push({ "name": "".concat(i + 1, ". ").concat(interaction.guild.members.cache.get(data[i].id).dislayName, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
+                    }
+                    else {
+                        fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
                     }
                 }
                 assert();
@@ -213,6 +211,7 @@ client.on('interactionCreate', function (interaction) { return __awaiter(_this, 
                 else if (interaction.commandName == 'givexp' && checkOwner(interaction)) {
                     interaction.deferReply();
                     xp.giveall(interaction);
+                    interaction.editReply('All users have received 1 xp.');
                 }
                 else if (interaction.commandName == 'test' && checkOwner(interaction)) {
                     require('./UnoMaster.js').startNewGame(interaction);

@@ -27,7 +27,7 @@ function checkOwner(interaction) {
         return false
     }
 }
-async function getImage(xp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any) {
+async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any) {
     let canvas = can.createCanvas(1200, 300)
     let context = canvas.getContext('2d')
     context.fillStyle = '#171717'
@@ -35,7 +35,7 @@ async function getImage(xp: number, requirement: number, username: any, number: 
     context.fillStyle = '#171717'
     context.fillRect(325, 200, 800, 50)
     context.fillStyle = '#647DFF'
-    context.fillRect(325, 200, Math.round(xp / requirement * 800), 50)
+    context.fillRect(325, 200, Math.round((exp-xp.level(level-1)) / (requirement-xp.level(level-1)) * 800), 50)
     context.drawImage(await can.loadImage(imagelink), 50, 50, 200, 200)
     context.drawImage(await can.loadImage('./Overlay.png'), 0, 0, 1200, 300)
     context.fillStyle = '#ffffff'
@@ -45,7 +45,7 @@ async function getImage(xp: number, requirement: number, username: any, number: 
     let wid = context.measureText(username).width
     context.font = '30px Arial'
     context.fillText(number, 335 + wid, 192)
-    context.fillText(`${xp} / ${requirement} XP`, 1125 - context.measureText(`${xp} / ${requirement} XP`).width, 192)
+    context.fillText(`${exp-xp.level(level-1)} / ${requirement-xp.level(level-1)} XP`, 1125 - context.measureText(`${exp-xp.level(level-1)} / ${requirement-xp.level(level-1)} XP`).width, 192)
     context.fillStyle = '#00EDFF'
     context.fillText("Level", 960, 75)
     context.font = '60px Arial'
@@ -97,28 +97,26 @@ client.on('interactionCreate',async interaction => {
        let data = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
        let fields = []
        if (client.users.cache.get(data[0].id)) {
-        fields.push({"name":`🥇 ${client.users.cache.get(data[0].id).username} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
+        fields.push({"name":`🥇 ${interaction.guild.members.cache.get(data[0].id).dislayName} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥇 [Unknown Error- ${data[0].id}]`,"value":`Xp: ${data[0].xp}`,"inline":false})
        }
        if (client.users.cache.get(data[1].id)) {
-        fields.push({"name":`🥈 ${client.users.cache.get(data[1].id).username} (${data[1].level})`,"value":`Xp: ${data[1].xp}`,"inline":false})
+        fields.push({"name":`🥈 ${interaction.guild.members.cache.get(data[1].id).dislayName} (${data[1].level})`,"value":`Xp: ${data[1].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥈 [Unknown Error- ${data[1].id}]`,"value":`Xp: ${data[1].xp}`,"inline":false})
        }
        if (client.users.cache.get(data[1].id)) {
-        fields.push({"name":`🥉 ${client.users.cache.get(data[2].id).username} (${data[2].level})`,"value":`Xp: ${data[2].xp}`,"inline":false})
+        fields.push({"name":`🥉 ${interaction.guild.members.cache.get(data[2].id).dislayName} (${data[2].level})`,"value":`Xp: ${data[2].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥉 [Unknown Error- ${data[2].id}]`,"value":`Xp: ${data[2].xp}`,"inline":false})
        }
-       for (let i = 3; i < data.length; i++) {
-        if (i <= 9) {
-            if (client.users.cache.get(data[i].id)) {
-            fields.push({"name":`${i+1}. ${client.users.cache.get(data[i].id).username} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
+       for (let i = 3; i <= 9; i++) {
+            if (interaction.guild.members.cache.get(data[i].id)) {
+            fields.push({"name":`${i+1}. ${interaction.guild.members.cache.get(data[i].id).dislayName} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
             } else {
                 fields.push({"name":`${i+1}. [Unknown Error- ${data[i].id}]`,"value":`Xp: ${data[i].xp}`,"inline":false})
             }
-        }
        }
        assert()
        let embed = {title:"Leaderboard",description:"",fields:fields}
@@ -130,6 +128,7 @@ client.on('interactionCreate',async interaction => {
     } else if (interaction.commandName == 'givexp'&&checkOwner(interaction)) {
         interaction.deferReply()
         xp.giveall(interaction)
+        interaction.editReply('All users have received 1 xp.')
     } else if (interaction.commandName == 'test'&&checkOwner(interaction)) {
         require('./UnoMaster.js').startNewGame(interaction)
     } else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
