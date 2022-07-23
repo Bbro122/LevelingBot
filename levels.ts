@@ -34,7 +34,7 @@ async function getImage(exp: number, requirement: number, username: any, number:
     context.fillRect(0, 0, 1200, 300)
     context.fillStyle = '#171717'
     context.fillRect(325, 200, 800, 50)
-    context.fillStyle = '#647DFF'
+    context.fillStyle = '#00EDFF'
     context.fillRect(325, 200, Math.round((exp-xp.level(level-1)) / (requirement-xp.level(level-1)) * 800), 50)
     context.drawImage(await can.loadImage(imagelink), 50, 50, 200, 200)
     context.drawImage(await can.loadImage('./Overlay.png'), 0, 0, 1200, 300)

@@ -77,7 +77,7 @@ function getImage(exp, requirement, username, number, level, imagelink, rank) {
                     context.fillRect(0, 0, 1200, 300);
                     context.fillStyle = '#171717';
                     context.fillRect(325, 200, 800, 50);
-                    context.fillStyle = '#647DFF';
+                    context.fillStyle = '#00EDFF';
                     context.fillRect(325, 200, Math.round((exp - xp.level(level - 1)) / (requirement - xp.level(level - 1)) * 800), 50);
                     _b = (_a = context).drawImage;
                     return [4 /*yield*/, can.loadImage(imagelink)];
