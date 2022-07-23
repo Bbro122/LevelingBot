@@ -16,6 +16,7 @@ async function rotatedImg(card) {
   return canvas
 }
 async function dispBoard(hands, game, hidden) {
+  console.log(hands[0])
   const canvas = can.createCanvas(res(7000), res(7000))
   let ctx = canvas.getContext('2d')
   let logo2 = await can.loadImage(`./cards/logo2.png`)
@@ -50,7 +51,6 @@ function findGame(chanId) {
   return games.find(game => game.id == chanId)
 }
 function newPlayer(plr) {
-  console.log(plr)
   return { "id": plr, "hand": [] }
 }
 function createButton(string, id, style, emoji, disabled) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
@@ -63,7 +63,6 @@ function randomizeArray(array) {
   let a = array.slice()
   let b = []
   for (let i = 0; i < array.length; i++) {
-    console.log(a.length)
     const randomElement = a[Math.floor(Math.random() * a.length)]
     a.splice(a.indexOf(randomElement), 1)
     b.push(randomElement)
@@ -77,11 +76,11 @@ async function startTurn(game) {
     const player = game.players[(game.round+i) % game.players.length]
     hands.push(player.hand)
   }
-  const attachment = new MessageAttachment(await dispBoard(hands,game,true), 'board.png');
-  game.msg.edit({
-    embeds: [{ "type": "rich", "title": `${player.id.displayName}'s Turn (${game.round})`, "description": `It is now your turn, you have 15 seconds to begin.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])]
-    , files: [attachment]
-  })
+  const attachment = new MessageAttachment(dispBoard(hands,game,true), 'board.png');
+  //game.msg.edit({
+    //embeds: [{ "type": "rich", "title": `${player.id.displayName}'s Turn (${game.round})`, "description": `It is now your turn, you have 15 seconds to begin.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])]
+    //, files: [attachment]
+  //})
 }
 async function startGame(interaction) {
   let game = findGame(interaction.channelId)
@@ -89,7 +88,6 @@ async function startGame(interaction) {
   for (let i = 0; i < game.players.length; i++) {
     const element = game.players[i];
     element.deck = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()]
-    console.log(element.id.displayName + " " + element.deck)
   }
   startTurn(game)
 }
@@ -142,7 +140,6 @@ exports.command = async function (interaction) {
     let game = findGame(interaction.channelId)
     if (game) {
       if (interaction.member.id == game.host) {
-        console.log(game.players.length)
         if (game.players.length > 1) {
           startGame(interaction)
         } else {

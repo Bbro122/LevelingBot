@@ -70,7 +70,7 @@ exports.scramble = function scramble(channel1,client) {
 }
 exports.checkWord = function (msg) {
     if (msg.content.toLowerCase() == currentWord) {
-    msg.channel.send(`<@${msg.author.id}> got the word.`)
+    msg.channel.send(`<@${msg.author.id}> unscrambled the word.`)
     require('./xpmanager.js').give(msg,50,false,Client)
     currentWord = null
     }
