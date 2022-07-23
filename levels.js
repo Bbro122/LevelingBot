@@ -146,7 +146,7 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
         switch (_a.label) {
             case 0:
                 console.log(interaction.commandName);
-                if (!(interaction.commandName == 'level')) return [3 /*break*/, 5];
+                if (!(interaction.commandName == 'level')) return [3 /*break*/, 2];
                 return [4 /*yield*/, interaction.deferReply()];
             case 1:
                 _a.sent();
@@ -162,21 +162,23 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 }
                 data2 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 data2.findIndex(function (user2) { return user2 == user_1; });
-                if (!user_1) return [3 /*break*/, 2];
-                getImage(user_1.xp, xp.level(user_1.level), member.user.username, member.user.discriminator, user_1.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
-                    var attachment = new MessageAttachment(buffer, "LevelCard.png");
-                    interaction.editReply({ files: [attachment] });
-                });
-                return [3 /*break*/, 4];
-            case 2: return [4 /*yield*/, interaction.editReply('**Level**: 0\n**Xp**: 0/100')];
-            case 3:
-                _a.sent();
-                _a.label = 4;
-            case 4: return [3 /*break*/, 8];
-            case 5:
-                if (!(interaction.commandName == 'leaderboard')) return [3 /*break*/, 7];
+                if (user_1) {
+                    getImage(user_1.xp, xp.level(user_1.level), member.user.username, member.user.discriminator, user_1.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
+                        var attachment = new MessageAttachment(buffer, "LevelCard.png");
+                        interaction.editReply({ files: [attachment] });
+                    });
+                }
+                else {
+                    getImage(0, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
+                        var attachment = new MessageAttachment(buffer, "LevelCard.png");
+                        interaction.editReply({ files: [attachment] });
+                    });
+                }
+                return [3 /*break*/, 5];
+            case 2:
+                if (!(interaction.commandName == 'leaderboard')) return [3 /*break*/, 4];
                 return [4 /*yield*/, interaction.guild.members.fetch()];
-            case 6:
+            case 3:
                 _a.sent();
                 data = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 fields = [];
@@ -209,8 +211,8 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 assert();
                 embed = { title: "Leaderboard", description: "", fields: fields };
                 interaction.reply({ embeds: [embed] });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 5];
+            case 4:
                 if (interaction.commandName == 'scramble' && checkOwner(interaction)) {
                     game.scramble();
                 }
@@ -228,8 +230,8 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 else if (unoids.includes(interaction.customId)) {
                     require('./UnoMaster.js').command(interaction);
                 }
-                _a.label = 8;
-            case 8: return [2 /*return*/];
+                _a.label = 5;
+            case 5: return [2 /*return*/];
         }
     });
 }); });
