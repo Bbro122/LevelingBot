@@ -100,7 +100,7 @@ client.on('interactionCreate',async interaction => {
                 interaction.editReply({files:[attachment]})
             })
         } else {
-            getImage(0,xp.level(0),member.user.username,member.user.discriminator,0,member.displayAvatarURL().replace('webp','png'),data2.findIndex(user2 => user2 == user)+1).then(buffer => {
+            getImage(55,xp.level(0),member.user.username,member.user.discriminator,0,member.displayAvatarURL().replace('webp','png'),data2.findIndex(user2 => user2 == user)+1).then(buffer => {
                 const attachment = new MessageAttachment(buffer,"LevelCard.png")
                 interaction.editReply({files:[attachment]})
             })

@@ -169,7 +169,7 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                     });
                 }
                 else {
-                    getImage(0, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
                         var attachment = new MessageAttachment(buffer, "LevelCard.png");
                         interaction.editReply({ files: [attachment] });
                     });
