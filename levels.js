@@ -1,3 +1,8 @@
+"use strict";
+//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+// |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
+// └────┐ ├──    |   |   | |──┘ |
+//  ____| |___   |   |___| |    |
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,11 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-// |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
-// └────┐ ├──    |   |   | |──┘ |
-//  ____| |___   |   |___| |    |
+exports.__esModule = true;
 //______________________________/
 var fs = require('fs');
 var can = require('canvas');
@@ -109,7 +110,7 @@ function getImage(exp, requirement, username, number, level, imagelink, rank) {
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
-client.on('ready', function () { return __awaiter(_this, void 0, void 0, function () {
+client.on('ready', function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         try {
             client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json'));
@@ -121,7 +122,7 @@ client.on('ready', function () { return __awaiter(_this, void 0, void 0, functio
         return [2 /*return*/];
     });
 }); });
-client.on('messageCreate', function (msg) { return __awaiter(_this, void 0, void 0, function () {
+client.on('messageCreate', function (msg) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         if (msg.guild.id == '632995494305464331') {
             if (msg.author.bot == false) {
@@ -139,8 +140,8 @@ client.on('messageCreate', function (msg) { return __awaiter(_this, void 0, void
         return [2 /*return*/];
     });
 }); });
-client.on('interactionCreate', function (interaction) { return __awaiter(_this, void 0, void 0, function () {
-    var data, user_1, data2, data, fields, i, embed;
+client.on('interactionCreate', function (interaction) { return __awaiter(void 0, void 0, void 0, function () {
+    var data, user_1, member, data2, data, fields, i, embed;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -150,11 +151,19 @@ client.on('interactionCreate', function (interaction) { return __awaiter(_this, 
             case 1:
                 _a.sent();
                 data = xp.get();
-                user_1 = data.users.find(function (user) { return user.id == interaction.user.id; });
+                member = void 0;
+                if (interaction.options.get('user')) {
+                    member = interaction.options.get('user').member;
+                    user_1 = data.users.find(function (user) { return user.id == interaction.options.get('user').value; });
+                }
+                else {
+                    member = interaction.member;
+                    user_1 = data.users.find(function (user) { return user.id == interaction.user.id; });
+                }
                 data2 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 data2.findIndex(function (user2) { return user2 == user_1; });
                 if (!user_1) return [3 /*break*/, 2];
-                getImage(user_1.xp, xp.level(user_1.level), interaction.user.username, interaction.user.discriminator, user_1.level, interaction.member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
+                getImage(user_1.xp, xp.level(user_1.level), member.user.username, member.user.discriminator, user_1.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
                     var attachment = new MessageAttachment(buffer, "LevelCard.png");
                     interaction.editReply({ files: [attachment] });
                 });

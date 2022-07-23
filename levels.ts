@@ -2,6 +2,9 @@
 // |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
+
+import { GuildMember } from "discord.js";
+
 //______________________________/
 const fs = require('fs')
 const can = require('canvas')
@@ -80,15 +83,22 @@ client.on('interactionCreate',async interaction => {
     if (interaction.commandName == 'level') {
         await interaction.deferReply()
         let data = xp.get()
-        let user = data.users.find(user => user.id == interaction.user.id)
+        let user: { xp: number; level: any; };
+        let member: GuildMember
+        if (interaction.options.get('user')) {
+        member = interaction.options.get('user').member
+        user = data.users.find((user: { id: any; }) => user.id == interaction.options.get('user').value)
+        } else {
+            member = interaction.member
+            user = data.users.find((user: { id: any; }) => user.id == interaction.user.id)
+        }
         let data2 = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
         data2.findIndex(user2 => user2 == user)
         if (user) {
-            getImage(user.xp,xp.level(user.level),interaction.user.username,interaction.user.discriminator,user.level,interaction.member.displayAvatarURL().replace('webp','png'),data2.findIndex(user2 => user2 == user)+1).then(buffer => {
+            getImage(user.xp,xp.level(user.level),member.user.username,member.user.discriminator,user.level,member.displayAvatarURL().replace('webp','png'),data2.findIndex(user2 => user2 == user)+1).then(buffer => {
                 const attachment = new MessageAttachment(buffer,"LevelCard.png")
                 interaction.editReply({files:[attachment]})
             })
-            //`**Level**: ${user.level}\n**Xp**: ${user.xp}/${xp.level(user.level)}`)
         } else {
             await interaction.editReply('**Level**: 0\n**Xp**: 0/100')
         }

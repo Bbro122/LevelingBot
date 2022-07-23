@@ -22,7 +22,14 @@
       },
       {
         "name": "level",
-        "description":"See your current level in the server."
+        "description":"See your current level in the server.",
+        "options": [
+          {
+            "type": 6,
+            "name": "user",
+            "description": "Specfify which user"
+          }
+        ]
       },
       {
         "name": "test",
