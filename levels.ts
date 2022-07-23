@@ -109,24 +109,24 @@ client.on('interactionCreate',async interaction => {
        await interaction.guild.members.fetch()
        let data = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
        let fields = []
-       if (client.users.cache.get(data[0].id)) {
-        fields.push({"name":`🥇 ${interaction.guild.members.cache.get(data[0].id).dislayName} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
+       if (interaction.guild.members.cache.get(data[0].id)) {
+        fields.push({"name":`🥇 ${interaction.guild.members.cache.get(data[0].id).displayName} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥇 [Unknown Error- ${data[0].id}]`,"value":`Xp: ${data[0].xp}`,"inline":false})
        }
-       if (client.users.cache.get(data[1].id)) {
-        fields.push({"name":`🥈 ${interaction.guild.members.cache.get(data[1].id).dislayName} (${data[1].level})`,"value":`Xp: ${data[1].xp}`,"inline":false})
+       if (interaction.guild.members.cache.get(data[1].id)) {
+        fields.push({"name":`🥈 ${interaction.guild.members.cache.get(data[1].id).displayName} (${data[1].level})`,"value":`Xp: ${data[1].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥈 [Unknown Error- ${data[1].id}]`,"value":`Xp: ${data[1].xp}`,"inline":false})
        }
-       if (client.users.cache.get(data[1].id)) {
-        fields.push({"name":`🥉 ${interaction.guild.members.cache.get(data[2].id).dislayName} (${data[2].level})`,"value":`Xp: ${data[2].xp}`,"inline":false})
+       if (interaction.guild.members.cache.get(data[1].id)) {
+        fields.push({"name":`🥉 ${interaction.guild.members.cache.get(data[2].id).displayName} (${data[2].level})`,"value":`Xp: ${data[2].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥉 [Unknown Error- ${data[2].id}]`,"value":`Xp: ${data[2].xp}`,"inline":false})
        }
        for (let i = 3; i <= 9; i++) {
             if (interaction.guild.members.cache.get(data[i].id)) {
-            fields.push({"name":`${i+1}. ${interaction.guild.members.cache.get(data[i].id).dislayName} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
+            fields.push({"name":`${i+1}. ${interaction.guild.members.cache.get(data[i].id).displayName} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
             } else {
                 fields.push({"name":`${i+1}. [Unknown Error- ${data[i].id}]`,"value":`Xp: ${data[i].xp}`,"inline":false})
             }

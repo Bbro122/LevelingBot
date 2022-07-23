@@ -182,27 +182,27 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 _a.sent();
                 data = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 fields = [];
-                if (client.users.cache.get(data[0].id)) {
-                    fields.push({ "name": "\uD83E\uDD47 ".concat(interaction.guild.members.cache.get(data[0].id).dislayName, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
+                if (interaction.guild.members.cache.get(data[0].id)) {
+                    fields.push({ "name": "\uD83E\uDD47 ".concat(interaction.guild.members.cache.get(data[0].id).displayName, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(data[0].id, "]"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
-                if (client.users.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD48 ".concat(interaction.guild.members.cache.get(data[1].id).dislayName, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
+                if (interaction.guild.members.cache.get(data[1].id)) {
+                    fields.push({ "name": "\uD83E\uDD48 ".concat(interaction.guild.members.cache.get(data[1].id).displayName, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD48 [Unknown Error- ".concat(data[1].id, "]"), "value": "Xp: ".concat(data[1].xp), "inline": false });
                 }
-                if (client.users.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD49 ".concat(interaction.guild.members.cache.get(data[2].id).dislayName, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
+                if (interaction.guild.members.cache.get(data[1].id)) {
+                    fields.push({ "name": "\uD83E\uDD49 ".concat(interaction.guild.members.cache.get(data[2].id).displayName, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD49 [Unknown Error- ".concat(data[2].id, "]"), "value": "Xp: ".concat(data[2].xp), "inline": false });
                 }
                 for (i = 3; i <= 9; i++) {
                     if (interaction.guild.members.cache.get(data[i].id)) {
-                        fields.push({ "name": "".concat(i + 1, ". ").concat(interaction.guild.members.cache.get(data[i].id).dislayName, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
+                        fields.push({ "name": "".concat(i + 1, ". ").concat(interaction.guild.members.cache.get(data[i].id).displayName, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
                     }
                     else {
                         fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
