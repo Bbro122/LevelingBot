@@ -134,24 +134,25 @@ client.on('messageCreate', function (msg) { return __awaiter(void 0, void 0, voi
     });
 }); });
 client.on('interactionCreate', function (interaction) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, user_1, member, data2, data, fields, i, embed;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var data, user_1, member, data2, data, fields, i, embed, rule, embed;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    return __generator(this, function (_m) {
+        switch (_m.label) {
             case 0:
                 console.log(interaction.commandName);
                 if (!(interaction.commandName == 'level')) return [3 /*break*/, 2];
                 return [4 /*yield*/, interaction.deferReply()];
             case 1:
-                _a.sent();
+                _m.sent();
                 data = xp.get();
                 member = void 0;
                 if (interaction.options.get('user')) {
-                    member = interaction.options.get('user').member;
-                    user_1 = data.users.find(function (user) { return user.id == interaction.options.get('user').value; });
+                    member = ((_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.member) ?
+                        user_1 = data.users.find(function (user) { var _a; return user.id == ((_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.value); }) : {};
                 }
                 else {
-                    member = interaction.member;
-                    user_1 = data.users.find(function (user) { return user.id == interaction.user.id; });
+                    member = interaction.member ?
+                        user_1 = data.users.find(function (user) { return user.id == interaction.user.id; }) : {};
                 }
                 data2 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 data2.findIndex(function (user2) { return user2 == user_1; });
@@ -170,32 +171,32 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 return [3 /*break*/, 5];
             case 2:
                 if (!(interaction.commandName == 'leaderboard')) return [3 /*break*/, 4];
-                return [4 /*yield*/, interaction.guild.members.fetch()];
+                return [4 /*yield*/, ((_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.fetch())];
             case 3:
-                _a.sent();
+                _m.sent();
                 data = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 fields = [];
-                if (interaction.guild.members.cache.get(data[0].id)) {
-                    fields.push({ "name": "\uD83E\uDD47 ".concat(interaction.guild.members.cache.get(data[0].id).displayName, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
+                if ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(data[0].id)) {
+                    fields.push({ "name": "\uD83E\uDD47 ".concat((_d = interaction.guild.members.cache.get(data[0].id)) === null || _d === void 0 ? void 0 : _d.displayName, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(data[0].id, "]"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
-                if (interaction.guild.members.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD48 ".concat(interaction.guild.members.cache.get(data[1].id).displayName, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
+                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.members.cache.get(data[1].id)) {
+                    fields.push({ "name": "\uD83E\uDD48 ".concat((_f = interaction.guild.members.cache.get(data[1].id)) === null || _f === void 0 ? void 0 : _f.displayName, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD48 [Unknown Error- ".concat(data[1].id, "]"), "value": "Xp: ".concat(data[1].xp), "inline": false });
                 }
-                if (interaction.guild.members.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD49 ".concat(interaction.guild.members.cache.get(data[2].id).displayName, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
+                if ((_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.members.cache.get(data[1].id)) {
+                    fields.push({ "name": "\uD83E\uDD49 ".concat((_h = interaction.guild.members.cache.get(data[2].id)) === null || _h === void 0 ? void 0 : _h.displayName, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
                 }
                 else {
                     fields.push({ "name": "\uD83E\uDD49 [Unknown Error- ".concat(data[2].id, "]"), "value": "Xp: ".concat(data[2].xp), "inline": false });
                 }
                 for (i = 3; i <= 9; i++) {
-                    if (interaction.guild.members.cache.get(data[i].id)) {
-                        fields.push({ "name": "".concat(i + 1, ". ").concat(interaction.guild.members.cache.get(data[i].id).displayName, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
+                    if ((_j = interaction.guild) === null || _j === void 0 ? void 0 : _j.members.cache.get(data[i].id)) {
+                        fields.push({ "name": "".concat(i + 1, ". ").concat((_k = interaction.guild.members.cache.get(data[i].id)) === null || _k === void 0 ? void 0 : _k.displayName, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
                     }
                     else {
                         fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
@@ -215,6 +216,22 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 else if (interaction.commandName == 'crash' && checkOwner(interaction)) {
                     require('./crash.js')();
                 }
+                else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
+                    require('./punisher.js').punish(interaction);
+                }
+                else if (interaction.commandName == 'rule') {
+                    console.log(interaction.options);
+                    rule = (_l = interaction.options.get('rule')) === null || _l === void 0 ? void 0 : _l.value;
+                    if (typeof rule === 'string') {
+                        embed = {
+                            "type": "rich",
+                            "title": interaction.options.getSubcommand(),
+                            "description": rule,
+                            "color": 0xed0606
+                        };
+                        interaction.reply({ embeds: [embed] });
+                    }
+                }
                 else if (interaction.commandName == 'givexp' && checkOwner(interaction)) {
                     interaction.deferReply();
                     xp.giveall(interaction);
@@ -222,11 +239,8 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 }
                 else if (interaction.commandName == 'test' && checkOwner(interaction)) {
                     require('./UnoMaster.js').startNewGame(interaction);
-                }
-                else if (unoids.includes(interaction.customId)) {
-                    require('./UnoMaster.js').command(interaction);
-                }
-                _a.label = 5;
+                } // else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
+                _m.label = 5;
             case 5: return [2 /*return*/];
         }
     });

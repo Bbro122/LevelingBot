@@ -1,0 +1,24 @@
+{"Rules":[
+    {
+        "id":"General Server",
+        "rules":[
+        "No blank, inappropriate, or offensive nicknames are allowed",
+        "All names must be pingable",
+        "Political/Controversial conversations are strictly prohibited in our server",
+        "Please try to act professional and courteous in our server",
+        "No Begging for roles",
+        "No ghost pings / Random Pings / Spam Pinging",
+        "Spamming is not allowed",
+        "No Insulting the Minsitry"
+        ]
+    },
+    {
+        "id":"General Media",
+        "rules":[
+        "All forms of media posted in our server must be appropriate",
+        "Links are not allowed to lead to pages that include inappropriate content",
+        "Links can only include invites to Wolf-Co approved servers.",
+        "No Media is allowed to contain anti-Ministry content."
+        ]
+    }
+]}
