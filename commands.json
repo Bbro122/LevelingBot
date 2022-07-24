@@ -78,5 +78,131 @@
       {
         "name": "math",
         "description":"Start a new math problem."
-      }
+      },
+      {
+        "name": "punish",
+        "description": "Punish a user",
+        "options": [
+          {
+            "type": 6,
+            "name": "user",
+            "description": "thou shall be smitten",
+            "required": true
+          },
+          {
+            "type": 3,
+            "name": "type",
+            "description": "Type of punishment",
+            "choices": [
+              {
+                "name": "warn",
+                "value": "warn"
+              },
+              {
+                "name": "timeout",
+                "value": "timeout"
+              },
+              {
+                "name": "kick",
+                "value": "kick"
+              },
+              {
+                "name": "ban",
+                "value": "ban"
+              }
+            ],
+            "required": true
+          },
+          {
+            "type": 3,
+            "name": "reason",
+            "description": "Punishment reason",
+            "required": true
+          }
+        ]
+    },
+    {
+      "name": "rule",
+      "description": "Pull up a rule",
+      "options": [
+        {
+          "type": 1,
+          "name": "general-server",
+          "description": "rules partaining to chatting in general",
+          "options": [
+            {
+              "type": 3,
+              "name": "rule",
+              "description": "The rule to quote",
+              "choices": [
+                {
+                  "name": "Nickname",
+                  "value": "No blank, inappropriate, or offensive nicknames are allowed"
+                },
+                {
+                  "name": "Pingable Names",
+                  "value": "All names must be pingable"
+                },
+                {
+                  "name": "Politcal / Contraversial",
+                  "value": "Political/Controversial conversations are strictly prohibited in our server"
+                },
+                {
+                  "name": "Professional / Courteous",
+                  "value": "Please try to act professional and courteous in our server"
+                },
+                {
+                  "name": "Role Begging",
+                  "value": "No Begging for roles"
+                },
+                {
+                  "name": "Ghost | Random | Spam pings",
+                  "value": "No ghost pings / Random Pings / Spam Pinging"
+                },
+                {
+                  "name": "Spamming",
+                  "value": "Spamming is not allowed"
+                },
+                {
+                  "name": "Ministry",
+                  "value": "No Insulting the Minsitry"
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "general-media",
+          "description": "rules partaining to media ( links | images | videos )",
+          "options": [
+            {
+              "type": 3,
+              "name": "rule",
+              "description": "The rule to quote",
+              "choices": [
+                {
+                  "name": "Link Appropiate",
+                  "value": "Links are not allowed to lead to pages that include inappropriate content"
+                },
+                {
+                  "name": "Appropiate Media",
+                  "value": "All forms of media posted in our server must be appropriate"
+                },
+                {
+                  "name": "invite-links",
+                  "value": "Links can only include invites to Wolf-Co approved servers."
+                },
+                {
+                  "name": "anti-ministry",
+                  "value": "No Media is allowed to contain anti-Ministry content."
+                }
+              ],
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
 ]

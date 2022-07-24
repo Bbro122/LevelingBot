@@ -3,7 +3,7 @@
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
 //______________________________/
-import { CommandInteraction, GuildMember } from "discord.js";
+import { CommandInteraction, Guild, GuildMember, MessageEmbed } from "discord.js";
 const can = require('canvas')
 const { Client, Intents } = require('discord.js');
 const { MessageAttachment } = require('discord.js');
@@ -11,6 +11,8 @@ const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_M
 let xp = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 import { assert } from 'console';
+import { APIActionRowComponent, APIEmbedField, APIGuildMember, APIInteractionDataResolvedGuildMember, ApplicationCommandInteractionDataOptionSubCommand } from "discord-api-types";
+import { strikethrough } from "@discordjs/builders";
 const unoids = ["join","start","cancel"]
 type Field = {
     "name":String,
@@ -79,22 +81,22 @@ client.on('messageCreate',async msg => {
 }
 }
 })
-client.on('interactionCreate',async interaction => {
+client.on('interactionCreate',async (interaction: CommandInteraction) => {
     console.log(interaction.commandName)
     if (interaction.commandName == 'level') {
         await interaction.deferReply()
         let data = xp.get()
-        let user: { xp: number; level: any; };
+        let user: { xp: number; level: any; }|undefined;
         let member: GuildMember
         if (interaction.options.get('user')) {
-        member = interaction.options.get('user').member
-        user = data.users.find((user: { id: any; }) => user.id == interaction.options.get('user').value)
+        member = interaction.options.get('user')?.member?
+        user = data.users.find((user: { id: string; }) => user.id == interaction.options.get('user')?.value):{}
         } else {
-            member = interaction.member
-            user = data.users.find((user: { id: any; }) => user.id == interaction.user.id)
+            member = interaction.member?
+            user = data.users.find((user: { id: string; }) => user.id == interaction.user.id):{}
         }
         let data2 = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
-        data2.findIndex(user2 => user2 == user)
+        data2.findIndex((user2: { xp: number; level: any; } | undefined) => user2 == user)
         if (user) {
             getImage(user.xp,xp.level(user.level),member.user.username,member.user.discriminator,user.level,member.displayAvatarURL().replace('webp','png'),data2.findIndex(user2 => user2 == user)+1).then(buffer => {
                 const attachment = new MessageAttachment(buffer,"LevelCard.png")
@@ -107,27 +109,27 @@ client.on('interactionCreate',async interaction => {
             })
         }
     } else if (interaction.commandName == 'leaderboard') {
-       await interaction.guild.members.fetch()
+       await interaction.guild?.members.fetch()
        let data = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
-       let fields:Field[]=[]
-       if (interaction.guild.members.cache.get(data[0].id)) {
-        fields.push({"name":`🥇 ${interaction.guild.members.cache.get(data[0].id).displayName} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
+       let fields:APIEmbedField[]=[]
+       if (interaction.guild?.members.cache.get(data[0].id)) {
+        fields.push({"name":`🥇 ${interaction.guild.members.cache.get(data[0].id)?.displayName} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥇 [Unknown Error- ${data[0].id}]`,"value":`Xp: ${data[0].xp}`,"inline":false})
        }
-       if (interaction.guild.members.cache.get(data[1].id)) {
-        fields.push({"name":`🥈 ${interaction.guild.members.cache.get(data[1].id).displayName} (${data[1].level})`,"value":`Xp: ${data[1].xp}`,"inline":false})
+       if (interaction.guild?.members.cache.get(data[1].id)) {
+        fields.push({"name":`🥈 ${interaction.guild.members.cache.get(data[1].id)?.displayName} (${data[1].level})`,"value":`Xp: ${data[1].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥈 [Unknown Error- ${data[1].id}]`,"value":`Xp: ${data[1].xp}`,"inline":false})
        }
-       if (interaction.guild.members.cache.get(data[1].id)) {
-        fields.push({"name":`🥉 ${interaction.guild.members.cache.get(data[2].id).displayName} (${data[2].level})`,"value":`Xp: ${data[2].xp}`,"inline":false})
+       if (interaction.guild?.members.cache.get(data[1].id)) {
+        fields.push({"name":`🥉 ${interaction.guild.members.cache.get(data[2].id)?.displayName} (${data[2].level})`,"value":`Xp: ${data[2].xp}`,"inline":false})
         } else {
             fields.push({"name":`🥉 [Unknown Error- ${data[2].id}]`,"value":`Xp: ${data[2].xp}`,"inline":false})
        }
        for (let i = 3; i <= 9; i++) {
-            if (interaction.guild.members.cache.get(data[i].id)) {
-            fields.push({"name":`${i+1}. ${interaction.guild.members.cache.get(data[i].id).displayName} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
+            if (interaction.guild?.members.cache.get(data[i].id)) {
+            fields.push({"name":`${i+1}. ${interaction.guild.members.cache.get(data[i].id)?.displayName} (${data[i].level})`,"value":`Xp: ${data[i].xp}`,"inline":false})
             } else {
                 fields.push({"name":`${i+1}. [Unknown Error- ${data[i].id}]`,"value":`Xp: ${data[i].xp}`,"inline":false})
             }
@@ -141,12 +143,26 @@ client.on('interactionCreate',async interaction => {
         game.math()
     } else if (interaction.commandName == 'crash'&&checkOwner(interaction)) {
      	require('./crash.js')()
+    } else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
+        require('./punisher.js').punish(interaction)
+    } else if (interaction.commandName == 'rule') {
+        console.log(interaction.options)
+        let rule:any = interaction.options.get('rule')?.value
+        if (typeof rule === 'string') {
+        let embed = {
+            "type": "rich",
+            "title": interaction.options.getSubcommand(),
+            "description": rule,
+            "color": 0xed0606
+        };
+        interaction.reply({embeds:[embed]})
+        }
     } else if (interaction.commandName == 'givexp'&&checkOwner(interaction)) {
         interaction.deferReply()
         xp.giveall(interaction)
         interaction.editReply('All users have received 1 xp.')
     } else if (interaction.commandName == 'test'&&checkOwner(interaction)) {
         require('./UnoMaster.js').startNewGame(interaction)
-    } else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
+    }// else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
 })
 client.login(require("./config.json").token2);
