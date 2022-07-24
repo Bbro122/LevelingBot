@@ -74,5 +74,9 @@
       {
         "name": "inventory",
         "description":"view the items you currently have."
+      },
+      {
+        "name": "math",
+        "description":"Start a new math problem."
       }
 ]
