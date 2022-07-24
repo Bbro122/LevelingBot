@@ -1,8 +1,4 @@
 "use strict";
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-// |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
-// └────┐ ├──    |   |   | |──┘ |
-//  ____| |___   |   |___| |    |
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -40,17 +36,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-//______________________________/
-var fs = require('fs');
 var can = require('canvas');
-var _a = require('discord.js'), Client = _a.Client, Intents = _a.Intents, Message = _a.Message;
-var _b = require('discord.js'), MessageActionRow = _b.MessageActionRow, MessageButton = _b.MessageButton, MessageEmbed = _b.MessageEmbed, MessageAttachment = _b.MessageAttachment, WebhookClient = _b.WebhookClient;
+var _a = require('discord.js'), Client = _a.Client, Intents = _a.Intents;
+var MessageAttachment = require('discord.js').MessageAttachment;
 var client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)], fetchAllMembers: true });
-var miniTimer = {};
-var currentWord = [];
 var xp = require('./xpmanager.js');
 var game = require('./gamemanager.js');
-var assert = require('console').assert;
+var console_1 = require("console");
 var unoids = ["join", "start", "cancel"];
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
@@ -118,7 +110,8 @@ client.on('ready', function () { return __awaiter(void 0, void 0, void 0, functi
         catch (err) {
             console.log(err);
         }
-        game.selGame(client.channels.cache.get('740652127164301454'), client);
+        game.setup(client, client.channels.cache.get('740652127164301454'));
+        game.selGame();
         return [2 /*return*/];
     });
 }); });
@@ -208,13 +201,16 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                         fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
                     }
                 }
-                assert();
+                (0, console_1.assert)();
                 embed = { title: "Leaderboard", description: "", fields: fields };
                 interaction.reply({ embeds: [embed] });
                 return [3 /*break*/, 5];
             case 4:
                 if (interaction.commandName == 'scramble' && checkOwner(interaction)) {
                     game.scramble();
+                }
+                else if (interaction.commandName == 'math' && checkOwner(interaction)) {
+                    game.math();
                 }
                 else if (interaction.commandName == 'crash' && checkOwner(interaction)) {
                     require('./crash.js')();

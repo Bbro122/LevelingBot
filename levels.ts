@@ -2,27 +2,27 @@
 // |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
-
-import { GuildMember } from "discord.js";
-
 //______________________________/
-const fs = require('fs')
+import { CommandInteraction, GuildMember } from "discord.js";
 const can = require('canvas')
-const { Client, Intents, Message } = require('discord.js');
-const { MessageActionRow, MessageButton, MessageEmbed, MessageAttachment, WebhookClient } = require('discord.js');
+const { Client, Intents } = require('discord.js');
+const { MessageAttachment } = require('discord.js');
 const client = new Client({partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'],intents: [new Intents(32767)],fetchAllMembers: true}); 
-let miniTimer = {}
-let currentWord = []
 let xp = require('./xpmanager.js')
 let game = require('./gamemanager.js');
-const { assert } = require('console');
+import { assert } from 'console';
 const unoids = ["join","start","cancel"]
+type Field = {
+    "name":String,
+    "value":String
+    "inline":Boolean
+}
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
-function checkOwner(interaction) {
+function checkOwner(interaction:CommandInteraction) {
     if (interaction.user.id=='316243027423395841') {
         return true
     } else {
@@ -62,7 +62,8 @@ async function getImage(exp: number, requirement: number, username: any, number:
 //______________________________________________//
 client.on('ready',async () => {
     try{client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json'))}catch(err){console.log(err)}
-    game.selGame(client.channels.cache.get('740652127164301454'),client)
+    game.setup(client,client.channels.cache.get('740652127164301454'))
+    game.selGame()
 })
 client.on('messageCreate',async msg => {
     if (msg.guild.id == '632995494305464331') {
@@ -108,7 +109,7 @@ client.on('interactionCreate',async interaction => {
     } else if (interaction.commandName == 'leaderboard') {
        await interaction.guild.members.fetch()
        let data = xp.get().users.sort((a,b)=>{return b.xp - a.xp})
-       let fields = []
+       let fields:Field[]=[]
        if (interaction.guild.members.cache.get(data[0].id)) {
         fields.push({"name":`🥇 ${interaction.guild.members.cache.get(data[0].id).displayName} (${data[0].level})`,"value":`Xp: ${data[0].xp}`,"inline":false})
         } else {
@@ -136,6 +137,8 @@ client.on('interactionCreate',async interaction => {
        interaction.reply({embeds:[embed]})
     } else if (interaction.commandName == 'scramble'&&checkOwner(interaction)) {
         game.scramble()
+    }else if (interaction.commandName == 'math'&&checkOwner(interaction)) {
+        game.math()
     } else if (interaction.commandName == 'crash'&&checkOwner(interaction)) {
      	require('./crash.js')()
     } else if (interaction.commandName == 'givexp'&&checkOwner(interaction)) {
