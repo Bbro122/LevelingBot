@@ -36,20 +36,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-// |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
-// └────┐ ├──    |   |   | |──┘ |
-//  ____| |___   |   |___| |    |
-//______________________________/
-var typecheck_1 = require("./typecheck");
-var discord_js_1 = require("discord.js");
 var can = require('canvas');
 var _a = require('discord.js'), Client = _a.Client, Intents = _a.Intents;
 var MessageAttachment = require('discord.js').MessageAttachment;
 var client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)], fetchAllMembers: true });
 var xp = require('./xpmanager.js');
 var game = require('./gamemanager.js');
-var config = require("./config.json");
+var console_1 = require("console");
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
@@ -60,7 +53,7 @@ function checkOwner(interaction) {
         return true;
     }
     else {
-        interaction.reply("This command is reserved for owner usage only.");
+        interaction.reply("Unpermitted Access- This command is only usable by the regretful one.");
         return false;
     }
 }
@@ -111,49 +104,28 @@ function getImage(exp, requirement, username, number, level, imagelink, rank) {
 client.on('ready', function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         try {
-            client.guilds.cache.get(config.mainserver).commands.set(require('./commands.json'));
+            client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json'));
         }
         catch (err) {
             console.log(err);
         }
-        game.setup(client, client.channels.cache.get(config.gamechannel));
-        if (config.game) {
-            game.selGame();
-        }
+        game.setup(client, client.channels.cache.get('740652127164301454'));
+        game.selGame();
         return [2 /*return*/];
     });
 }); });
 client.on('messageCreate', function (msg) { return __awaiter(void 0, void 0, void 0, function () {
-    var args, id;
-    var _a;
-    return __generator(this, function (_b) {
-        if (((_a = msg.guild) === null || _a === void 0 ? void 0 : _a.id) == config.mainserver) {
+    return __generator(this, function (_a) {
+        if (msg.guild.id == '632995494305464331') {
             if (msg.author.bot == false) {
                 if (msg.content.length > 5) {
                     xp.give(msg, 15 + Math.floor(Math.random() * 10), true, client);
                 }
-                if (msg.channel.id == config.gamechannel) {
+                if (msg.channel.id == '740652127164301454') {
                     game.checkWord(msg);
                 }
-                else if (msg.channel.id == config.countchannel) {
+                else if (msg.channel.id == '840394626220687360') {
                     require('./counting.js')(client, msg);
-                }
-            }
-            else if (msg.author.id == client.user.id && msg.channel.id == '1001697908636270602' && msg.content.startsWith('givexp')) {
-                args = msg.content.split(' ').splice(0, 1);
-                id = args[0];
-                if (id !== 'null') {
-                    if (args[1] == 'chat') {
-                        xp.give(msg, 0.5, false, client);
-                        msg.channel.send('giving 0.5 xp');
-                    }
-                    else if (args[1] == 'login') {
-                        xp.give(msg, 15 + Math.floor(Math.random() * 10), true, client);
-                        msg.channel.send('giving 15-25 xp');
-                    }
-                }
-                else {
-                    msg.channel.send('id is null');
                 }
             }
         }
@@ -162,46 +134,45 @@ client.on('messageCreate', function (msg) { return __awaiter(void 0, void 0, voi
 }); });
 client.on('interactionCreate', function (interaction) { return __awaiter(void 0, void 0, void 0, function () {
     var data, user_1, member, data2, data, fields, i, embed, rule, embed;
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
-    return __generator(this, function (_r) {
-        switch (_r.label) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    return __generator(this, function (_m) {
+        switch (_m.label) {
             case 0:
-                if (!interaction.isCommand()) return [3 /*break*/, 18];
+                console.log(interaction.commandName);
                 if (!(interaction.commandName == 'level')) return [3 /*break*/, 2];
                 return [4 /*yield*/, interaction.deferReply()];
             case 1:
-                _r.sent();
+                _m.sent();
                 data = xp.get();
-                member = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.member;
-                if (member instanceof discord_js_1.GuildMember) {
+                member = void 0;
+                if (interaction.options.get('user')) {
                     user_1 = data.users.find(function (user) { var _a; return user.id == ((_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.value); });
+                    member = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.member;
                 }
                 else {
-                    member = interaction.member;
-                    user_1 = data.users.find(function (user) { return user.id == interaction.user.id; });
+                    member = interaction.member ?
+                        user_1 = data.users.find(function (user) { return user.id == interaction.user.id; }) : {};
                 }
-                if (member instanceof discord_js_1.GuildMember) {
-                    data2 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
-                    data2.findIndex(function (user2) { return user2 == user_1; });
-                    if (user_1) {
-                        getImage(user_1.xp, xp.level(user_1.level), member.user.username, member.user.discriminator, user_1.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
-                            var attachment = new MessageAttachment(buffer, "LevelCard.png");
-                            interaction.editReply({ files: [attachment] });
-                        });
-                    }
-                    else {
-                        getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
-                            var attachment = new MessageAttachment(buffer, "LevelCard.png");
-                            interaction.editReply({ files: [attachment] });
-                        });
-                    }
+                data2 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
+                data2.findIndex(function (user2) { return user2 == user_1; });
+                if (user_1) {
+                    getImage(user_1.xp, xp.level(user_1.level), member.user.username, member.user.discriminator, user_1.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
+                        var attachment = new MessageAttachment(buffer, "LevelCard.png");
+                        interaction.editReply({ files: [attachment] });
+                    });
                 }
-                return [3 /*break*/, 17];
+                else {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(function (user2) { return user2 == user_1; }) + 1).then(function (buffer) {
+                        var attachment = new MessageAttachment(buffer, "LevelCard.png");
+                        interaction.editReply({ files: [attachment] });
+                    });
+                }
+                return [3 /*break*/, 5];
             case 2:
                 if (!(interaction.commandName == 'leaderboard')) return [3 /*break*/, 4];
                 return [4 /*yield*/, ((_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.fetch())];
             case 3:
-                _r.sent();
+                _m.sent();
                 data = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 fields = [];
                 if ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(data[0].id)) {
@@ -230,66 +201,47 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                         fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
                     }
                 }
+                (0, console_1.assert)();
                 embed = { title: "Leaderboard", description: "", fields: fields };
                 interaction.reply({ embeds: [embed] });
-                return [3 /*break*/, 17];
+                return [3 /*break*/, 5];
             case 4:
-                if (!(interaction.commandName == 'scramble' && checkOwner(interaction))) return [3 /*break*/, 5];
-                game.scramble();
-                return [3 /*break*/, 17];
-            case 5:
-                if (!(interaction.commandName == 'math' && checkOwner(interaction))) return [3 /*break*/, 6];
-                game.math();
-                return [3 /*break*/, 17];
-            case 6:
-                if (!(interaction.commandName == 'crash' && checkOwner(interaction))) return [3 /*break*/, 7];
-                require('./crash.js')();
-                return [3 /*break*/, 17];
-            case 7:
-                if (!(interaction.commandName == 'punish' && checkOwner(interaction))) return [3 /*break*/, 8];
-                require('./punisher.js').punish(interaction);
-                return [3 /*break*/, 17];
-            case 8:
-                if (!(interaction.commandName == 'rule')) return [3 /*break*/, 10];
-                rule = (0, typecheck_1.strCheck)((_l = interaction.options.get('rule')) === null || _l === void 0 ? void 0 : _l.value);
-                embed = new discord_js_1.MessageEmbed()
-                    .setTitle(interaction.options.getSubcommand())
-                    .setDescription(rule);
-                return [4 /*yield*/, interaction.reply({ embeds: [embed] })];
-            case 9:
-                _r.sent();
-                return [3 /*break*/, 17];
-            case 10:
-                if (!(interaction.commandName == 'givexp' && checkOwner(interaction))) return [3 /*break*/, 16];
-                return [4 /*yield*/, interaction.deferReply()];
-            case 11:
-                _r.sent();
-                if (!interaction.options.get('user')) return [3 /*break*/, 13];
-                xp.give({ author: interaction.user, channel: interaction.channel }, (_m = interaction.options.get('amount')) === null || _m === void 0 ? void 0 : _m.value, false, client);
-                return [4 /*yield*/, interaction.editReply("<@".concat((_o = interaction.options.get('user')) === null || _o === void 0 ? void 0 : _o.value, "> has received ").concat((_p = interaction.options.get('amount')) === null || _p === void 0 ? void 0 : _p.value, " xp."))];
-            case 12:
-                _r.sent();
-                return [3 /*break*/, 15];
-            case 13:
-                xp.giveall(interaction);
-                return [4 /*yield*/, interaction.editReply("All users have received ".concat((_q = interaction.options.get('amount')) === null || _q === void 0 ? void 0 : _q.value, " xp."))];
-            case 14:
-                _r.sent();
-                _r.label = 15;
-            case 15: return [3 /*break*/, 17];
-            case 16:
-                if (interaction.commandName == 'test' && checkOwner(interaction)) {
+                if (interaction.commandName == 'scramble' && checkOwner(interaction)) {
+                    game.scramble();
+                }
+                else if (interaction.commandName == 'math' && checkOwner(interaction)) {
+                    game.math();
+                }
+                else if (interaction.commandName == 'crash' && checkOwner(interaction)) {
+                    require('./crash.js')();
+                }
+                else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
+                    require('./punisher.js').punish(interaction);
+                }
+                else if (interaction.commandName == 'rule') {
+                    console.log(interaction.options);
+                    rule = (_l = interaction.options.get('rule')) === null || _l === void 0 ? void 0 : _l.value;
+                    if (typeof rule === 'string') {
+                        embed = {
+                            "type": "rich",
+                            "title": interaction.options.getSubcommand(),
+                            "description": rule,
+                            "color": 0xed0606
+                        };
+                        interaction.reply({ embeds: [embed] });
+                    }
+                }
+                else if (interaction.commandName == 'givexp' && checkOwner(interaction)) {
+                    interaction.deferReply();
+                    xp.giveall(interaction);
+                    interaction.editReply('All users have received 1 xp.');
+                }
+                else if (interaction.commandName == 'test' && checkOwner(interaction)) {
                     require('./UnoMaster.js').startNewGame(interaction);
                 } // else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
-                _r.label = 17;
-            case 17: return [3 /*break*/, 19];
-            case 18:
-                if (interaction.isButton()) {
-                    require('./punisher').punishConfirm(interaction);
-                }
-                _r.label = 19;
-            case 19: return [2 /*return*/];
+                _m.label = 5;
+            case 5: return [2 /*return*/];
         }
     });
 }); });
-client.login(config.token);
+client.login(require("./config.json").token2);

@@ -8,9 +8,9 @@ exports.give = function giveXP(msg,amount,check,client) {
             user.xp = user.xp + amount
             if (user.xp >= exports.level(user.level)) {
                 user.level++
-                if (msg.channel.id=='840394626220687360') {
+                if (msg.channel.id==require('./config.json').countchannel) {
                     if (client) {
-                    client.channels.cache.get('740652127164301454').send(`<@${msg.author.id}> **Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`)
+                    client.channels.cache.get(require('./config.json').gamechannel).send(`<@${msg.author.id}> **Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`)
                     }
                 } else {
                 msg.channel.send(`**Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`)
