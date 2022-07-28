@@ -41,7 +41,11 @@ exports.math = function math() {
               "text": `You have 2 hours to solve for 50 xp`
             }
         }
+        if (channel) {
         channel.send({embeds:[embed]})
+        } else {
+            client.channels.cache.get(require('./config.json').gamechannel)
+        }
     }
 }
 exports.scramble = function scramble() {
@@ -71,7 +75,11 @@ exports.scramble = function scramble() {
           "text": `You have 2 hours to unscramble for 50 xp`
         }
     }
-    channel.send({embeds:[embed]})
+    if (channel) {
+        channel.send({embeds:[embed]})
+        } else {
+            client.channels.cache.get(require('./config.json').gamechannel)
+        }
     }
 }
 exports.checkWord = function (msg:Message) {
