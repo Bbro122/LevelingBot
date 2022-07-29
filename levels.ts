@@ -5,7 +5,7 @@
 //______________________________/
 import { strCheck , numCheck , boolCheck } from "./typecheck"
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed } from "discord.js";
+import { CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions } from "discord.js";
 const can = require('canvas')
 const { Client, Intents } = require('discord.js');
 const { MessageAttachment } = require('discord.js');
@@ -20,11 +20,15 @@ type UserProfile = { "id": string, "xp": number, "level": number }
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
 function checkOwner(interaction: CommandInteraction) {
-    if (interaction.user.id == '316243027423395841') {
+    //if (interaction.user.id == '316243027423395841') {
+    let permissions = interaction.member?.permissions
+    if (permissions instanceof Permissions) {
+    if (permissions.has('ADMINISTRATOR')) {
         return true
     } else {
-        interaction.reply("This command is reserved for owner usage only.")
+        interaction.reply("This command is reserved for Ministry usage only.")
         return false
+    }
     }
 }
 async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any) {
@@ -70,7 +74,7 @@ client.on('messageCreate', async (msg: Message) => {
             if (msg.content.length > 5) {
                 xp.give(msg, 15 + Math.floor(Math.random() * 10), true, client)
             }
-            if (msg.channel.id == config.gamechannel) {
+            if (msg.channel.id == config.gamechannel&&msg.content.length>1) {
                 game.checkWord(msg)
             } else if (msg.channel.id == config.countchannel) {
                 require('./counting.js')(client, msg)
@@ -124,6 +128,13 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             await interaction.guild?.members.fetch()
             let data = xp.get().users.sort((a, b) => { return b.xp - a.xp })
             let fields: APIEmbedField[] = []
+            function get(user:any) {
+                if (interaction.guild?.members.cache.get(user)) {
+                    fields.push({ "name": `🥇 ${interaction.guild.members.cache.get(user)?.displayName} (${user.level})`, "value": `Xp: ${data[0].xp}`, "inline": false })
+                } else {
+                    fields.push({ "name": `🥇 [Unknown Error- ${user.id}]`, "value": `Xp: ${user.xp}`, "inline": false })
+                }
+            }
             if (interaction.guild?.members.cache.get(data[0].id)) {
                 fields.push({ "name": `🥇 ${interaction.guild.members.cache.get(data[0].id)?.displayName} (${data[0].level})`, "value": `Xp: ${data[0].xp}`, "inline": false })
             } else {

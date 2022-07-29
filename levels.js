@@ -56,12 +56,17 @@ var config = require("./config.json");
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
 function checkOwner(interaction) {
-    if (interaction.user.id == '316243027423395841') {
-        return true;
-    }
-    else {
-        interaction.reply("This command is reserved for owner usage only.");
-        return false;
+    var _a;
+    //if (interaction.user.id == '316243027423395841') {
+    var permissions = (_a = interaction.member) === null || _a === void 0 ? void 0 : _a.permissions;
+    if (permissions instanceof discord_js_1.Permissions) {
+        if (permissions.has('ADMINISTRATOR')) {
+            return true;
+        }
+        else {
+            interaction.reply("This command is reserved for Ministry usage only.");
+            return false;
+        }
     }
 }
 function getImage(exp, requirement, username, number, level, imagelink, rank) {
@@ -132,7 +137,7 @@ client.on('messageCreate', function (msg) { return __awaiter(void 0, void 0, voi
                 if (msg.content.length > 5) {
                     xp.give(msg, 15 + Math.floor(Math.random() * 10), true, client);
                 }
-                if (msg.channel.id == config.gamechannel) {
+                if (msg.channel.id == config.gamechannel && msg.content.length > 1) {
                     game.checkWord(msg);
                 }
                 else if (msg.channel.id == config.countchannel) {
@@ -161,7 +166,16 @@ client.on('messageCreate', function (msg) { return __awaiter(void 0, void 0, voi
     });
 }); });
 client.on('interactionCreate', function (interaction) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, user_1, member, data2, data, fields, i, embed, rule, embed;
+    function get(user) {
+        var _a, _b;
+        if ((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.members.cache.get(user)) {
+            fields_1.push({ "name": "\uD83E\uDD47 ".concat((_b = interaction.guild.members.cache.get(user)) === null || _b === void 0 ? void 0 : _b.displayName, " (").concat(user.level, ")"), "value": "Xp: ".concat(data_1[0].xp), "inline": false });
+        }
+        else {
+            fields_1.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(user.id, "]"), "value": "Xp: ".concat(user.xp), "inline": false });
+        }
+    }
+    var data, user_1, member, data2, data_1, fields_1, i, embed, rule, embed;
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     return __generator(this, function (_r) {
         switch (_r.label) {
@@ -202,35 +216,35 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 return [4 /*yield*/, ((_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.fetch())];
             case 3:
                 _r.sent();
-                data = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
-                fields = [];
-                if ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(data[0].id)) {
-                    fields.push({ "name": "\uD83E\uDD47 ".concat((_d = interaction.guild.members.cache.get(data[0].id)) === null || _d === void 0 ? void 0 : _d.displayName, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
+                data_1 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
+                fields_1 = [];
+                if ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(data_1[0].id)) {
+                    fields_1.push({ "name": "\uD83E\uDD47 ".concat((_d = interaction.guild.members.cache.get(data_1[0].id)) === null || _d === void 0 ? void 0 : _d.displayName, " (").concat(data_1[0].level, ")"), "value": "Xp: ".concat(data_1[0].xp), "inline": false });
                 }
                 else {
-                    fields.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(data[0].id, "]"), "value": "Xp: ".concat(data[0].xp), "inline": false });
+                    fields_1.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(data_1[0].id, "]"), "value": "Xp: ".concat(data_1[0].xp), "inline": false });
                 }
-                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.members.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD48 ".concat((_f = interaction.guild.members.cache.get(data[1].id)) === null || _f === void 0 ? void 0 : _f.displayName, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
-                }
-                else {
-                    fields.push({ "name": "\uD83E\uDD48 [Unknown Error- ".concat(data[1].id, "]"), "value": "Xp: ".concat(data[1].xp), "inline": false });
-                }
-                if ((_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.members.cache.get(data[1].id)) {
-                    fields.push({ "name": "\uD83E\uDD49 ".concat((_h = interaction.guild.members.cache.get(data[2].id)) === null || _h === void 0 ? void 0 : _h.displayName, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
+                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.members.cache.get(data_1[1].id)) {
+                    fields_1.push({ "name": "\uD83E\uDD48 ".concat((_f = interaction.guild.members.cache.get(data_1[1].id)) === null || _f === void 0 ? void 0 : _f.displayName, " (").concat(data_1[1].level, ")"), "value": "Xp: ".concat(data_1[1].xp), "inline": false });
                 }
                 else {
-                    fields.push({ "name": "\uD83E\uDD49 [Unknown Error- ".concat(data[2].id, "]"), "value": "Xp: ".concat(data[2].xp), "inline": false });
+                    fields_1.push({ "name": "\uD83E\uDD48 [Unknown Error- ".concat(data_1[1].id, "]"), "value": "Xp: ".concat(data_1[1].xp), "inline": false });
+                }
+                if ((_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.members.cache.get(data_1[1].id)) {
+                    fields_1.push({ "name": "\uD83E\uDD49 ".concat((_h = interaction.guild.members.cache.get(data_1[2].id)) === null || _h === void 0 ? void 0 : _h.displayName, " (").concat(data_1[2].level, ")"), "value": "Xp: ".concat(data_1[2].xp), "inline": false });
+                }
+                else {
+                    fields_1.push({ "name": "\uD83E\uDD49 [Unknown Error- ".concat(data_1[2].id, "]"), "value": "Xp: ".concat(data_1[2].xp), "inline": false });
                 }
                 for (i = 3; i <= 9; i++) {
-                    if ((_j = interaction.guild) === null || _j === void 0 ? void 0 : _j.members.cache.get(data[i].id)) {
-                        fields.push({ "name": "".concat(i + 1, ". ").concat((_k = interaction.guild.members.cache.get(data[i].id)) === null || _k === void 0 ? void 0 : _k.displayName, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
+                    if ((_j = interaction.guild) === null || _j === void 0 ? void 0 : _j.members.cache.get(data_1[i].id)) {
+                        fields_1.push({ "name": "".concat(i + 1, ". ").concat((_k = interaction.guild.members.cache.get(data_1[i].id)) === null || _k === void 0 ? void 0 : _k.displayName, " (").concat(data_1[i].level, ")"), "value": "Xp: ".concat(data_1[i].xp), "inline": false });
                     }
                     else {
-                        fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
+                        fields_1.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data_1[i].id, "]"), "value": "Xp: ".concat(data_1[i].xp), "inline": false });
                     }
                 }
-                embed = { title: "Leaderboard", description: "", fields: fields };
+                embed = { title: "Leaderboard", description: "", fields: fields_1 };
                 interaction.reply({ embeds: [embed] });
                 return [3 /*break*/, 17];
             case 4:
