@@ -1,3 +1,6 @@
 /config.json
 /cards
 /userdata.json
+/node_modules
+/package-lock.json
+punishments.json
