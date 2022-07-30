@@ -74,7 +74,7 @@ client.on('messageCreate', async (msg: Message) => {
             if (msg.content.length > 5) {
                 xp.give(msg, 15 + Math.floor(Math.random() * 10), true, client)
             }
-            if (msg.channel.id == config.gamechannel&&msg.content.length>1) {
+            if (msg.channel.id == config.gamechannel&&msg.content.length>=1) {
                 game.checkWord(msg)
             } else if (msg.channel.id == config.countchannel) {
                 require('./counting.js')(client, msg)
