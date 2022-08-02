@@ -108,7 +108,7 @@ exports.getpunishments = function punish(user: User,interaction: CommandInteract
             warnings.push(warn)
         }
     }
-    let embed = new Embed()
+    let embed = new MessageEmbed()
         .setTitle(desc)
     warnings.forEach(warning => {
         let date = new Date(warning.epoch)

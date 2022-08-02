@@ -1,6 +1,5 @@
 "use strict";
 exports.__esModule = true;
-var builders_1 = require("@discordjs/builders");
 var discord_js_1 = require("discord.js");
 var _a = require('discord.js'), MessageActionRow = _a.MessageActionRow, MessageButton = _a.MessageButton, MessageEmbed = _a.MessageEmbed;
 var fs = require('fs');
@@ -114,7 +113,7 @@ exports.getpunishments = function punish(user, interaction) {
             warnings.push(warn);
         }
     }
-    var embed = new builders_1.Embed()
+    var embed = new MessageEmbed()
         .setTitle(desc);
     warnings.forEach(function (warning) {
         var date = new Date(warning.epoch);
