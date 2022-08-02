@@ -118,11 +118,10 @@ exports.getpunishments = function punish(user, interaction) {
     warnings.forEach(function (warning) {
         var date = new Date(warning.epoch);
         var user = interaction.client.users.cache.get(warning.id);
-        embed.addField({
-            "name": "USER: ".concat(user ? user : warning.id, " | PID: ").concat(warning.pid),
-            "value": "DATE: ".concat(date.toLocaleDateString(), " | REASON: ").concat(warning.reason),
-            "inline": false
-        });
+        embed.addField("USER: ".concat(user ? user.username : warning.id, " | PID: ").concat(warning.pid), "DATE: ".concat(date.toLocaleDateString(), " | REASON: ").concat(warning.reason), false);
     });
+    if (embed.fields.length == 0) {
+        embed.setDescription('No punishments were found.');
+    }
     interaction.reply({ embeds: [embed] });
 };

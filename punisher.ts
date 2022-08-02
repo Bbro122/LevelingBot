@@ -8,6 +8,8 @@ type Warning = {
     "id": string,
     "epoch": number,
     "reason": string
+    "type": String
+    "mod": String
 }
 let PendingPunishments: { id: string, data: CommandInteraction["options"] }[] = []
 exports.write = function write(file) {
@@ -61,7 +63,7 @@ exports.punishConfirm = function punish(interaction: ButtonInteraction) {
                     .addFields([{ name: `${pmember.displayName}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
                     .setTimestamp(Date.now())
                     .setFooter(`Case Mod: ${member.displayName}`)
-                let log = { "pid": data.warnings.length, "id": acase.data.get('user')?.user?.id, "epoch": date.getTime(), "reason": acase.data.get('reason')?.value, "type": type, "time": undefined }
+                let log = { "pid": data.warnings.length, "id": acase.data.get('user')?.user?.id, "epoch": date.getTime(), "reason": acase.data.get('reason')?.value, "type": type, "mod": interaction.user.id }
                 console.log('ModCheck')
                 if (pmember.moderatable) {
                     console.log('Moddable')
@@ -113,11 +115,10 @@ exports.getpunishments = function punish(user: User,interaction: CommandInteract
     warnings.forEach(warning => {
         let date = new Date(warning.epoch)
         let user = interaction.client.users.cache.get(warning.id)
-        embed.addField({
-            "name": `USER: ${user?user:warning.id} | PID: ${warning.pid}`,
-            "value": `DATE: ${date.toLocaleDateString()} | REASON: ${warning.reason}`,
-            "inline": false
-        })
+        embed.addField(`USER: ${user?user.username:warning.id} | PID: ${warning.pid} | TYPE: ${warning.type}`,`DATE: ${date.toLocaleDateString()} | REASON: ${warning.reason}`,false)
     })
+    if (embed.fields.length == 0) {
+        embed.setDescription('No punishments were found.')
+    }
     interaction.reply({embeds:[embed]})
 }

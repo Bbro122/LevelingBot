@@ -265,7 +265,7 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 return [3 /*break*/, 18];
             case 8:
                 if (!(interaction.commandName == 'punishments' && checkOwner(interaction))) return [3 /*break*/, 9];
-                require('./punisher.js').getpunishments((_l = interaction.options.get('user')) === null || _l === void 0 ? void 0 : _l.value, interaction);
+                require('./punisher.js').getpunishments((_l = interaction.options.get('user')) === null || _l === void 0 ? void 0 : _l.user, interaction);
                 return [3 /*break*/, 18];
             case 9:
                 if (!(interaction.commandName == 'rule')) return [3 /*break*/, 11];
