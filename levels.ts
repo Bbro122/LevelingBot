@@ -168,7 +168,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
         } else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
             require('./punisher.js').punish(interaction)
         } else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
-            require('./punisher.js').punishments(interaction.options.get('user')?.value,interaction)
+            require('./punisher.js').getpunishments(interaction.options.get('user')?.value,interaction)
         } else if (interaction.commandName == 'rule') {
             let rule: string = strCheck(interaction.options.get('rule')?.value)
                 let embed = new MessageEmbed()
