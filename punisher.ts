@@ -1,8 +1,14 @@
-import { ButtonInteraction, CommandInteraction, GuildMember } from "discord.js"
+import { Embed } from "@discordjs/builders";
+import { ButtonInteraction, Client, CommandInteraction, GuildMember, Interaction, User } from "discord.js"
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const fs = require('fs')
-import { strCheck , numCheck , boolCheck } from "./typecheck"
-
+import { strCheck, numCheck, boolCheck } from "./typecheck"
+type Warning = {
+    "pid": number,
+    "id": string,
+    "epoch": number,
+    "reason": string
+}
 let PendingPunishments: { id: string, data: CommandInteraction["options"] }[] = []
 exports.write = function write(file) {
     fs.writeFileSync('./punishments.json', JSON.stringify(file))
@@ -19,7 +25,7 @@ exports.punish = function punish(interaction: CommandInteraction) {
         let embed = new MessageEmbed()
             .setTitle(interaction.options.getSubcommand())
             .setDescription(interaction.options.get('reason')?.value)
-            .addFields([{name:`${user.displayName} | ${user.id}`,value:`PID: ${require('./punishments.json').warnings.length}`}])
+            .addFields([{ name: `${user.displayName} | ${user.id}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
             .setTimestamp(Date.now())
             .setFooter(`Case Mod: ${mod.displayName}`)
         PendingPunishments.push({ id: mod.id, data: interaction.options })
@@ -66,7 +72,7 @@ exports.punishConfirm = function punish(interaction: ButtonInteraction) {
                     } else if (type === 'kick') {
                         pmember.kick(strCheck(acase?.data.get('reason')?.value))
                     }
-                    interaction.reply({ embeds: [embed] , content: `<@${pmember.id}> A punishment has been issued.` })
+                    interaction.reply({ embeds: [embed], content: `<@${pmember.id}> A punishment has been issued.` })
                     data.warnings.push(log)
                     exports.write(data)
                 } else {
@@ -82,4 +88,36 @@ exports.punishConfirm = function punish(interaction: ButtonInteraction) {
     } else {
         interaction.reply({ content: 'type error 0', ephemeral: true })
     }
+}
+exports.getpunishments = function punish(user: User,interaction: CommandInteraction) {
+    let punishments: Warning[] = exports.get().warnings
+    let warnings: Warning[] = []
+    let desc = 'Warnings'
+    punishments.sort(function(a,b){return b.pid-a.pid})
+    if (user) {
+        desc = `Warnings for ${user.username}`
+        for (let i = 0; i < (punishments.length < 25?punishments.length:25); i++) {
+            const warn = punishments[i];
+            if (warn.id == user.id && punishments.findIndex(warning => warning == warn) < 25) {
+                warnings.push(warn)
+            }
+        }
+    } else {
+        for (let i = 0; i < (punishments.length < 25?punishments.length:25); i++) {
+            const warn = punishments[i];
+            warnings.push(warn)
+        }
+    }
+    let embed = new Embed()
+        .setTitle(desc)
+    warnings.forEach(warning => {
+        let date = new Date(warning.epoch)
+        let user = interaction.client.users.cache.get(warning.id)
+        embed.addField({
+            "name": `USER: ${user?user:warning.id} | PID: ${warning.pid}`,
+            "value": `DATE: ${date.toLocaleDateString()} | REASON: ${warning.reason}`,
+            "inline": false
+        })
+    })
+    interaction.reply({embeds:[embed]})
 }

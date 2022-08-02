@@ -34,6 +34,17 @@
     ]
   },
   {
+    "name": "punishments",
+    "description": "View the punishments for a user.",
+    "options": [
+      {
+        "type": 6,
+        "name": "user",
+        "description": "Specfify which user"
+      }
+    ]
+  },
+  {
     "name": "test",
     "description": "TEST TEST TEST"
   },

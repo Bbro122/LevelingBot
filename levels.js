@@ -176,15 +176,15 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
         }
     }
     var data, user_1, member, data2, data_1, fields_1, i, embed, rule, embed;
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
-    return __generator(this, function (_r) {
-        switch (_r.label) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+    return __generator(this, function (_s) {
+        switch (_s.label) {
             case 0:
-                if (!interaction.isCommand()) return [3 /*break*/, 18];
+                if (!interaction.isCommand()) return [3 /*break*/, 19];
                 if (!(interaction.commandName == 'level')) return [3 /*break*/, 2];
                 return [4 /*yield*/, interaction.deferReply()];
             case 1:
-                _r.sent();
+                _s.sent();
                 data = xp.get();
                 member = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.member;
                 if (member instanceof discord_js_1.GuildMember) {
@@ -210,12 +210,12 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                         });
                     }
                 }
-                return [3 /*break*/, 17];
+                return [3 /*break*/, 18];
             case 2:
                 if (!(interaction.commandName == 'leaderboard')) return [3 /*break*/, 4];
                 return [4 /*yield*/, ((_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.fetch())];
             case 3:
-                _r.sent();
+                _s.sent();
                 data_1 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
                 fields_1 = [];
                 if ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(data_1[0].id)) {
@@ -246,63 +246,67 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 }
                 embed = { title: "Leaderboard", description: "", fields: fields_1 };
                 interaction.reply({ embeds: [embed] });
-                return [3 /*break*/, 17];
+                return [3 /*break*/, 18];
             case 4:
                 if (!(interaction.commandName == 'scramble' && checkOwner(interaction))) return [3 /*break*/, 5];
                 game.scramble();
-                return [3 /*break*/, 17];
+                return [3 /*break*/, 18];
             case 5:
                 if (!(interaction.commandName == 'math' && checkOwner(interaction))) return [3 /*break*/, 6];
                 game.math();
-                return [3 /*break*/, 17];
+                return [3 /*break*/, 18];
             case 6:
                 if (!(interaction.commandName == 'crash' && checkOwner(interaction))) return [3 /*break*/, 7];
                 require('./crash.js')();
-                return [3 /*break*/, 17];
+                return [3 /*break*/, 18];
             case 7:
                 if (!(interaction.commandName == 'punish' && checkOwner(interaction))) return [3 /*break*/, 8];
                 require('./punisher.js').punish(interaction);
-                return [3 /*break*/, 17];
+                return [3 /*break*/, 18];
             case 8:
-                if (!(interaction.commandName == 'rule')) return [3 /*break*/, 10];
-                rule = (0, typecheck_1.strCheck)((_l = interaction.options.get('rule')) === null || _l === void 0 ? void 0 : _l.value);
+                if (!(interaction.commandName == 'punishments' && checkOwner(interaction))) return [3 /*break*/, 9];
+                require('./punisher.js').punishments((_l = interaction.options.get('user')) === null || _l === void 0 ? void 0 : _l.value, interaction);
+                return [3 /*break*/, 18];
+            case 9:
+                if (!(interaction.commandName == 'rule')) return [3 /*break*/, 11];
+                rule = (0, typecheck_1.strCheck)((_m = interaction.options.get('rule')) === null || _m === void 0 ? void 0 : _m.value);
                 embed = new discord_js_1.MessageEmbed()
                     .setTitle(interaction.options.getSubcommand())
                     .setDescription(rule);
                 return [4 /*yield*/, interaction.reply({ embeds: [embed] })];
-            case 9:
-                _r.sent();
-                return [3 /*break*/, 17];
             case 10:
-                if (!(interaction.commandName == 'givexp' && checkOwner(interaction))) return [3 /*break*/, 16];
-                return [4 /*yield*/, interaction.deferReply()];
+                _s.sent();
+                return [3 /*break*/, 18];
             case 11:
-                _r.sent();
-                if (!interaction.options.get('user')) return [3 /*break*/, 13];
-                xp.give({ author: interaction.user, channel: interaction.channel }, (_m = interaction.options.get('amount')) === null || _m === void 0 ? void 0 : _m.value, false, client);
-                return [4 /*yield*/, interaction.editReply("<@".concat((_o = interaction.options.get('user')) === null || _o === void 0 ? void 0 : _o.value, "> has received ").concat((_p = interaction.options.get('amount')) === null || _p === void 0 ? void 0 : _p.value, " xp."))];
+                if (!(interaction.commandName == 'givexp' && checkOwner(interaction))) return [3 /*break*/, 17];
+                return [4 /*yield*/, interaction.deferReply()];
             case 12:
-                _r.sent();
-                return [3 /*break*/, 15];
+                _s.sent();
+                if (!interaction.options.get('user')) return [3 /*break*/, 14];
+                xp.give({ author: interaction.user, channel: interaction.channel }, (_o = interaction.options.get('amount')) === null || _o === void 0 ? void 0 : _o.value, false, client);
+                return [4 /*yield*/, interaction.editReply("<@".concat((_p = interaction.options.get('user')) === null || _p === void 0 ? void 0 : _p.value, "> has received ").concat((_q = interaction.options.get('amount')) === null || _q === void 0 ? void 0 : _q.value, " xp."))];
             case 13:
-                xp.giveall(interaction);
-                return [4 /*yield*/, interaction.editReply("All users have received ".concat((_q = interaction.options.get('amount')) === null || _q === void 0 ? void 0 : _q.value, " xp."))];
+                _s.sent();
+                return [3 /*break*/, 16];
             case 14:
-                _r.sent();
-                _r.label = 15;
-            case 15: return [3 /*break*/, 17];
-            case 16:
+                xp.giveall(interaction);
+                return [4 /*yield*/, interaction.editReply("All users have received ".concat((_r = interaction.options.get('amount')) === null || _r === void 0 ? void 0 : _r.value, " xp."))];
+            case 15:
+                _s.sent();
+                _s.label = 16;
+            case 16: return [3 /*break*/, 18];
+            case 17:
                 if (interaction.commandName == 'test' && checkOwner(interaction)) {
                     require('./UnoMaster.js').startNewGame(interaction);
                 } // else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
-                _r.label = 17;
-            case 17: return [3 /*break*/, 19];
-            case 18:
+                _s.label = 18;
+            case 18: return [3 /*break*/, 20];
+            case 19:
                 if (interaction.isButton()) {
                     require('./punisher').punishConfirm(interaction);
                 }
-                _r.label = 19;
-            case 19: return [2 /*return*/];
+                _s.label = 20;
+            case 20: return [2 /*return*/];
         }
     });
 }); });

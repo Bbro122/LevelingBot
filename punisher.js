@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+var builders_1 = require("@discordjs/builders");
 var discord_js_1 = require("discord.js");
 var _a = require('discord.js'), MessageActionRow = _a.MessageActionRow, MessageButton = _a.MessageButton, MessageEmbed = _a.MessageEmbed;
 var fs = require('fs');
@@ -89,4 +90,40 @@ exports.punishConfirm = function punish(interaction) {
     else {
         interaction.reply({ content: 'type error 0', ephemeral: true });
     }
+};
+exports.getpunishments = function punish(user, interaction) {
+    var punishments = exports.get().warnings;
+    var warnings = [];
+    var desc = 'Warnings';
+    punishments.sort(function (a, b) { return b.pid - a.pid; });
+    if (user) {
+        desc = "Warnings for ".concat(user.username);
+        var _loop_1 = function (i) {
+            var warn = punishments[i];
+            if (warn.id == user.id && punishments.findIndex(function (warning) { return warning == warn; }) < 25) {
+                warnings.push(warn);
+            }
+        };
+        for (var i = 0; i < (punishments.length < 25 ? punishments.length : 25); i++) {
+            _loop_1(i);
+        }
+    }
+    else {
+        for (var i = 0; i < (punishments.length < 25 ? punishments.length : 25); i++) {
+            var warn = punishments[i];
+            warnings.push(warn);
+        }
+    }
+    var embed = new builders_1.Embed()
+        .setTitle(desc);
+    warnings.forEach(function (warning) {
+        var date = new Date(warning.epoch);
+        var user = interaction.client.users.cache.get(warning.id);
+        embed.addField({
+            "name": "USER: ".concat(user ? user : warning.id, " | PID: ").concat(warning.pid),
+            "value": "DATE: ".concat(date.toLocaleDateString(), " | REASON: ").concat(warning.reason),
+            "inline": false
+        });
+    });
+    interaction.reply({ embeds: [embed] });
 };
