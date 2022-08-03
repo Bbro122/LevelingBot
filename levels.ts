@@ -1,12 +1,12 @@
+
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 // |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
 //______________________________/
-import { strCheck, numCheck, boolCheck } from "./typecheck"
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
 import { Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel } from "discord.js";
-import { XpManager } from "./xpmanager";
+import { UserProfile, XpManager } from "./xpmanager";
 const can = require('canvas')
 const { Client, Intents } = require('discord.js');
 const { MessageAttachment } = require('discord.js');
@@ -14,14 +14,33 @@ const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_
 let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let config = require("./config.json")
-type UserProfile = { "id": string, "xp": number, "level": number }
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
+function remainingTime(milliseconds: number): string {
+    let string = ''
+    if (milliseconds > 3600000) {
+        string = `${Math.floor(milliseconds / 3600000)} hour(s) ${Math.floor((milliseconds-(Math.floor(milliseconds / 3600000)*3600000))/60000)} minute(s)`
+    } else if (milliseconds > 60000) {
+        string = `${Math.floor(milliseconds / 60000)} minute(s) ${Math.floor((milliseconds-(Math.floor(milliseconds / 60000)*60000))/1000)} seconds`
+    } else if (milliseconds > 1000) {
+        string = `${Math.floor(milliseconds / 1000)} seconds`
+    } else {
+        return `${milliseconds} milliseconds`
+    }
+    return string
+}
+function strCheck(str: any) {
+    if (typeof str == 'string') {
+        return str;
+    }
+    else {
+        return '';
+    }
+}
 function checkOwner(interaction: CommandInteraction) {
-    //if (interaction.user.id == '316243027423395841') {
     let permissions = interaction.member?.permissions
     if (permissions instanceof Permissions) {
         if (permissions.has('ADMINISTRATOR')) {
@@ -106,21 +125,21 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             let user: UserProfile | undefined
             let member: GuildMember | APIInteractionDataResolvedGuildMember | undefined | null = interaction.options.get('user')?.member
             if (member instanceof GuildMember) {
-                user = data.users.find((user: UserProfile) => user.id == interaction.options.get('user')?.value)
+                user = data.users.find(user => user.id == interaction.options.get('user')?.value)
             } else {
                 member = interaction.member!
-                user = data.users.find((user: UserProfile) => user.id == interaction.user.id)
+                user = data.users.find(user => user.id == interaction.user.id)
             }
             if (member instanceof GuildMember) {
-                let data2 = xp.get().users.sort((a: UserProfile, b: UserProfile) => { return b.xp - a.xp })
-                data2.findIndex((user2: UserProfile) => user2 == user)
+                let data2 = xp.get().users.sort((a, b) => { return b.xp - a.xp })
+                data2.findIndex(user2 => user2 == user)
                 if (user) {
-                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex((user2: UserProfile) => user2 == user) + 1).then(buffer => {
+                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
                 } else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex((user2: UserProfile) => user2 == user) + 1).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
@@ -130,13 +149,6 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             await interaction.guild?.members.fetch()
             let data = xp.get().users.sort((a, b) => { return b.xp - a.xp })
             let fields: APIEmbedField[] = []
-            function get(user: any) {
-                if (interaction.guild?.members.cache.get(user)) {
-                    fields.push({ "name": `🥇 ${interaction.guild.members.cache.get(user)?.displayName} (${user.level})`, "value": `Xp: ${data[0].xp}`, "inline": false })
-                } else {
-                    fields.push({ "name": `🥇 [Unknown Error- ${user.id}]`, "value": `Xp: ${user.xp}`, "inline": false })
-                }
-            }
             if (interaction.guild?.members.cache.get(data[0].id)) {
                 fields.push({ "name": `🥇 ${interaction.guild.members.cache.get(data[0].id)?.displayName} (${data[0].level})`, "value": `Xp: ${data[0].xp}`, "inline": false })
             } else {
@@ -163,22 +175,28 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             interaction.reply({ embeds: [embed] })
         } else if (interaction.commandName == 'flip') {
             let bet = interaction.options.get('amount')?.value
-            let data: { "users": any[] } = xp.get()
+            let data = xp.get()
             let user = data.users.find(prof => prof.id == interaction.user.id)
-            if (typeof bet == 'number' && bet >= 25) {
-                if (user && user.gems >= bet && interaction.channel) {
-                    if (Math.round(Math.random())) {
-                        xp.giveGems(user.id, bet * 2)
-                        interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems.`)
+            let timeout = xp.timeouts().find(timeout => timeout.id == interaction.user.id && timeout.type == 'flipCD')
+            if (timeout) {
+                interaction.reply(`You can't use this command for ${remainingTime(timeout.endTime - Date.now())}`)
+            } else {
+                if (typeof bet == 'number' && bet >= 25) {
+                    if (user && user.gems >= bet && interaction.channel) {
+                        xp.timeout(interaction.user.id, 'flipCD', 120000)
+                        if (Math.round(Math.random())) {
+                            xp.giveGems(user.id, bet * 2)
+                            interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems.`)
+                        } else {
+                            xp.giveGems(user.id, -bet)
+                            interaction.reply(`<:kek:1004270229397970974> You lost ${-bet} gems.`)
+                        }
                     } else {
-                        xp.giveGems(user.id, -bet)
-                        interaction.reply(`<:kek:1004270229397970974> You lost ${-bet} gems.`)
+                        interaction.reply('You do not have enough gems for this bet.')
                     }
                 } else {
-                    interaction.reply('You do not have enough gems for this bet.')
+                    interaction.reply('Minimum bet is 25 gems.')
                 }
-            } else {
-                interaction.reply('Minimum bet is 25 gems.')
             }
         } else if (interaction.commandName == 'game' && checkOwner(interaction)) {
             if (interaction.options.get('type')?.value == 'scramble') {
@@ -231,7 +249,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule)
             await interaction.reply({ embeds: [embed] })
-        }// else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
+        }
     } else if (interaction.isButton()) {
         require('./punisher').punishConfirm(interaction)
     }

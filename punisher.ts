@@ -2,7 +2,6 @@ import { Embed } from "@discordjs/builders";
 import { ButtonInteraction, Client, CommandInteraction, GuildMember, Interaction, User } from "discord.js"
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const fs = require('fs')
-import { strCheck, numCheck, boolCheck } from "./typecheck"
 type Warning = {
     "pid": number,
     "id": string,
@@ -11,8 +10,27 @@ type Warning = {
     "type": String
     "mod": String
 }
+type PunishData = {
+    "warnings": Warning[]
+}
+function strCheck(str:any) {
+    if (typeof str == 'string') {
+        return str;
+    }
+    else {
+        return '';
+    }
+}
+function numCheck(num:any) {
+    if (typeof num == 'number') {
+        return num;
+    }
+    else {
+        return 0;
+    }
+}
 let PendingPunishments: { id: string, data: CommandInteraction["options"] }[] = []
-exports.write = function write(file) {
+exports.write = function write(file:PunishData) {
     fs.writeFileSync('./punishments.json', JSON.stringify(file))
 }
 exports.get = function read() {

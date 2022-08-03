@@ -1,27 +1,37 @@
-import { Client, CommandInteraction, Interaction, TextBasedChannel, TextChannel, User } from "discord.js"
 
-let timeouts: { id: string, timeout: NodeJS.Timeout | undefined }[] = []
-let fs = require('fs')
-let client: Client
-type UserProfile = {
-    "id":string,
-    "xp":number,
-    "level":number,
-    "gems":number
+import { Client, CommandInteraction, Interaction, TextBasedChannel, TextChannel, User } from "discord.js"
+type timeout = { 
+    id: string, 
+    type: string, 
+    timeout: NodeJS.Timeout | undefined,
+    endTime: number
 }
-type UserData = {
-    "name":"users",
-    "users":UserProfile[]
+export type UserProfile = {
+    "id": string,
+    "xp": number,
+    "level": number,
+    "gems": number
+}
+export type UserData = {
+    "name": "users",
+    "users": UserProfile[]
 }
 export type XpManager = {
     setup: (client1: Client) => void,
     give: (msg: { author: User, channel: TextBasedChannel }, amount: number, check?: boolean | null | undefined) => void
-    giveGems: (id: string,amount: number) => void
-    write: (file:UserData) => void
+    giveGems: (id: string, amount: number) => void
+    write: (file: UserData) => void
     get: () => UserData
     level: (lvl: number) => number
-    timeout: (id:string,time:number) => void
-    giveAll: (interaction:CommandInteraction) => void
+    timeout: (id: string, type: string, time: number) => void
+    giveAll: (interaction: CommandInteraction) => void
+    timeouts: () => timeout[]
+}
+let timeouts: timeout[] = []
+let fs = require('fs')
+let client: Client
+exports.timeouts = function getTimeouts() {
+    return timeouts
 }
 exports.setup = function Client(client1: Client) {
     if (client1) {
@@ -31,7 +41,7 @@ exports.setup = function Client(client1: Client) {
 exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amount: number, check: boolean) {
     function give() {
         if (client instanceof Client) {
-            let data:UserData = exports.get()
+            let data: UserData = exports.get()
             let user = data.users.find(user => user.id == msg.author.id)
             if (user) {
                 user.xp = user.xp + amount
@@ -55,7 +65,7 @@ exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amou
                 user.level = level
                 exports.write(data)
                 if (check) {
-                    exports.timeout(msg.author.id)
+                    exports.timeout(msg.author.id, 'message')
                 }
             } else {
                 user = { id: msg.author.id, xp: Math.round(Math.random() * 10) + 15, level: 0, gems: 0 }
@@ -67,50 +77,37 @@ exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amou
             }
         }
     }
-    if (check) { if (timeouts.find(timeout => timeout.id == msg.author.id) == undefined) { give() } } else { give() }
+    if (check) {
+        if (timeouts.find(timeout => timeout.id == msg.author.id && timeout.type == 'message') == undefined) {
+            give()
+        }
+    } else {
+        give()
+    }
 }
 exports.giveGems = function gems(id: string, amount: number) {
-    let data:UserData = exports.get()
-    let user = data.users.find(user => user.id = id)
+    let data: UserData = exports.get()
+    let user = data.users.find(user => user.id == id)
     if (user) {
         user.gems = user.gems + amount
         exports.write(data)
     }
 }
-exports.write = function write(file:UserData) {
+exports.write = function write(file: UserData) {
     if (file.name == 'users') { fs.writeFileSync('./userdata.json', JSON.stringify(file)) }
 }
 exports.get = function read() {
     return require("./userdata.json")
 }
-exports.level = function level(lvl:number) {
+exports.level = function level(lvl: number) {
     return (5 * (lvl ** 2) + (50 * lvl) + 100)
 }
-exports.timeout = function createTimeout(id:string, time:number) {
-    let timeout: { id: string, timeout: NodeJS.Timeout } | undefined
+exports.timeout = function createTimeout(id: string, type: string, time: number) {
+    let timeout: timeout | undefined
     if (time) {
-        timeout = { id: id, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout), 1), time) }
+        timeout = { id: id, type: type, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout), 1), time),endTime:Date.now()+time }
     } else {
-        timeout = { id: id, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout), 1), 60000) }
+        timeout = { id: id, type: type, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout), 1), 60000),endTime:Date.now()+60000 }
     }
     timeouts.push(timeout)
-}
-exports.giveall = async function giveAll(interaction:CommandInteraction) {
-    let guild = interaction.guild
-    await guild?.members.fetch()
-    let channel = interaction.channel
-    let amount = interaction.options?.get('amount')?.value
-    let data = exports.get()
-    guild?.members.cache.forEach(member => {
-        let user = data.users.find(user => user.id == member.id)
-        if (user) {
-            user.xp = user.xp + amount
-        } else {
-            user = { id: member.id, xp: amount, level: 0 }
-            if (user.xp >= exports.level(user.level)) {
-                user.level++
-            }
-        }
-    })
-    exports.write(data)
 }

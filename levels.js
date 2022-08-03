@@ -36,12 +36,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-// |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
-// └────┐ ├──    |   |   | |──┘ |
-//  ____| |___   |   |___| |    |
-//______________________________/
-var typecheck_1 = require("./typecheck");
 var discord_js_1 = require("discord.js");
 var can = require('canvas');
 var _a = require('discord.js'), Client = _a.Client, Intents = _a.Intents;
@@ -55,9 +49,32 @@ var config = require("./config.json");
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
+function remainingTime(milliseconds) {
+    var string = '';
+    if (milliseconds > 3600000) {
+        string = "".concat(Math.floor(milliseconds / 3600000), " hour(s) ").concat(Math.floor((milliseconds - (Math.floor(milliseconds / 3600000) * 3600000)) / 60000), " minute(s)");
+    }
+    else if (milliseconds > 60000) {
+        string = "".concat(Math.floor(milliseconds / 60000), " minute(s) ").concat(Math.floor((milliseconds - (Math.floor(milliseconds / 60000) * 60000)) / 1000), " seconds");
+    }
+    else if (milliseconds > 1000) {
+        string = "".concat(Math.floor(milliseconds / 1000), " seconds");
+    }
+    else {
+        return "".concat(milliseconds, " milliseconds");
+    }
+    return string;
+}
+function strCheck(str) {
+    if (typeof str == 'string') {
+        return str;
+    }
+    else {
+        return '';
+    }
+}
 function checkOwner(interaction) {
     var _a;
-    //if (interaction.user.id == '316243027423395841') {
     var permissions = (_a = interaction.member) === null || _a === void 0 ? void 0 : _a.permissions;
     if (permissions instanceof discord_js_1.Permissions) {
         if (permissions.has('ADMINISTRATOR')) {
@@ -167,16 +184,7 @@ client.on('messageCreate', function (msg) { return __awaiter(void 0, void 0, voi
     });
 }); });
 client.on('interactionCreate', function (interaction) { return __awaiter(void 0, void 0, void 0, function () {
-    function get(user) {
-        var _a, _b;
-        if ((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.members.cache.get(user)) {
-            fields_1.push({ "name": "\uD83E\uDD47 ".concat((_b = interaction.guild.members.cache.get(user)) === null || _b === void 0 ? void 0 : _b.displayName, " (").concat(user.level, ")"), "value": "Xp: ".concat(data_1[0].xp), "inline": false });
-        }
-        else {
-            fields_1.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(user.id, "]"), "value": "Xp: ".concat(user.xp), "inline": false });
-        }
-    }
-    var data, user_1, member, data2, data_1, fields_1, i, embed, bet, data, user, user, amount, data, user, rule, embed;
+    var data, user_1, member, data2, data, fields, i, embed, bet, data, user, timeout, user, amount, data, user, rule, embed;
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
     return __generator(this, function (_v) {
         switch (_v.label) {
@@ -217,35 +225,35 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 return [4 /*yield*/, ((_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.fetch())];
             case 3:
                 _v.sent();
-                data_1 = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
-                fields_1 = [];
-                if ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(data_1[0].id)) {
-                    fields_1.push({ "name": "\uD83E\uDD47 ".concat((_d = interaction.guild.members.cache.get(data_1[0].id)) === null || _d === void 0 ? void 0 : _d.displayName, " (").concat(data_1[0].level, ")"), "value": "Xp: ".concat(data_1[0].xp), "inline": false });
+                data = xp.get().users.sort(function (a, b) { return b.xp - a.xp; });
+                fields = [];
+                if ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(data[0].id)) {
+                    fields.push({ "name": "\uD83E\uDD47 ".concat((_d = interaction.guild.members.cache.get(data[0].id)) === null || _d === void 0 ? void 0 : _d.displayName, " (").concat(data[0].level, ")"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
                 else {
-                    fields_1.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(data_1[0].id, "]"), "value": "Xp: ".concat(data_1[0].xp), "inline": false });
+                    fields.push({ "name": "\uD83E\uDD47 [Unknown Error- ".concat(data[0].id, "]"), "value": "Xp: ".concat(data[0].xp), "inline": false });
                 }
-                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.members.cache.get(data_1[1].id)) {
-                    fields_1.push({ "name": "\uD83E\uDD48 ".concat((_f = interaction.guild.members.cache.get(data_1[1].id)) === null || _f === void 0 ? void 0 : _f.displayName, " (").concat(data_1[1].level, ")"), "value": "Xp: ".concat(data_1[1].xp), "inline": false });
-                }
-                else {
-                    fields_1.push({ "name": "\uD83E\uDD48 [Unknown Error- ".concat(data_1[1].id, "]"), "value": "Xp: ".concat(data_1[1].xp), "inline": false });
-                }
-                if ((_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.members.cache.get(data_1[2].id)) {
-                    fields_1.push({ "name": "\uD83E\uDD49 ".concat((_h = interaction.guild.members.cache.get(data_1[2].id)) === null || _h === void 0 ? void 0 : _h.displayName, " (").concat(data_1[2].level, ")"), "value": "Xp: ".concat(data_1[2].xp), "inline": false });
+                if ((_e = interaction.guild) === null || _e === void 0 ? void 0 : _e.members.cache.get(data[1].id)) {
+                    fields.push({ "name": "\uD83E\uDD48 ".concat((_f = interaction.guild.members.cache.get(data[1].id)) === null || _f === void 0 ? void 0 : _f.displayName, " (").concat(data[1].level, ")"), "value": "Xp: ".concat(data[1].xp), "inline": false });
                 }
                 else {
-                    fields_1.push({ "name": "\uD83E\uDD49 [Unknown Error- ".concat(data_1[2].id, "]"), "value": "Xp: ".concat(data_1[2].xp), "inline": false });
+                    fields.push({ "name": "\uD83E\uDD48 [Unknown Error- ".concat(data[1].id, "]"), "value": "Xp: ".concat(data[1].xp), "inline": false });
+                }
+                if ((_g = interaction.guild) === null || _g === void 0 ? void 0 : _g.members.cache.get(data[2].id)) {
+                    fields.push({ "name": "\uD83E\uDD49 ".concat((_h = interaction.guild.members.cache.get(data[2].id)) === null || _h === void 0 ? void 0 : _h.displayName, " (").concat(data[2].level, ")"), "value": "Xp: ".concat(data[2].xp), "inline": false });
+                }
+                else {
+                    fields.push({ "name": "\uD83E\uDD49 [Unknown Error- ".concat(data[2].id, "]"), "value": "Xp: ".concat(data[2].xp), "inline": false });
                 }
                 for (i = 3; i <= 9; i++) {
-                    if ((_j = interaction.guild) === null || _j === void 0 ? void 0 : _j.members.cache.get(data_1[i].id)) {
-                        fields_1.push({ "name": "".concat(i + 1, ". ").concat((_k = interaction.guild.members.cache.get(data_1[i].id)) === null || _k === void 0 ? void 0 : _k.displayName, " (").concat(data_1[i].level, ")"), "value": "Xp: ".concat(data_1[i].xp), "inline": false });
+                    if ((_j = interaction.guild) === null || _j === void 0 ? void 0 : _j.members.cache.get(data[i].id)) {
+                        fields.push({ "name": "".concat(i + 1, ". ").concat((_k = interaction.guild.members.cache.get(data[i].id)) === null || _k === void 0 ? void 0 : _k.displayName, " (").concat(data[i].level, ")"), "value": "Xp: ".concat(data[i].xp), "inline": false });
                     }
                     else {
-                        fields_1.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data_1[i].id, "]"), "value": "Xp: ".concat(data_1[i].xp), "inline": false });
+                        fields.push({ "name": "".concat(i + 1, ". [Unknown Error- ").concat(data[i].id, "]"), "value": "Xp: ".concat(data[i].xp), "inline": false });
                     }
                 }
-                embed = { title: "Leaderboard", description: "", fields: fields_1 };
+                embed = { title: "Leaderboard", description: "", fields: fields };
                 interaction.reply({ embeds: [embed] });
                 return [3 /*break*/, 12];
             case 4:
@@ -253,23 +261,30 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 bet = (_l = interaction.options.get('amount')) === null || _l === void 0 ? void 0 : _l.value;
                 data = xp.get();
                 user = data.users.find(function (prof) { return prof.id == interaction.user.id; });
-                if (typeof bet == 'number' && bet >= 25) {
-                    if (user && user.gems >= bet && interaction.channel) {
-                        if (Math.round(Math.random())) {
-                            xp.giveGems(user.id, bet * 2);
-                            interaction.reply("<a:showoff:1004215186439274516> You won ".concat(bet * 2, " gems."));
+                timeout = xp.timeouts().find(function (timeout) { return timeout.id == interaction.user.id && timeout.type == 'flipCD'; });
+                if (timeout) {
+                    interaction.reply("You can't use this command for ".concat(remainingTime(timeout.endTime - Date.now())));
+                }
+                else {
+                    if (typeof bet == 'number' && bet >= 25) {
+                        if (user && user.gems >= bet && interaction.channel) {
+                            xp.timeout(interaction.user.id, 'flipCD', 120000);
+                            if (Math.round(Math.random())) {
+                                xp.giveGems(user.id, bet * 2);
+                                interaction.reply("<a:showoff:1004215186439274516> You won ".concat(bet * 2, " gems."));
+                            }
+                            else {
+                                xp.giveGems(user.id, -bet);
+                                interaction.reply("<:kek:1004270229397970974> You lost ".concat(-bet, " gems."));
+                            }
                         }
                         else {
-                            xp.giveGems(user.id, -bet);
-                            interaction.reply("<:kek:1004270229397970974> You lost ".concat(-bet, " gems."));
+                            interaction.reply('You do not have enough gems for this bet.');
                         }
                     }
                     else {
-                        interaction.reply('You do not have enough gems for this bet.');
+                        interaction.reply('Minimum bet is 25 gems.');
                     }
-                }
-                else {
-                    interaction.reply('Minimum bet is 25 gems.');
                 }
                 return [3 /*break*/, 12];
             case 5:
@@ -333,7 +348,7 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                 return [3 /*break*/, 12];
             case 10:
                 if (!(interaction.commandName == 'rule')) return [3 /*break*/, 12];
-                rule = (0, typecheck_1.strCheck)((_u = interaction.options.get('rule')) === null || _u === void 0 ? void 0 : _u.value);
+                rule = strCheck((_u = interaction.options.get('rule')) === null || _u === void 0 ? void 0 : _u.value);
                 embed = new discord_js_1.MessageEmbed()
                     .setTitle(interaction.options.getSubcommand())
                     .setDescription(rule);
