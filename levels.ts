@@ -172,7 +172,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                         interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems.`)
                     } else {
                         xp.giveGems(user.id, -bet)
-                        interaction.reply(`<:kek:1004270229397970974> You lost ${-bet} xp.`)
+                        interaction.reply(`<:kek:1004270229397970974> You lost ${-bet} gems.`)
                     }
                 } else {
                     interaction.reply('You do not have enough gems for this bet.')

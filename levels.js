@@ -261,7 +261,7 @@ client.on('interactionCreate', function (interaction) { return __awaiter(void 0,
                         }
                         else {
                             xp.giveGems(user.id, -bet);
-                            interaction.reply("<:kek:1004270229397970974> You lost ".concat(-bet, " xp."));
+                            interaction.reply("<:kek:1004270229397970974> You lost ".concat(-bet, " gems."));
                         }
                     }
                     else {
