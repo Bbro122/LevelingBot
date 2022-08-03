@@ -1,28 +1,5 @@
 [
   {
-    "name": "settings",
-    "description": "Game settings"
-  },
-  {
-    "name": "join",
-    "description": "Joins a currently active game in the server"
-  },
-  {
-    "name": "run",
-    "description": "Hosts a new game in the current server",
-    "options": [
-      {
-        "name": "input",
-        "description": "input",
-        "type": "STRING"
-      }
-    ]
-  },
-  {
-    "name": "create",
-    "description": "Create a new game in the server"
-  },
-  {
     "name": "level",
     "description": "See your current level in the server.",
     "options": [
@@ -30,6 +7,89 @@
         "type": 6,
         "name": "user",
         "description": "Specfify which user"
+      }
+    ]
+  },
+  {
+    "name": "leaderboard",
+    "description": "display the top 10 users"
+  },
+  {
+    "name": "game",
+    "description": "start a new game",
+    "options": [
+      {
+        "type": 3,
+        "name": "type",
+        "description": "what game is being started",
+        "choices": [
+          {
+            "name": "Unscramble",
+            "value": "scramble"
+          },
+          {
+            "name": "Math Problem",
+            "value": "math"
+          }
+        ],
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "flip",
+    "description": "flip a coin for a chance to double gems.",
+    "options": [
+      {
+        "type": 4,
+        "name": "amount",
+        "description": "the amount of gems to bet",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "gems",
+    "description": "See your gem balance.",
+    "options":[
+      {
+        "type": 6,
+        "name": "user",
+        "description": "Who is being watched"
+      }
+    ]
+  },
+  {
+    "name": "give",
+    "description": "give xp or gems to a user",
+    "options": [
+      {
+        "type": 3,
+        "name": "type",
+        "description": "what is being given",
+        "choices": [
+          {
+            "name": "XP",
+            "value": "xp"
+          },
+          {
+            "name": "Gems",
+            "value": "gems"
+          }
+        ],
+        "required": true
+      },
+      {
+        "type": 6,
+        "name": "user",
+        "description": "Who receives the reward",
+        "required": true
+      },
+      {
+        "type": 4,
+        "name": "amount",
+        "description": "Amount of xp to give",
+        "required": true
       }
     ]
   },
@@ -43,60 +103,6 @@
         "description": "Specfify which user"
       }
     ]
-  },
-  {
-    "name": "test",
-    "description": "TEST TEST TEST"
-  },
-  {
-    "name": "leaderboard",
-    "description": "display the top 10 users"
-  },
-  {
-    "name": "scramble",
-    "description": "create a new scramble game."
-  },
-  {
-    "name": "crash",
-    "description": "forcefully kill the bot. What the fuck is wrong with you?"
-  },
-  {
-    "name": "givexp",
-    "description": "give all users a certain amount of xp",
-    "options": [
-      {
-        "type": 4,
-        "name": "amount",
-        "description": "the amount of xp to give",
-        "required": true
-      },
-      {
-        "type": 6,
-        "name": "user",
-        "description": "Specfify which user",
-        "required": false
-      }
-    ]
-  },
-  {
-    "name": "guess",
-    "description": "Use a guess to figure out the word of the day",
-    "options": [
-      {
-        "type": 3,
-        "name": "guess",
-        "description": "must be a dicationary word",
-        "required": true
-      }
-    ]
-  },
-  {
-    "name": "inventory",
-    "description": "view the items you currently have."
-  },
-  {
-    "name": "math",
-    "description": "Start a new math problem."
   },
   {
     "name": "punish",

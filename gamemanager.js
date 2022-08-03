@@ -23,7 +23,7 @@ exports.math = function math() {
     miniTimer = setTimeout(function () { return exports.selGame(); }, 7200000);
     var time = new Date().getHours();
     if (time >= 7 && time <= 22) {
-        var termCount = randomize(2, require('./config.json').maxTerms);
+        var termCount = randomize(2, require('./config.json').server.maxTerms);
         var terms = '';
         var expressions = ['+', '-', '*'];
         for (var i = 0; i < termCount; i++) {
@@ -46,7 +46,7 @@ exports.math = function math() {
             channel.send({ embeds: [embed] });
         }
         else {
-            client.channels.cache.get(require('./config.json').gamechannel);
+            client.channels.cache.get(require('./config.json').server.gamechannel);
         }
     }
 };
@@ -84,7 +84,7 @@ exports.scramble = function scramble() {
             channel.send({ embeds: [embed] });
         }
         else {
-            client.channels.cache.get(require('./config.json').gamechannel);
+            client.channels.cache.get(require('./config.json').server.gamechannel);
         }
     }
 };

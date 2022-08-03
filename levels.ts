@@ -3,14 +3,15 @@
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
 //______________________________/
-import { strCheck , numCheck , boolCheck } from "./typecheck"
+import { strCheck, numCheck, boolCheck } from "./typecheck"
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions } from "discord.js";
+import { Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel } from "discord.js";
+import { XpManager } from "./xpmanager";
 const can = require('canvas')
 const { Client, Intents } = require('discord.js');
 const { MessageAttachment } = require('discord.js');
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)], fetchAllMembers: true });
-let xp = require('./xpmanager.js')
+let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let config = require("./config.json")
 type UserProfile = { "id": string, "xp": number, "level": number }
@@ -23,12 +24,12 @@ function checkOwner(interaction: CommandInteraction) {
     //if (interaction.user.id == '316243027423395841') {
     let permissions = interaction.member?.permissions
     if (permissions instanceof Permissions) {
-    if (permissions.has('ADMINISTRATOR')) {
-        return true
-    } else {
-        interaction.reply("This command is reserved for Ministry usage only.")
-        return false
-    }
+        if (permissions.has('ADMINISTRATOR')) {
+            return true
+        } else {
+            interaction.reply("This command is reserved for Ministry usage only.")
+            return false
+        }
     }
 }
 async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any) {
@@ -62,21 +63,22 @@ async function getImage(exp: number, requirement: number, username: any, number:
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
 client.on('ready', async () => {
-    try { client.guilds.cache.get(config.mainserver).commands.set(require('./commands.json')) } catch (err) { console.log(err) }
-    game.setup(client, client.channels.cache.get(config.gamechannel))
-    if (config.game) {
+    try { client.guilds.cache.get(config.server.mainserver).commands.set(require('./commands.json')) } catch (err) { console.log(err) }
+    game.setup(client, client.channels.cache.get(config.server.gamechannel))
+    xp.setup(client)
+    if (config.server.game) {
         game.selGame()
     }
 })
 client.on('messageCreate', async (msg: Message) => {
-    if (msg.guild?.id == config.mainserver) {
+    if (msg.guild?.id == config.server.mainserver && msg.channel instanceof TextChannel) {
         if (msg.author.bot == false) {
             if (msg.content.length > 5) {
-                xp.give(msg, 15 + Math.floor(Math.random() * 10), true, client)
+                xp.give({ author: msg.author, channel: msg.channel }, 15 + Math.floor(Math.random() * 10), true)
             }
-            if (msg.channel.id == config.gamechannel&&msg.content.length>=1) {
+            if (msg.channel.id == config.server.gamechannel && msg.content.length >= 1) {
                 game.checkWord(msg)
-            } else if (msg.channel.id == config.countchannel) {
+            } else if (msg.channel.id == config.server.countchannel) {
                 require('./counting.js')(client, msg)
             }
         } else if (msg.author.id == client.user.id && msg.channel.id == '1001697908636270602' && msg.content.startsWith('givexp')) {
@@ -84,10 +86,10 @@ client.on('messageCreate', async (msg: Message) => {
             let id = args[0]
             if (id !== 'null') {
                 if (args[1] == 'chat') {
-                    xp.give(msg, 0.5, false, client)
+                    xp.give({ author: msg.author, channel: msg.channel }, 0.5, false)
                     msg.channel.send('giving 0.5 xp')
                 } else if (args[1] == 'login') {
-                    xp.give(msg, 15 + Math.floor(Math.random() * 10), true, client)
+                    xp.give({ author: msg.author, channel: msg.channel }, 15 + Math.floor(Math.random() * 10), true)
                     msg.channel.send('giving 15-25 xp')
                 }
             } else {
@@ -128,7 +130,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             await interaction.guild?.members.fetch()
             let data = xp.get().users.sort((a, b) => { return b.xp - a.xp })
             let fields: APIEmbedField[] = []
-            function get(user:any) {
+            function get(user: any) {
                 if (interaction.guild?.members.cache.get(user)) {
                     fields.push({ "name": `🥇 ${interaction.guild.members.cache.get(user)?.displayName} (${user.level})`, "value": `Xp: ${data[0].xp}`, "inline": false })
                 } else {
@@ -145,7 +147,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             } else {
                 fields.push({ "name": `🥈 [Unknown Error- ${data[1].id}]`, "value": `Xp: ${data[1].xp}`, "inline": false })
             }
-            if (interaction.guild?.members.cache.get(data[1].id)) {
+            if (interaction.guild?.members.cache.get(data[2].id)) {
                 fields.push({ "name": `🥉 ${interaction.guild.members.cache.get(data[2].id)?.displayName} (${data[2].level})`, "value": `Xp: ${data[2].xp}`, "inline": false })
             } else {
                 fields.push({ "name": `🥉 [Unknown Error- ${data[2].id}]`, "value": `Xp: ${data[2].xp}`, "inline": false })
@@ -159,36 +161,79 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             }
             let embed = { title: "Leaderboard", description: "", fields: fields }
             interaction.reply({ embeds: [embed] })
-        } else if (interaction.commandName == 'scramble' && checkOwner(interaction)) {
-            game.scramble()
-        } else if (interaction.commandName == 'math' && checkOwner(interaction)) {
-            game.math()
-        } else if (interaction.commandName == 'crash' && checkOwner(interaction)) {
-            require('./crash.js')()
+        } else if (interaction.commandName == 'flip') {
+            let bet = interaction.options.get('amount')?.value
+            let data: { "users": any[] } = xp.get()
+            let user = data.users.find(prof => prof.id == interaction.user.id)
+            if (typeof bet == 'number' && bet >= 25) {
+                if (user && user.gems >= bet && interaction.channel) {
+                    if (Math.round(Math.random())) {
+                        xp.giveGems(user.id, bet * 2)
+                        interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems.`)
+                    } else {
+                        xp.giveGems(user.id, -bet)
+                        interaction.reply(`<:kek:1004270229397970974> You lost ${-bet} xp.`)
+                    }
+                } else {
+                    interaction.reply('You do not have enough gems for this bet.')
+                }
+            } else {
+                interaction.reply('Minimum bet is 25 gems.')
+            }
+        } else if (interaction.commandName == 'game' && checkOwner(interaction)) {
+            if (interaction.options.get('type')?.value == 'scramble') {
+                game.scramble()
+                interaction.reply('Starting a new unscramble.')
+            } else {
+                game.math()
+                interaction.reply('Starting a new math problem.')
+            }
+        } else if (interaction.commandName == 'give' && checkOwner(interaction)) {
+            let user = interaction.options.get('user')?.user
+            let amount = interaction.options.get('amount')?.value
+            if (user && typeof amount == 'number') {
+                if (interaction.options.get('type')?.value == 'xp') {
+                    if (interaction.channel) {
+                        xp.give({ author: user, channel: interaction.channel }, amount, false)
+                        interaction.reply(`Giving ${amount} xp to ${user}`)
+                    }
+                } else if (interaction.options.get('type')?.value == 'gems') {
+                    xp.giveGems(user.id, amount)
+                    interaction.reply(`Giving ${amount} gems to ${user}`)
+                }
+            }
+        } else if (interaction.commandName == 'gems') {
+            let data = xp.get()
+            let user
+            if (interaction.options.get('user')?.user) {
+                user = data.users.find(user => user.id == interaction.options.get('user')?.user?.id)
+                if (user) {
+                    interaction.reply(`<a:showoff:1004215186439274516> They have ${user.gems} gems.`)
+                } else {
+                    interaction.reply(`<:kek:1004270229397970974> This guy is broke.`)
+                }
+            } else {
+                user = data.users.find(user => user.id == interaction.user.id)
+                if (user) {
+                    interaction.reply(`<a:showoff:1004215186439274516> You have ${user.gems} gems.`)
+                } else {
+                    interaction.reply(`<:kek:1004270229397970974> You're broke.`)
+                }
+            }
+
         } else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
             require('./punisher.js').punish(interaction)
         } else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
-            require('./punisher.js').getpunishments(interaction.options.get('user')?.user,interaction)
+            require('./punisher.js').getpunishments(interaction.options.get('user')?.user, interaction)
         } else if (interaction.commandName == 'rule') {
             let rule: string = strCheck(interaction.options.get('rule')?.value)
-                let embed = new MessageEmbed()
-                    .setTitle(interaction.options.getSubcommand())
-                    .setDescription(rule)
-                await interaction.reply({ embeds: [embed] })
-        } else if (interaction.commandName == 'givexp' && checkOwner(interaction)) {
-            await interaction.deferReply()
-            if (interaction.options.get('user')) {
-                xp.give({author:interaction.user,channel:interaction.channel},interaction.options.get('amount')?.value,false,client)
-                await interaction.editReply(`<@${interaction.options.get('user')?.value}> has received ${interaction.options.get('amount')?.value} xp.`)
-            } else {
-                xp.giveall(interaction)
-                await interaction.editReply(`All users have received ${interaction.options.get('amount')?.value} xp.`)
-            }
-        } else if (interaction.commandName == 'test' && checkOwner(interaction)) {
-            require('./UnoMaster.js').startNewGame(interaction)
+            let embed = new MessageEmbed()
+                .setTitle(interaction.options.getSubcommand())
+                .setDescription(rule)
+            await interaction.reply({ embeds: [embed] })
         }// else if (unoids.includes(interaction.customId)) {require('./UnoMaster.js').command(interaction)}
     } else if (interaction.isButton()) {
         require('./punisher').punishConfirm(interaction)
     }
 })
-client.login(config.token);
+client.login(config.server.token);

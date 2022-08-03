@@ -22,7 +22,7 @@ exports.math = function math() {
     miniTimer = setTimeout(() => exports.selGame(),7200000)
     let time = new Date().getHours()
     if (time >= 7&&time<=22) {
-        let termCount = randomize(2,require('./config.json').maxTerms)
+        let termCount = randomize(2,require('./config.json').server.maxTerms)
         let terms:string=''
         let expressions = ['+','-','*']
         for (let i = 0; i < termCount; i++) {
@@ -44,7 +44,7 @@ exports.math = function math() {
         if (channel) {
         channel.send({embeds:[embed]})
         } else {
-            client.channels.cache.get(require('./config.json').gamechannel)
+            client.channels.cache.get(require('./config.json').server.gamechannel)
         }
     }
 }
@@ -78,7 +78,7 @@ exports.scramble = function scramble() {
     if (channel) {
         channel.send({embeds:[embed]})
         } else {
-            client.channels.cache.get(require('./config.json').gamechannel)
+            client.channels.cache.get(require('./config.json').server.gamechannel)
         }
     }
 }
