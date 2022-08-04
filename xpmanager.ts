@@ -3,7 +3,7 @@ import { Client, CommandInteraction, Interaction, TextBasedChannel, TextChannel,
 type timeout = { 
     id: string, 
     type: string, 
-    timeout: NodeJS.Timeout | undefined,
+    timeout: NodeJS.Timeout,
     endTime: number
 }
 export type UserProfile = {
@@ -11,6 +11,11 @@ export type UserProfile = {
     "xp": number,
     "level": number,
     "gems": number
+    "items": {
+        type:string,
+        display:{name:string,value:string,inline:false}
+        data:any
+    }[]
 }
 export type UserData = {
     "name": "users",
@@ -26,10 +31,13 @@ export type XpManager = {
     timeout: (id: string, type: string, time: number) => void
     giveAll: (interaction: CommandInteraction) => void
     timeouts: () => timeout[]
+    getMultiplier: ()=>number
+    setMultiplier: (num:number,time:number)=>void
 }
 let timeouts: timeout[] = []
 let fs = require('fs')
 let client: Client
+let multiplier = 1
 exports.timeouts = function getTimeouts() {
     return timeouts
 }
@@ -44,7 +52,7 @@ exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amou
             let data: UserData = exports.get()
             let user = data.users.find(user => user.id == msg.author.id)
             if (user) {
-                user.xp = user.xp + amount
+                user.xp = user.xp + (amount*multiplier)
                 let level = 0
                 do {
                     level++
@@ -68,7 +76,7 @@ exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amou
                     exports.timeout(msg.author.id, 'message')
                 }
             } else {
-                user = { id: msg.author.id, xp: Math.round(Math.random() * 10) + 15, level: 0, gems: 0 }
+                user = { id: msg.author.id, xp: Math.round(Math.random() * 10) + 15, level: 0, gems: 0, items: []}
                 data.users.push(user)
                 exports.write(data)
                 if (check) {
@@ -83,6 +91,16 @@ exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amou
         }
     } else {
         give()
+    }
+}
+exports.getMultiplier = function (){
+    return multiplier
+}
+exports.setMultiplier = function (num:number,time:number){
+    multiplier = num
+    if (time) {
+        let timeout: timeout={ id: 'multiplier', type: 'multiplier', timeout: setTimeout(() => {timeouts.splice(timeouts.findIndex(timet => timet == timeout), 1);multiplier=1}, time),endTime:Date.now()+time }
+        timeouts.push()
     }
 }
 exports.giveGems = function gems(id: string, amount: number) {
@@ -103,11 +121,11 @@ exports.level = function level(lvl: number) {
     return (5 * (lvl ** 2) + (50 * lvl) + 100)
 }
 exports.timeout = function createTimeout(id: string, type: string, time: number) {
-    let timeout: timeout | undefined
+    let timeout: timeout
     if (time) {
-        timeout = { id: id, type: type, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout), 1), time),endTime:Date.now()+time }
+        timeout = { id: id, type: type, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet == timeout), 1), time),endTime:Date.now()+time }
     } else {
-        timeout = { id: id, type: type, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet.timeout == timeout), 1), 60000),endTime:Date.now()+60000 }
+        timeout = { id: id, type: type, timeout: setTimeout(() => timeouts.splice(timeouts.findIndex(timet => timet == timeout), 1), 60000),endTime:Date.now()+60000 }
     }
     timeouts.push(timeout)
 }

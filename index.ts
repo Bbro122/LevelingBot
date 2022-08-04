@@ -5,7 +5,7 @@
 //  ____| |___   |   |___| |    |
 //______________________________/
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel } from "discord.js";
+import { MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 const can = require('canvas')
 const { Client, Intents } = require('discord.js');
@@ -22,9 +22,15 @@ let config = require("./config.json")
 function remainingTime(milliseconds: number): string {
     let string = ''
     if (milliseconds > 3600000) {
-        string = `${Math.floor(milliseconds / 3600000)} hour(s) ${Math.floor((milliseconds-(Math.floor(milliseconds / 3600000)*3600000))/60000)} minute(s)`
+        string = `${Math.floor(milliseconds / 3600000)} hour(s)`
+        if (Math.floor((milliseconds - (Math.floor(milliseconds / 3600000) * 3600000)) / 60000) > 0) {
+            string = string + ` ${Math.floor((milliseconds - (Math.floor(milliseconds / 3600000) * 3600000)) / 60000)} minute(s)`
+        }
     } else if (milliseconds > 60000) {
-        string = `${Math.floor(milliseconds / 60000)} minute(s) ${Math.floor((milliseconds-(Math.floor(milliseconds / 60000)*60000))/1000)} seconds`
+        string = `${Math.floor(milliseconds / 60000)} minute(s)`
+        if (Math.floor((milliseconds - (Math.floor(milliseconds / 60000) * 60000)) / 1000) > 0) {
+            string = string + ` ${Math.floor((milliseconds - (Math.floor(milliseconds / 60000) * 60000)) / 1000)} seconds`
+        }
     } else if (milliseconds > 1000) {
         string = `${Math.floor(milliseconds / 1000)} seconds`
     } else {
@@ -238,7 +244,75 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     interaction.reply(`<:kek:1004270229397970974> You're broke.`)
                 }
             }
+        } else if (interaction.commandName == 'shop') {
+            let data = xp.get()
+            let user = data.users.find(user => user.id == interaction.user.id)
+            if (user) {
+                const row = new MessageActionRow()
+                    .addComponents(
+                        new MessageSelectMenu()
+                            .setCustomId('shop')
+                            .addOptions([
+                                {
+                                    "label": "Server Boost | 2x xp- 1 hour",
+                                    "description": "This item costs 100 gems",
+                                    "value": "2_1_100"
+                                },
+                                {
+                                    "label": "Server Boost | 2x xp- 6 hours",
+                                    "description": "This item costs 500 gems",
+                                    "value": "2_6_500"
+                                },
+                                {
+                                    "label": "Server Boost | 2x xp- 24 hours",
+                                    "description": "This item costs 2000 gems",
+                                    "value": "2_24_2000"
+                                },
+                                {
+                                    "label": "Server Boost | 4x xp- 1 hour",
+                                    "description": "This item costs 300 gems",
+                                    "value": "4_1_300"
+                                }
+                            ])
+                            .setMinValues(1)
+                            .setMaxValues(1)
+                    )
+                const embed = new MessageEmbed()
+                    .setTitle('Booster Shop')
+                    .setDescription('Welcome to the shop, spend your gems here.\nBoosters can be used with /item\nAll sales are final')
+                interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
+            } else {
+                interaction.reply(`No userdata found.`)
+            }
 
+        } else if (interaction.commandName == 'items') {
+            let data = xp.get()
+            let user = data.users.find(user => user.id == interaction.user.id)
+            if (user && user.items.length > 0) {
+                let fields: EmbedField[] = []
+                let options: any[] = []
+                let embed = new MessageEmbed()
+                    .setTitle('Inventory')
+                    .setDescription('View all your items here.\nUse the select menu to use an item.')
+                user.items.forEach(item => {
+                    fields.push(item.display)
+                    if (item.type == 'booster') {
+                        options.push({ "label": item.display.name, "description": item.display.value, "value": user?.items.findIndex(sitem => sitem == item).toString() })
+                    }
+                })
+                const row = new MessageActionRow()
+                    .addComponents(
+                        new MessageSelectMenu()
+                            .setCustomId('use')
+                            .addOptions(options)
+                            .setMinValues(1)
+                            .setMaxValues(1)
+                    )
+                embed.setFields(fields)
+                interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
+            } else {
+                interaction.reply({ content: "You have no items.", ephemeral: true })
+            }
         } else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
             require('./punisher.js').punish(interaction)
         } else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
@@ -252,6 +326,39 @@ client.on('interactionCreate', async (interaction: Interaction) => {
         }
     } else if (interaction.isButton()) {
         require('./punisher').punishConfirm(interaction)
+    } else if (interaction.isSelectMenu()) {
+        if (interaction.customId == 'shop') {
+            let args = interaction.values[0].split('_')
+            let data = xp.get()
+            let user = data.users.find(user => user.id == interaction.user.id)
+            if (user && user.gems > parseInt(args[2])) {
+                if (user.items == undefined) {
+                    user.items = []
+                }
+                user.items.push({ type: 'booster', display: { name: `${args[0]}x Booster`, value: `Lasts ${args[1]}h`, inline: false }, data: { multiplier: args[0], length: parseInt(args[1]) } })
+                user.gems = user.gems - parseInt(args[2])
+                xp.write(data)
+                interaction.reply({ content: "Item successfully bought.", ephemeral: true })
+            } else {
+                interaction.reply({ content: "You cannot afford this item.", ephemeral: true })
+            }
+        } else if (interaction.customId == 'use') {
+            if (xp.getMultiplier() == 1) {
+                let index = interaction.values[0]
+                let data = xp.get()
+                let user = data.users.find(user => user.id == interaction.user.id)
+                if (user) {
+                    let booster = user.items[parseInt(index)]
+                    xp.setMultiplier(booster.data.multiplier, booster.data.length * 3600000)
+                    user.items.splice(parseInt(index), 1)
+                    interaction.reply(`@here | <@${interaction.user.id}> has activated a ${booster.data.multiplier}x XP Booster for ${remainingTime(booster.data.length * 3600000)}`)
+                } else {
+                    interaction.reply({ content: 'Unknown Error', ephemeral: true })
+                }
+            } else {
+                interaction.reply({ content: 'A booster is already active.', ephemeral: true })
+            }
+        }
     }
 })
 client.login(config.server.token);

@@ -60,6 +60,14 @@
     ]
   },
   {
+    "name": "shop",
+    "description": "Buy items using gems."
+  },
+  {
+    "name": "items",
+    "description": "Show what items you own."
+  },
+  {
     "name": "give",
     "description": "give xp or gems to a user",
     "options": [
