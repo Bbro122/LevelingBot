@@ -310,6 +310,47 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 interaction.reply(`No userdata found.`)
             }
 
+        } else if (interaction.commandName == 'publicshop'&&checkOwner(interaction)) {
+            let data = xp.get()
+            let user = data.users.find(user => user.id == interaction.user.id)
+            if (user) {
+                const row = new MessageActionRow()
+                    .addComponents(
+                        new MessageSelectMenu()
+                            .setCustomId('shop')
+                            .addOptions([
+                                {
+                                    "label": "Server Boost | 2x xp- 1 hour",
+                                    "description": "This item costs 100 gems",
+                                    "value": "2_1_100"
+                                },
+                                {
+                                    "label": "Server Boost | 2x xp- 6 hours",
+                                    "description": "This item costs 500 gems",
+                                    "value": "2_6_500"
+                                },
+                                {
+                                    "label": "Server Boost | 2x xp- 24 hours",
+                                    "description": "This item costs 2000 gems",
+                                    "value": "2_24_2000"
+                                },
+                                {
+                                    "label": "Server Boost | 4x xp- 1 hour",
+                                    "description": "This item costs 300 gems",
+                                    "value": "4_1_300"
+                                }
+                            ])
+                            .setMinValues(1)
+                            .setMaxValues(1)
+                    )
+                const embed = new MessageEmbed()
+                    .setTitle('Booster Shop')
+                    .setDescription('Welcome to the shop, spend your gems here.\nBoosters can be used with /item\nAll sales are final')
+                interaction.reply({ embeds: [embed], components: [row], ephemeral: false })
+            } else {
+                interaction.reply(`No userdata found.`)
+            }
+
         } else if (interaction.commandName == 'items') {
             let data = xp.get()
             let user = data.users.find(user => user.id == interaction.user.id)
