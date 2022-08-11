@@ -45,7 +45,7 @@ exports.give = function giveXP(msg, amount, check) {
                 }
             }
             else {
-                user = { id: msg.author.id, xp: Math.round(Math.random() * 10) + 15, level: 0, gems: 0, items: [] };
+                user = { id: msg.author.id, xp: Math.round(Math.random() * 10) + 15, level: 0, gems: 0, items: [], epoch: 0 };
                 data.users.push(user);
                 exports.write(data);
                 if (check) {

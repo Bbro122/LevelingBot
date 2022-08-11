@@ -5,20 +5,30 @@
 //  ____| |___   |   |___| |    |
 //______________________________/
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions } from "discord.js";
+import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
-const can = require('canvas')
-const { Client, Intents } = require('discord.js');
-const { MessageAttachment } = require('discord.js');
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)], fetchAllMembers: true });
+import can from 'canvas';
+const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)] });
 let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let config = require("./config.json")
+let medals = ['🥇', '🥈', '🥉']
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
+let reply = {
+    silent: function (interaction: CommandInteraction | SelectMenuInteraction, reply: string) {
+        interaction.reply({ content: reply, ephemeral: true })
+    },
+    error: function (interaction: CommandInteraction | SelectMenuInteraction, error: string) {
+        interaction.reply({ content: `**Error |** ${error}`, ephemeral: true })
+    },
+    embed: function (interaction: CommandInteraction | SelectMenuInteraction, embed: MessageEmbed, row?: MessageActionRow) {
+        interaction.reply({ embeds: [embed], components: row ? [row] : undefined })
+    }
+}
 function remainingTime(milliseconds: number): string {
     let string = ''
     if (milliseconds > 3600000) {
@@ -88,11 +98,16 @@ async function getImage(exp: number, requirement: number, username: any, number:
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
 client.on('ready', async () => {
-    try { client.guilds.cache.get(config.server.mainserver).commands.set(require('./commands.json')) } catch (err) { console.log(err) }
-    game.setup(client, client.channels.cache.get(config.server.gamechannel))
-    xp.setup(client)
-    if (config.server.game) {
-        game.selGame()
+    let mainserver = client.guilds.cache.get(config.server.mainserver)
+    if (mainserver) {
+        try { mainserver.commands.set(require('./commands.json')) } catch (err) { console.log(err) }
+        game.setup(client, client.channels.cache.get(config.server.gamechannel))
+        xp.setup(client)
+        if (config.server.game) {
+            game.selGame()
+        }
+    } else {
+        console.log("Server not found")
     }
 })
 client.on('messageCreate', async (msg: Message) => {
@@ -106,7 +121,7 @@ client.on('messageCreate', async (msg: Message) => {
             } else if (msg.channel.id == config.server.countchannel) {
                 require('./counting.js')(client, msg)
             }
-        } else if (msg.author.id == client.user.id && msg.channel.id == '1001697908636270602' && msg.content.startsWith('givexp')) {
+        } else if (msg.author.id == client.user?.id && msg.channel.id == '1001697908636270602' && msg.content.startsWith('givexp')) {
             let args = msg.content.split(' ').splice(0, 1)
             let id = args[0]
             if (id !== 'null') {
@@ -155,53 +170,63 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             await interaction.guild?.members.fetch()
             let data = xp.get().users.sort((a, b) => { return b.xp - a.xp })
             let fields: APIEmbedField[] = []
-            if (interaction.guild?.members.cache.get(data[0].id)) {
-                fields.push({ "name": `🥇 ${interaction.guild.members.cache.get(data[0].id)?.displayName} (${data[0].level})`, "value": `Xp: ${data[0].xp}`, "inline": false })
-            } else {
-                fields.push({ "name": `🥇 [Unknown Error- ${data[0].id}]`, "value": `Xp: ${data[0].xp}`, "inline": false })
-            }
-            if (interaction.guild?.members.cache.get(data[1].id)) {
-                fields.push({ "name": `🥈 ${interaction.guild.members.cache.get(data[1].id)?.displayName} (${data[1].level})`, "value": `Xp: ${data[1].xp}`, "inline": false })
-            } else {
-                fields.push({ "name": `🥈 [Unknown Error- ${data[1].id}]`, "value": `Xp: ${data[1].xp}`, "inline": false })
-            }
-            if (interaction.guild?.members.cache.get(data[2].id)) {
-                fields.push({ "name": `🥉 ${interaction.guild.members.cache.get(data[2].id)?.displayName} (${data[2].level})`, "value": `Xp: ${data[2].xp}`, "inline": false })
-            } else {
-                fields.push({ "name": `🥉 [Unknown Error- ${data[2].id}]`, "value": `Xp: ${data[2].xp}`, "inline": false })
-            }
-            for (let i = 3; i <= 9; i++) {
+            for (let i = 0; i <= 9; i++) {
                 if (interaction.guild?.members.cache.get(data[i].id)) {
-                    fields.push({ "name": `${i + 1}. ${interaction.guild.members.cache.get(data[i].id)?.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false })
+                    fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${interaction.guild.members.cache.get(data[i].id)?.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false })
                 } else {
-                    fields.push({ "name": `${i + 1}. [Unknown Error- ${data[i].id}]`, "value": `Xp: ${data[i].xp}`, "inline": false })
+                    fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Xp: ${data[i].xp}`, "inline": false })
                 }
             }
-            let embed = { title: "Leaderboard", description: "", fields: fields }
-            interaction.reply({ embeds: [embed] })
+            let embed = new MessageEmbed()
+                .setTitle('XP Leaderboard')
+                .addFields(fields)
+            reply.embed(interaction, embed)
+        } else if (interaction.commandName == 'daily') {
+            let data = xp.get()
+            if (interaction.channel) {
+                xp.give({ author: interaction.user, channel: interaction.channel }, 0)
+                let user = data.users.find(prof => prof.id == interaction.user.id)
+                if (user) {
+                    if (Date.now() > user.epoch) {
+                        let gems = Math.round(Math.random() * 10) + 10
+                        let exp = Math.round(Math.random() * 25) + 25
+                        user.epoch = Date.now() + 64800000
+                        xp.give({ author: interaction.user, channel: interaction.channel }, exp)
+                        xp.giveGems(user.id, gems)
+                        interaction.reply(`You earned ${gems} gems, and ${exp} experience.`)
+                        xp.write(data)
+                    } else {
+                        reply.silent(interaction, `you can run this command again in ${remainingTime(user.epoch - Date.now())}`)
+                    }
+                } else {
+                    reply.error(interaction, 'User Error')
+                }
+            } else {
+                reply.error(interaction, 'Channel Error')
+            }
         } else if (interaction.commandName == 'flip') {
             let bet = interaction.options.get('amount')?.value
             let data = xp.get()
             let user = data.users.find(prof => prof.id == interaction.user.id)
             let timeout = xp.timeouts().find(timeout => timeout.id == interaction.user.id && timeout.type == 'flipCD')
             if (timeout) {
-                interaction.reply(`You can't use this command for ${remainingTime(timeout.endTime - Date.now())}`)
+                reply.error(interaction, `You can't use this command for ${remainingTime(timeout.endTime - Date.now())}`)
             } else {
                 if (typeof bet == 'number' && bet >= 25) {
                     if (user && user.gems >= bet && interaction.channel) {
                         xp.timeout(interaction.user.id, 'flipCD', 120000)
                         if (Math.round(Math.random())) {
                             xp.giveGems(user.id, bet * 2)
-                            interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems.`)
+                            interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems!`)
                         } else {
                             xp.giveGems(user.id, -bet)
                             interaction.reply(`<:kek:1004270229397970974> You lost ${-bet} gems.`)
                         }
                     } else {
-                        interaction.reply('You do not have enough gems for this bet.')
+                        reply.error(interaction, 'You do not have enough gems for this bet.')
                     }
                 } else {
-                    interaction.reply('Minimum bet is 25 gems.')
+                    reply.error(interaction, 'The Minimum bet is 25 gems.')
                 }
             }
         } else if (interaction.commandName == 'game' && checkOwner(interaction)) {
@@ -210,7 +235,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 interaction.reply('Starting a new unscramble.')
             } else {
                 game.math()
-                interaction.reply('Starting a new math problem.')
+                interaction.reply('Creating a new math problem.')
             }
         } else if (interaction.commandName == 'give' && checkOwner(interaction)) {
             let user = interaction.options.get('user')?.user
@@ -297,7 +322,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 user.items.forEach(item => {
                     fields.push(item.display)
                     if (item.type == 'booster') {
-                        options.push({ "label": item.display.name, "description": item.display.value, "value": user?.items.findIndex(sitem => sitem == item).toString() })
+                        options.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
                     }
                 })
                 const row = new MessageActionRow()
@@ -311,7 +336,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 embed.setFields(fields)
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
             } else {
-                interaction.reply({ content: "You have no items.", ephemeral: true })
+                reply.error(interaction, 'You have no items.')
             }
         } else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
             require('./punisher.js').punish(interaction)
@@ -322,7 +347,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             let embed = new MessageEmbed()
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule)
-            await interaction.reply({ embeds: [embed] })
+            reply.embed(interaction, embed)
         }
     } else if (interaction.isButton()) {
         require('./punisher').punishConfirm(interaction)
@@ -338,9 +363,9 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 user.items.push({ type: 'booster', display: { name: `${args[0]}x Booster`, value: `Lasts ${args[1]}h`, inline: false }, data: { multiplier: args[0], length: parseInt(args[1]) } })
                 user.gems = user.gems - parseInt(args[2])
                 xp.write(data)
-                interaction.reply({ content: "Item successfully bought.", ephemeral: true })
+                reply.silent(interaction, `Successfully bought item.`)
             } else {
-                interaction.reply({ content: "You cannot afford this item.", ephemeral: true })
+                reply.error(interaction, `You can't afford this item.`)
             }
         } else if (interaction.customId == 'use') {
             if (xp.getMultiplier() == 1) {
@@ -353,10 +378,10 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     user.items.splice(parseInt(index), 1)
                     interaction.reply(`@here | <@${interaction.user.id}> has activated a ${booster.data.multiplier}x XP Booster for ${remainingTime(booster.data.length * 3600000)}`)
                 } else {
-                    interaction.reply({ content: 'Unknown Error', ephemeral: true })
+                    reply.error(interaction, 'User not found.')
                 }
             } else {
-                interaction.reply({ content: 'A booster is already active.', ephemeral: true })
+                reply.error(interaction, 'A booster is already active.')
             }
         }
     }

@@ -15,7 +15,8 @@ export type UserProfile = {
         type:string,
         display:{name:string,value:string,inline:false}
         data:any
-    }[]
+    }[],
+    "epoch":number
 }
 export type UserData = {
     "name": "users",
@@ -76,7 +77,7 @@ exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amou
                     exports.timeout(msg.author.id, 'message')
                 }
             } else {
-                user = { id: msg.author.id, xp: Math.round(Math.random() * 10) + 15, level: 0, gems: 0, items: []}
+                user = { id: msg.author.id, xp: Math.round(Math.random() * 10) + 15, level: 0, gems: 0, items: [],epoch:0}
                 data.users.push(user)
                 exports.write(data)
                 if (check) {

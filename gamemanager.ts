@@ -1,4 +1,3 @@
-
 import { Channel, Client, CommandInteraction, Message, TextChannel } from "discord.js"
 
 let client: Client

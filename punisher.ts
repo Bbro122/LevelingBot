@@ -1,4 +1,3 @@
-import { Embed } from "@discordjs/builders";
 import { ButtonInteraction, Client, CommandInteraction, GuildMember, Interaction, User } from "discord.js"
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const fs = require('fs')

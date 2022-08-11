@@ -11,6 +11,10 @@
     ]
   },
   {
+    "name": "daily",
+    "description":"Receive your daily gems and xp."
+  },
+  {
     "name": "leaderboard",
     "description": "display the top 10 users"
   },
