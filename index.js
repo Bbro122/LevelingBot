@@ -19,6 +19,7 @@ let xp = require('./xpmanager.js');
 let game = require('./gamemanager.js');
 let config = require("./config.json");
 let medals = ['🥇', '🥈', '🥉'];
+let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjklzxcvbnm /?|" + '"';
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
@@ -105,11 +106,49 @@ function getImage(exp, requirement, username, number, level, imagelink, rank) {
         return canvas.toBuffer('image/png');
     });
 }
+function checkMap(str) {
+    let value = true;
+    charMap.toLowerCase().split('').forEach(char => {
+        if (char == str) {
+            console.log(char);
+            value = false;
+        }
+    });
+    return value;
+}
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
+client.on('userUpdate', (oldUser, newUser) => {
+    var _a;
+    let member = (_a = client.guilds.cache.get(config.server.mainserver)) === null || _a === void 0 ? void 0 : _a.members.cache.get(newUser.id);
+    if (member && member.manageable && !member.nickname && checkMap(member.displayName.charAt(0))) {
+        member.setNickname(`[p] ${member.displayName}`);
+        member.createDM().then(channel => {
+            try {
+                channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.');
+            }
+            catch (err) {
+                console.log(err);
+            }
+        });
+    }
+});
+client.on('guildMemberUpdate', (oldMember, newMember) => {
+    if (newMember && newMember.manageable && checkMap(newMember.displayName.charAt(0))) {
+        newMember.setNickname(`[p] ${newMember.displayName}`);
+        newMember.createDM().then(channel => {
+            try {
+                channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.');
+            }
+            catch (err) {
+                console.log(err);
+            }
+        });
+    }
+});
 client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
     let mainserver = client.guilds.cache.get(config.server.mainserver);
     if (mainserver) {

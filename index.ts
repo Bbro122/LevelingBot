@@ -5,7 +5,7 @@
 //  ____| |___   |   |___| |    |
 //______________________________/
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions } from "discord.js";
+import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions, User } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 import can from 'canvas';
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)] });
@@ -13,6 +13,7 @@ let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let config = require("./config.json")
 let medals = ['🥇', '🥈', '🥉']
+let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjklzxcvbnm /?|"+'"'
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
@@ -92,11 +93,40 @@ async function getImage(exp: number, requirement: number, username: any, number:
     context.fillText(level, 1043, 75)
     return canvas.toBuffer('image/png')
 }
+function checkMap(str:string) {
+    let value = true
+    charMap.toLowerCase().split('').forEach(char => {
+        if (char==str) {
+            console.log(char)
+            value = false
+        }
+    })
+    return value
+}
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\\
 // |‾‾| |‾‾‾ |‾‾‾  |‾‾| |‾‾‾| |\  | |‾‾‾  |‾‾‾  ||
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
+client.on('userUpdate',(oldUser,newUser)=>{
+    let member = client.guilds.cache.get(config.server.mainserver)?.members.cache.get(newUser.id)
+    if (member&&member.manageable&&!member.nickname&&checkMap(member.displayName.charAt(0))) {
+        member.setNickname(`[p] ${member.displayName}`)
+        member.createDM().then(channel => {
+            try{channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
+            catch(err){console.log(err)}
+        })
+    }
+})
+client.on('guildMemberUpdate',(oldMember,newMember)=>{
+    if (newMember&&newMember.manageable&&checkMap(newMember.displayName.charAt(0))) {
+        newMember.setNickname(`[p] ${newMember.displayName}`)
+        newMember.createDM().then(channel => {
+            try{channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
+            catch(err){console.log(err)}
+        })
+    }
+})
 client.on('ready', async () => {
     let mainserver = client.guilds.cache.get(config.server.mainserver)
     if (mainserver) {
