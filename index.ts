@@ -129,8 +129,11 @@ client.on('guildMemberUpdate',(oldMember,newMember)=>{
 })
 client.on('ready', async () => {
     let mainserver = client.guilds.cache.get(config.server.mainserver)
+    client.application?.commands.set(require('./commands.json'))
     if (mainserver) {
-        try { mainserver.commands.set(require('./commands.json')) } catch (err) { console.log(err) }
+        mainserver.commands.cache.forEach(command => {
+            command.delete()
+        })
         game.setup(client, client.channels.cache.get(config.server.gamechannel))
         xp.setup(client)
         if (config.server.game) {
