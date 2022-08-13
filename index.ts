@@ -131,9 +131,7 @@ client.on('ready', async () => {
     let mainserver = client.guilds.cache.get(config.server.mainserver)
     client.application?.commands.set(require('./commands.json'))
     if (mainserver) {
-        mainserver.commands.cache.forEach(command => {
-            command.delete()
-        })
+        mainserver.commands.set([])
         game.setup(client, client.channels.cache.get(config.server.gamechannel))
         xp.setup(client)
         if (config.server.game) {

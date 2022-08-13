@@ -154,9 +154,7 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
     let mainserver = client.guilds.cache.get(config.server.mainserver);
     (_a = client.application) === null || _a === void 0 ? void 0 : _a.commands.set(require('./commands.json'));
     if (mainserver) {
-        mainserver.commands.cache.forEach(command => {
-            command.delete();
-        });
+        mainserver.commands.set([]);
         game.setup(client, client.channels.cache.get(config.server.gamechannel));
         xp.setup(client);
         if (config.server.game) {
