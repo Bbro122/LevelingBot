@@ -108,12 +108,12 @@ function checkMap(str:string) {
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
-client.on('userUpdate',(oldUser,newUser)=>{
+client.on('userUpdate',async (oldUser,newUser)=>{
     let member = client.guilds.cache.get(config.server.mainserver)?.members.cache.get(newUser.id)
     if (member&&member.manageable&&!member.nickname&&checkMap(member.displayName.charAt(0))) {
         member.setNickname(`[p] ${member.displayName}`)
-        member.createDM().then(channel => {
-            try{channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
+        member.createDM().then(async channel => {
+            try{await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
             catch(err){console.log(err)}
         })
     }
@@ -121,8 +121,8 @@ client.on('userUpdate',(oldUser,newUser)=>{
 client.on('guildMemberUpdate',(oldMember,newMember)=>{
     if (newMember&&newMember.manageable&&checkMap(newMember.displayName.charAt(0))) {
         newMember.setNickname(`[p] ${newMember.displayName}`)
-        newMember.createDM().then(channel => {
-            try{channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
+        newMember.createDM().then(async channel => {
+            try{await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
             catch(err){console.log(err)}
         })
     }
@@ -131,7 +131,6 @@ client.on('ready', async () => {
     let mainserver = client.guilds.cache.get(config.server.mainserver)
     client.application?.commands.set(require('./commands.json'))
     if (mainserver) {
-        mainserver.commands.set([])
         game.setup(client, client.channels.cache.get(config.server.gamechannel))
         xp.setup(client)
         if (config.server.game) {
