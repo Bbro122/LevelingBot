@@ -31,7 +31,7 @@ exports.give = function giveXP(msg, amount, check) {
                     if (msg.channel.id == require('./config.json').server.countchannel) {
                         let gamechannel = client.channels.cache.get(require('./config.json').server.gamechannel);
                         if (gamechannel instanceof discord_js_1.TextChannel) {
-                            gamechannel.send(`<@${msg.author.id}> **Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`);
+                            gamechannel.send(`<@${msg.author.id}> **Level Up! You\'re now level ${level}.** \n ${exports.level(level) - user.xp} xp is needed for your next level.`);
                         }
                     }
                     else {
