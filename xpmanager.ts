@@ -68,7 +68,7 @@ exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amou
                             gamechannel.send(`<@${msg.author.id}> **Level Up! You\'re now level ${level}.** \n ${exports.level(level) - user.xp} xp is needed for your next level.`)
                         }
                     } else {
-                        msg.channel.send(`**Level Up! You\'re now level ${user.level}.** \n ${exports.level(user.level) - user.xp} xp is needed for your next level.`)
+                        msg.channel.send(`**Level Up! You\'re now level ${user.level+1}.** \n ${exports.level(user.level+1) - user.xp} xp is needed for your next level.`)
                     }
                 }
                 user.level = level
