@@ -146,28 +146,20 @@ client.on('userUpdate', (oldUser, newUser) => __awaiter(void 0, void 0, void 0, 
     var _a;
     let member = (_a = client.guilds.cache.get(config.server.mainserver)) === null || _a === void 0 ? void 0 : _a.members.cache.get(newUser.id);
     if (member && member.manageable && !member.nickname && checkMap(member.displayName.charAt(0))) {
-        member.setNickname(`[p] ${member.displayName}`);
-        member.createDM().then((channel) => __awaiter(void 0, void 0, void 0, function* () {
-            try {
-                yield channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.');
-            }
-            catch (err) {
-                console.log(err);
-            }
-        }));
+        //member.setNickname(`[p] ${member.displayName}`)
+        //member.createDM().then(async channel => {
+        //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
+        //catch (err) { console.log(err) }
+        //})
     }
 }));
 client.on('guildMemberUpdate', (oldMember, newMember) => {
     if (newMember && newMember.manageable && checkMap(newMember.displayName.charAt(0))) {
-        newMember.setNickname(`[p] ${newMember.displayName}`);
-        newMember.createDM().then((channel) => __awaiter(void 0, void 0, void 0, function* () {
-            try {
-                yield channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.');
-            }
-            catch (err) {
-                console.log(err);
-            }
-        }));
+        //newMember.setNickname(`[p] ${newMember.displayName}`)
+        //newMember.createDM().then(async channel => {
+        //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
+        //catch (err) { console.log(err) }
+        //})
     }
 });
 client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
