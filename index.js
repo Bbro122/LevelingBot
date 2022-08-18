@@ -79,6 +79,15 @@ function checkOwner(interaction) {
         }
     }
 }
+function getWelcomeBanner(imagelink) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let canvas = canvas_1.default.createCanvas(1200, 300);
+        let context = canvas.getContext('2d');
+        context.drawImage(yield canvas_1.default.loadImage(imagelink), 478, 51, 203, 203);
+        context.drawImage(yield canvas_1.default.loadImage('./welcome.png'), 0, 0, 1200, 300);
+        return canvas.toBuffer('image/png');
+    });
+}
 function getImage(exp, requirement, username, number, level, imagelink, rank) {
     return __awaiter(this, void 0, void 0, function* () {
         let canvas = canvas_1.default.createCanvas(1200, 300);
@@ -121,6 +130,18 @@ function checkMap(str) {
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
+client.on('guildMemberAdd', (member) => __awaiter(void 0, void 0, void 0, function* () {
+    let mainchat = member.guild.channels.cache.get('632995958950723584');
+    let url = member.displayAvatarURL().replace('webp', 'png');
+    if (url) {
+        getWelcomeBanner(url).then(buffer => {
+            if (mainchat && mainchat instanceof discord_js_1.TextChannel) {
+                const attachment = new discord_js_1.MessageAttachment(buffer, "Welcome.png");
+                mainchat.send({ content: `<@${member.id}> has joined the server.`, files: [attachment] });
+            }
+        });
+    }
+}));
 client.on('userUpdate', (oldUser, newUser) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     let member = (_a = client.guilds.cache.get(config.server.mainserver)) === null || _a === void 0 ? void 0 : _a.members.cache.get(newUser.id);

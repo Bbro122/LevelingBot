@@ -13,7 +13,7 @@ let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let config = require("./config.json")
 let medals = ['🥇', '🥈', '🥉']
-let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjklzxcvbnm /?|"+'"'
+let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjklzxcvbnm /?|" + '"'
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
 //  |‾‾‾‾ |    | |\  | |‾‾‾ ‾‾|‾‾ ‾‾|‾‾  |‾‾‾| |\  | |‾‾‾‾  |
 //  |‾‾   |    | | \ | |      |     |    |   | | \ | └────┐ |
@@ -68,6 +68,13 @@ function checkOwner(interaction: CommandInteraction) {
         }
     }
 }
+async function getWelcomeBanner(imagelink: string) {
+    let canvas = can.createCanvas(1200, 300)
+    let context = canvas.getContext('2d')
+    context.drawImage(await can.loadImage(imagelink), 478, 51, 203, 203)
+    context.drawImage(await can.loadImage('./welcome.png'), 0, 0, 1200, 300)
+    return canvas.toBuffer('image/png')
+}
 async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any) {
     let canvas = can.createCanvas(1200, 300)
     let context = canvas.getContext('2d')
@@ -93,10 +100,10 @@ async function getImage(exp: number, requirement: number, username: any, number:
     context.fillText(level, 1043, 75)
     return canvas.toBuffer('image/png')
 }
-function checkMap(str:string) {
+function checkMap(str: string) {
     let value = true
     charMap.toLowerCase().split('').forEach(char => {
-        if (char==str) {
+        if (char == str) {
             console.log(char)
             value = false
         }
@@ -108,22 +115,34 @@ function checkMap(str:string) {
 // ├─┬┘ ├──  └───┐ |──┘ |   | | \ | └───┐ ├──   ||
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
-client.on('userUpdate',async (oldUser,newUser)=>{
-    let member = client.guilds.cache.get(config.server.mainserver)?.members.cache.get(newUser.id)
-    if (member&&member.manageable&&!member.nickname&&checkMap(member.displayName.charAt(0))) {
-        member.setNickname(`[p] ${member.displayName}`)
-        member.createDM().then(async channel => {
-            try{await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
-            catch(err){console.log(err)}
+client.on('guildMemberAdd', async (member: GuildMember) => {
+    let mainchat = member.guild.channels.cache.get('632995958950723584')
+    let url = member.displayAvatarURL().replace('webp','png')
+    if (url) {
+        getWelcomeBanner(url).then(buffer => {
+            if (mainchat && mainchat instanceof TextChannel) {
+                const attachment = new MessageAttachment(buffer, "Welcome.png")
+                mainchat.send({ content: `<@${member.id}> has joined the server.`, files: [attachment] })
+            }
         })
     }
 })
-client.on('guildMemberUpdate',(oldMember,newMember)=>{
-    if (newMember&&newMember.manageable&&checkMap(newMember.displayName.charAt(0))) {
+client.on('userUpdate', async (oldUser, newUser) => {
+    let member = client.guilds.cache.get(config.server.mainserver)?.members.cache.get(newUser.id)
+    if (member && member.manageable && !member.nickname && checkMap(member.displayName.charAt(0))) {
+        member.setNickname(`[p] ${member.displayName}`)
+        member.createDM().then(async channel => {
+            try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
+            catch (err) { console.log(err) }
+        })
+    }
+})
+client.on('guildMemberUpdate', (oldMember, newMember) => {
+    if (newMember && newMember.manageable && checkMap(newMember.displayName.charAt(0))) {
         newMember.setNickname(`[p] ${newMember.displayName}`)
         newMember.createDM().then(async channel => {
-            try{await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.')}
-            catch(err){console.log(err)}
+            try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
+            catch (err) { console.log(err) }
         })
     }
 })
@@ -340,7 +359,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 interaction.reply(`No userdata found.`)
             }
 
-        } else if (interaction.commandName == 'publicshop'&&checkOwner(interaction)) {
+        } else if (interaction.commandName == 'publicshop' && checkOwner(interaction)) {
             let data = xp.get()
             let user = data.users.find(user => user.id == interaction.user.id)
             if (user) {
