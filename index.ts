@@ -116,8 +116,9 @@ function checkMap(str: string) {
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
 client.on('guildMemberAdd', async (member: GuildMember) => {
+    let guild = member.guild
     let mainchat = member.guild.channels.cache.get('632995958950723584')
-    let url = member.displayAvatarURL().replace('webp','png')
+    let url = member.displayAvatarURL().replace('webp', 'png')
     if (url) {
         getWelcomeBanner(url).then(buffer => {
             if (mainchat && mainchat instanceof TextChannel) {
@@ -126,14 +127,26 @@ client.on('guildMemberAdd', async (member: GuildMember) => {
             }
         })
     }
+    let members = 0
+    await guild.members.fetch()
+    guild.members.cache.forEach(member => {
+        if (!member.user.bot) {
+            members++
+        }
+    })
+    if (!guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) {
+        await guild.channels.create(`User-Count-${members}`, { type: 'GUILD_VOICE', permissionOverwrites: [{ id: guild.roles.everyone.id, deny: ['CONNECT'] }] })
+    } else {
+        guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))?.setName(`User-Count-${members}`)
+    }
 })
 client.on('userUpdate', async (oldUser, newUser) => {
     let member = client.guilds.cache.get(config.server.mainserver)?.members.cache.get(newUser.id)
     if (member && member.manageable && !member.nickname && checkMap(member.displayName.charAt(0))) {
         //member.setNickname(`[p] ${member.displayName}`)
         //member.createDM().then(async channel => {
-            //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
-            //catch (err) { console.log(err) }
+        //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
+        //catch (err) { console.log(err) }
         //})
     }
 })
@@ -141,12 +154,26 @@ client.on('guildMemberUpdate', (oldMember, newMember) => {
     if (newMember && newMember.manageable && checkMap(newMember.displayName.charAt(0))) {
         //newMember.setNickname(`[p] ${newMember.displayName}`)
         //newMember.createDM().then(async channel => {
-            //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
-            //catch (err) { console.log(err) }
+        //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
+        //catch (err) { console.log(err) }
         //})
     }
 })
 client.on('ready', async () => {
+    client.guilds.cache.forEach(async guild => {
+        await guild.members.fetch()
+        let members = 0
+        guild.members.cache.forEach(member => {
+            if (!member.user.bot) {
+                members++
+            }
+        })
+        if (!guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) {
+            await guild.channels.create(`User-Count-${members}`, { type: 'GUILD_VOICE', permissionOverwrites: [{ id: guild.roles.everyone.id, deny: ['CONNECT'] }] })
+        } else {
+            guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))?.setName(`User-Count-${members}`)
+        }
+    })
     let mainserver = client.guilds.cache.get(config.server.mainserver)
     client.application?.commands.set(require('./commands.json'))
     if (mainserver) {
