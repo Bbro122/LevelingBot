@@ -11,12 +11,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const { get } = require('./xpmanager');
-const { MessageAttachment, MessageEmbed } = require('discord.js');
+const discord_js_2 = require("discord.js");
 const fs = require('fs');
 let can = require('canvas');
+let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw", "Reverse", "Skip"]];
 const reso = 0.1;
 function res(num) {
     return num * reso;
+}
+function getLabel(card) {
+    let label = '';
+    displayValues[0].forEach(color => {
+        if (card.startsWith(color.charAt(0).toLowerCase())) {
+            label = color;
+        }
+    });
+    let success = false;
+    displayValues[1].forEach(type => {
+        if (card.endsWith(type.charAt(1).toLowerCase())) {
+            label = label + type;
+            success = true;
+        }
+    });
+    if (!success) {
+        label = label + card.charAt(1);
+    }
+    return label;
 }
 function rotatedImg(card) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -35,7 +55,7 @@ function dispBoard(hands, game, hidden) {
         const canvas = can.createCanvas(res(7000), res(7000));
         let ctx = canvas.getContext('2d');
         let logo2 = yield can.loadImage(`./cards/logo2.png`);
-        ctx.drawImage(yield can.loadImage('./cards/wood.jpg'), 0, 0, res(7000), res(7000));
+        //ctx.drawImage(await can.loadImage('./cards/wood.jpg'), 0, 0, res(7000), res(7000))
         ctx.drawImage(yield can.loadImage('./cards/logo.png'), res(2500), res(2750), res(900), res(1400));
         ctx.drawImage(yield can.loadImage(`./cards/${game.deck[0]}.png`), res(3600), res(2750), res(900), res(1400));
         ctx.translate(res(3500), res(3500));
@@ -106,38 +126,71 @@ function randomizeArray(array) {
     }
     return b;
 }
-function startTurn(game) {
+function startTurn(interaction, game) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         let player = game.players[game.round % game.players.length];
         let hands = [];
+        hands.push(player.hand);
         for (let i = 0; i < game.players.length; i++) {
-            const player = game.players[(game.round + i) % game.players.length];
-            hands.push(player.hand);
-        }
-        const attachment = new MessageAttachment(dispBoard(hands, game, true), 'board.png');
-        //game.msg.edit({
-        //embeds: [{ "type": "rich", "title": `${player.id.displayName}'s Turn (${game.round})`, "description": `It is now your turn, you have 15 seconds to begin.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])]
-        //, files: [attachment]
-        //})
-    });
-}
-function startGame(interaction) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let game = findGame(interaction.channelId);
-        if (game) {
-            game.deck = randomizeArray(game.deck);
-            for (let i = 0; i < game.players.length; i++) {
-                const element = game.players[i];
-                element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()];
+            const plr = game.players[(game.round + i) % game.players.length];
+            if (plr != player) {
+                hands.push(plr.hand);
             }
-            startTurn(game);
         }
+        const attachment = new discord_js_2.MessageAttachment(yield dispBoard(hands, game, true), 'board.png');
+        if (interaction.replied) {
+            yield game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
+        }
+        else {
+            yield interaction.update({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
+        }
+        yield game.msg.edit({
+            content: null,
+            embeds: [{ "type": "rich", "title": `${interaction.member instanceof discord_js_1.GuildMember ? interaction.member.displayName : interaction.user.id}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])],
+            files: [attachment]
+        });
+        let collector = (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == player.id, time: 20000, max: 1 });
+        collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
+            var _b;
+            yield i.deferReply({ ephemeral: true });
+            const attachment = new discord_js_2.MessageAttachment(yield dispBoard(hands, game, false), 'board.png');
+            yield game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
+            yield game.msg.edit({
+                content: null,
+                embeds: [{ "type": "rich", "title": `${i.member instanceof discord_js_1.GuildMember ? i.member.displayName : i.user.id} has begun round ${game.round + 1}`, "description": `They have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: undefined,
+                files: Array.from(game.msg.attachments.values())
+            });
+            let playableCards = [{ label: 'Draw', value: 'draw' }];
+            player.hand.forEach(card => {
+                if ((card === null || card === void 0 ? void 0 : card.startsWith(game.deck[0].charAt(0))) || (card === null || card === void 0 ? void 0 : card.charAt(1)) == game.deck[0].charAt(1)) {
+                    playableCards.push({ label: getLabel(card), value: card });
+                }
+            });
+            let SelectMenu = new discord_js_1.MessageActionRow().addComponents(new discord_js_1.MessageSelectMenu()
+                .setCustomId('playcard')
+                .addOptions(playableCards));
+            yield i.editReply({
+                components: [SelectMenu],
+                files: [attachment],
+                embeds: [{ "type": "rich", "title": `Time to make your move`, "description": `It is now your turn, you have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }]
+            });
+            let collector = (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 });
+            collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
+                let msg = yield interaction.reply({ content: `${interaction.user.username} Played a ${getLabel(interaction.values[0])}`, fetchReply: true });
+                setTimeout(function () { if (msg instanceof discord_js_1.Message) {
+                    msg.delete();
+                } }, 10000);
+                game.round++;
+                startTurn(interaction, game);
+            }));
+        }));
     });
 }
 exports.startNewGame = function startNewGame(interaction) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
-        let gameChan = yield ((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.channels.create("Test"));
+        let gameChan = yield ((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.channels.create(`${interaction.user.username}s-uno-match`));
         if (gameChan && interaction.member instanceof discord_js_1.GuildMember) {
             let msg = yield gameChan.send({
                 embeds: [{
@@ -153,58 +206,58 @@ exports.startNewGame = function startNewGame(interaction) {
                     }], components: [row([createButton("🎮 Join Match", "join", "SUCCESS", null, false), createButton("Start Match", "start", "SUCCESS", "814199679704891423", false), createButton("Cancel Match", "cancel", "DANGER", "814199666778308638", false)])]
             });
             if (msg) {
-                games.push(newGame(msg, interaction.user.id));
-                interaction.reply(`[Unfinished] Game starting in <#${gameChan.id}>`);
-            }
-        }
-    });
-};
-exports.command = function (interaction) {
-    var _a, _b, _c;
-    return __awaiter(this, void 0, void 0, function* () {
-        yield interaction.deferReply({ ephemeral: true });
-        if (interaction.customId == 'join') {
-            let game = findGame(interaction.channelId);
-            if (game) {
-                if (game.players.find(plr => plr.id == interaction.user.id)) {
-                    yield interaction.editReply('You are already in this match.');
-                }
-                else if (interaction.member instanceof discord_js_1.GuildMember) {
-                    game.players.push(newPlayer(interaction.user.id));
-                    let embed = game.msg.embeds[0];
-                    let user = require('./userdata.json').users.find((user) => { var _a; return user.id == ((_a = interaction.user) === null || _a === void 0 ? void 0 : _a.id); });
-                    embed.description = `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`;
-                    embed.fields.push({ name: (_a = interaction.member) === null || _a === void 0 ? void 0 : _a.displayName, value: `Level ${user.level}`, inline: false });
-                    yield game.msg.edit({ embeds: [embed] });
-                }
-            }
-        }
-        else if (interaction.customId == 'cancel') {
-            let game = findGame(interaction.channelId);
-            if (game) {
-                if (interaction.user.id == game.host) {
-                    (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.delete();
-                    games.splice(games.indexOf(game), 1);
-                }
-                else {
-                    yield interaction.editReply({ content: "Only the host can perform this action" });
-                }
-            }
-        }
-        else if (interaction.customId == 'start') {
-            let game = findGame(interaction.channelId);
-            if (game) {
-                if (((_c = interaction.user) === null || _c === void 0 ? void 0 : _c.id) == game.host) {
-                    if (game.players.length > 1) {
-                        startGame(interaction);
+                let game = newGame(msg, interaction.user.id);
+                games.push(game);
+                interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`);
+                const collector = gameChan === null || gameChan === void 0 ? void 0 : gameChan.createMessageComponentCollector({ componentType: 'BUTTON' });
+                collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
+                    var _d, _e, _f;
+                    if (i.customId == 'join') {
+                        if (game.players.find(plr => plr.id == i.user.id)) {
+                            yield i.reply({ content: 'You are already in this match.', ephemeral: true });
+                        }
+                        else if (i.member instanceof discord_js_1.GuildMember) {
+                            game.players.push(newPlayer(i.user.id));
+                            let embed = game.msg.embeds[0];
+                            let user = require('./userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
+                            embed.description = `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`;
+                            embed.fields.push({ name: (_d = i.member) === null || _d === void 0 ? void 0 : _d.displayName, value: `Level ${user.level}`, inline: false });
+                            yield i.update({ embeds: [embed] });
+                        }
+                    }
+                    else if (((_e = i.user) === null || _e === void 0 ? void 0 : _e.id) == game.host) {
+                        if (i.customId == 'cancel') {
+                            if (i.user.id == game.host) {
+                                (_f = i.channel) === null || _f === void 0 ? void 0 : _f.delete();
+                                games.splice(games.indexOf(game), 1);
+                            }
+                            else {
+                                yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
+                            }
+                        }
+                        else if (i.customId == 'start') {
+                            if (game.players.length > 1) {
+                                collector.stop();
+                                game.deck = randomizeArray(game.deck);
+                                for (let i = 0; i < game.players.length; i++) {
+                                    const element = game.players[i];
+                                    element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()];
+                                }
+                                startTurn(i, game);
+                            }
+                            else {
+                                yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
+                            }
+                        }
                     }
                     else {
-                        yield interaction.editReply({ content: "There must be more than 1 player for the game to start" });
+                        yield i.reply({ content: 'Command is only available to host', ephemeral: true });
                     }
-                }
-                else {
-                    yield interaction.editReply({ content: "Only the host can perform this action" });
-                }
+                }));
+            }
+            else {
+                yield gameChan.delete();
+                yield interaction.reply('Failed to create game');
             }
         }
     });

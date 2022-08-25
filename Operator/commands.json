@@ -1,0 +1,10 @@
+[
+    {
+      "name": "start",
+      "description": "Activate the operator instance."
+    },
+    {
+      "name": "stop",
+      "description": "Deactivate the operator instance."
+    }
+  ]

@@ -12,7 +12,7 @@ type Warning = {
 type PunishData = {
     "warnings": Warning[]
 }
-function strCheck(str:any) {
+function strCheck(str: any) {
     if (typeof str == 'string') {
         return str;
     }
@@ -20,7 +20,7 @@ function strCheck(str:any) {
         return '';
     }
 }
-function numCheck(num:any) {
+function numCheck(num: any) {
     if (typeof num == 'number') {
         return num;
     }
@@ -29,7 +29,7 @@ function numCheck(num:any) {
     }
 }
 let PendingPunishments: { id: string, data: CommandInteraction["options"] }[] = []
-exports.write = function write(file:PunishData) {
+exports.write = function write(file: PunishData) {
     fs.writeFileSync('./punishments.json', JSON.stringify(file))
 }
 exports.get = function read() {
@@ -60,69 +60,58 @@ exports.punish = function punish(interaction: CommandInteraction) {
             ],
             ephemeral: true
         })
-    }
-}
-exports.punishConfirm = function punish(interaction: ButtonInteraction) {
-    let member = interaction.member
-    let data = exports.get()
-    let date = new Date();
-    if (member instanceof GuildMember) {
-        let id = member.id
-        let acase = PendingPunishments.find(acase => acase.id == id)
-        if (acase) {
-            let pmember = acase?.data.get('user')?.member
-            if (pmember instanceof GuildMember) {
-                let replied = false
-                let type: string = acase?.data.getSubcommand()
+        let collector = interaction.channel?.createMessageComponentCollector({ componentType: "BUTTON", filter: (i => i.customId == 'punish'),time:600000})
+        collector?.on('collect', i => {
+            let data = exports.get()
+            let member = i.member
+            let pmember = interaction.options.get('user')?.member
+            let date = new Date();
+            if (pmember instanceof GuildMember&&member instanceof GuildMember) {
+                let type: string = interaction.options.getSubcommand()
                 let embed = new MessageEmbed()
                     .setTitle(type)
-                    .setDescription(acase?.data.get('reason')?.value)
+                    .setDescription(interaction.options.get('reason')?.value)
                     .addFields([{ name: `${pmember.displayName}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
                     .setTimestamp(Date.now())
                     .setFooter(`Case Mod: ${member.displayName}`)
-                let log = { "pid": data.warnings.length, "id": acase.data.get('user')?.user?.id, "epoch": date.getTime(), "reason": acase.data.get('reason')?.value, "type": type, "mod": interaction.user.id }
+                let log = { "pid": data.warnings.length, "id": interaction.options.get('user')?.user?.id, "epoch": date.getTime(), "reason": interaction.options.get('reason')?.value, "type": type, "mod": i.user.id }
                 console.log('ModCheck')
                 if (pmember.moderatable) {
                     console.log('Moddable')
                     if (type === 'ban') {
-                        pmember.ban({ days: numCheck(acase.data.get('messageremove')?.value), reason: acase?.data.get('reason')?.value!.toString() })
+                        pmember.ban({ days: numCheck(interaction.options.get('messageremove')?.value), reason: interaction.options.get('reason')?.value!.toString() })
                     } else if (type === 'timeout') {
-                        pmember.timeout(numCheck(acase.data.get('time')?.value) * 60000, strCheck(acase?.data.get('reason')?.value))
+                        pmember.timeout(numCheck(interaction.options.get('time')?.value) * 60000, strCheck(interaction.options.get('reason')?.value))
                     } else if (type === 'kick') {
-                        pmember.kick(strCheck(acase?.data.get('reason')?.value))
+                        pmember.kick(strCheck(interaction.options.get('reason')?.value))
                     }
-                    interaction.reply({ embeds: [embed], content: `<@${pmember.id}> A punishment has been issued.` })
+                    i.reply({ embeds: [embed], content: `<@${pmember.id}> A punishment has been issued.` })
                     data.warnings.push(log)
                     exports.write(data)
                 } else {
-                    interaction.reply({ content: "Could not manage user.", ephemeral: true })
+                    i.update({ content: "Could not manage user."})
                 }
             } else {
-                interaction.reply('type error 1')
+                i.update('type error 1')
             }
-            PendingPunishments.splice(PendingPunishments.findIndex(bcase => bcase == acase), 1)
-        } else {
-            interaction.reply({ content: 'Case not found.', ephemeral: true })
-        }
-    } else {
-        interaction.reply({ content: 'type error 0', ephemeral: true })
+        })
     }
 }
-exports.getpunishments = function punish(user: User,interaction: CommandInteraction) {
+exports.getpunishments = function punish(user: User, interaction: CommandInteraction) {
     let punishments: Warning[] = exports.get().warnings
     let warnings: Warning[] = []
     let desc = 'Warnings'
-    punishments.sort(function(a,b){return b.pid-a.pid})
+    punishments.sort(function (a, b) { return b.pid - a.pid })
     if (user) {
         desc = `Warnings for ${user.username}`
-        for (let i = 0; i < (punishments.length < 25?punishments.length:25); i++) {
+        for (let i = 0; i < (punishments.length < 25 ? punishments.length : 25); i++) {
             const warn = punishments[i];
             if (warn.id == user.id && punishments.findIndex(warning => warning == warn) < 25) {
                 warnings.push(warn)
             }
         }
     } else {
-        for (let i = 0; i < (punishments.length < 25?punishments.length:25); i++) {
+        for (let i = 0; i < (punishments.length < 25 ? punishments.length : 25); i++) {
             const warn = punishments[i];
             warnings.push(warn)
         }
@@ -132,10 +121,10 @@ exports.getpunishments = function punish(user: User,interaction: CommandInteract
     warnings.forEach(warning => {
         let date = new Date(warning.epoch)
         let user = interaction.client.users.cache.get(warning.id)
-        embed.addField(`USER: ${user?user.username:warning.id} | PID: ${warning.pid} | TYPE: ${warning.type}`,`DATE: ${date.toLocaleDateString()} | REASON: ${warning.reason}`,false)
+        embed.addField(`USER: ${user ? user.username : warning.id} | PID: ${warning.pid} | TYPE: ${warning.type}`, `DATE: ${date.toLocaleDateString()} | REASON: ${warning.reason}`, false)
     })
     if (embed.fields.length == 0) {
         embed.setDescription('No punishments were found.')
     }
-    interaction.reply({embeds:[embed]})
+    interaction.reply({ embeds: [embed] })
 }

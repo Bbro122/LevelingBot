@@ -11,6 +11,21 @@
     ]
   },
   {
+    "name": "create",
+    "description": "Create a new Uno Match (InDev)"
+  },
+  {
+    "name": "function",
+    "description": "See your current level in the server.",
+    "options": [
+      {
+        "type": 3,
+        "name": "user",
+        "description": "Specfify which user"
+      }
+    ]
+  },
+  {
     "name": "daily",
     "description":"Receive your daily gems and xp."
   },

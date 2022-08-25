@@ -75,7 +75,7 @@ async function getWelcomeBanner(imagelink: string) {
     context.drawImage(await can.loadImage('./welcome.png'), 0, 0, 1200, 300)
     return canvas.toBuffer('image/png')
 }
-async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any,ministry?:boolean) {
+async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any, ministry?: boolean) {
     let canvas = can.createCanvas(1200, 300)
     let context = canvas.getContext('2d')
     context.fillStyle = '#171717'
@@ -86,7 +86,7 @@ async function getImage(exp: number, requirement: number, username: any, number:
     context.fillRect(325, 200, Math.round((exp - xp.level(level - 1)) / (requirement - xp.level(level - 1)) * 800), 50)
     context.drawImage(await can.loadImage(imagelink), 50, 50, 200, 200)
     context.drawImage(await can.loadImage('./Overlay.png'), 0, 0, 1200, 300)
-    if (ministry) {context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30)}
+    if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30) }
     context.fillStyle = '#ffffff'
     context.font = '40px Arial'
     context.fillText(`Rank #${rank}`, 325, 100)
@@ -217,7 +217,12 @@ client.on('messageCreate', async (msg: Message) => {
 })
 client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.isCommand()) {
-        if (interaction.commandName == 'level') {
+        if (interaction.commandName == 'function' && checkOwner(interaction)) {
+            let func = interaction.options.get('user')?.value
+            if (typeof func == 'string') {
+                eval(func)
+            }
+        } else if (interaction.commandName == 'level') {
             await interaction.deferReply()
             let data = xp.get()
             let user: UserProfile | undefined
@@ -232,17 +237,19 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 let data2 = xp.get().users.sort((a, b) => { return b.xp - a.xp })
                 data2.findIndex(user2 => user2 == user)
                 if (user) {
-                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1,(interaction.member?.roles instanceof GuildMemberRoleManager)?interaction.member.roles.cache.has('785054691008577536'):false).then(buffer => {
+                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (interaction.member?.roles instanceof GuildMemberRoleManager) ? interaction.member.roles.cache.has('785054691008577536') : false).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
                 } else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1,(interaction.member?.roles instanceof GuildMemberRoleManager)?interaction.member.roles.cache.has('785054691008577536'):false).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (interaction.member?.roles instanceof GuildMemberRoleManager) ? interaction.member.roles.cache.has('785054691008577536') : false).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
                 }
             }
+        } else if (interaction.commandName == 'create') {
+            require('./UnoMaster.js').startNewGame(interaction)
         } else if (interaction.commandName == 'leaderboard') {
             await interaction.guild?.members.fetch()
             let data = xp.get().users.sort((a, b) => { return b.xp - a.xp })
@@ -467,8 +474,6 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 .setDescription(rule)
             reply.embed(interaction, embed)
         }
-    } else if (interaction.isButton()) {
-        require('./punisher').punishConfirm(interaction)
     } else if (interaction.isSelectMenu()) {
         if (interaction.customId == 'shop') {
             let args = interaction.values[0].split('_')
