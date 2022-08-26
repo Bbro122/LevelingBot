@@ -162,7 +162,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
     collector?.on('collect', async interaction => {
       let msg = await interaction.reply({ content: `${interaction.user.username} Played a ${getLabel(interaction.values[0])}`, fetchReply: true })
       setTimeout(function () { if (msg instanceof Message) { msg.delete() } }, 10000)
-      game.round++
+      game.round = game.round + 1
       startTurn(interaction, game)
     })
   })
