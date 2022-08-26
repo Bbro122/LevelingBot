@@ -41,8 +41,9 @@ function checkOwner(interaction) {
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
 client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json'));
+        (_a = client.application) === null || _a === void 0 ? void 0 : _a.commands.set(require('./commands.json'));
     }
     catch (err) {
         console.log(err);
@@ -76,4 +77,4 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         }
     }
 }));
-client.login("NTg1MjQ4NjI4MjgxNTczMzk3.XPWtQg.0dfaOW1hRJS9hwwMO9DiRLoIlFk");
+client.login("MTAwMTEwODc3OTQzOTUwNTQxOA.GnAngP.Ho0xAMy4Dml5NTk5WpV-hrMn2gaUPMkPgsEgbE");

@@ -32,7 +32,7 @@ function checkOwner(interaction: CommandInteraction) {
 // | |  |___  ___| |    |___| |  \|  ___| |___  ||
 //______________________________________________//
 client.on('ready', async () => {
-    try { client.guilds.cache.get('632995494305464331').commands.set(require('./commands.json')) } catch (err) { console.log(err) }
+    try { client.application?.commands.set(require('./commands.json')) } catch (err) { console.log(err) }
 })
 client.on('interactionCreate', async (interaction: CommandInteraction) => {
     if (interaction.commandName == 'start' && checkOwner(interaction)) {
@@ -59,4 +59,4 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
         }
     }
 })
-client.login("NTg1MjQ4NjI4MjgxNTczMzk3.XPWtQg.0dfaOW1hRJS9hwwMO9DiRLoIlFk");
+client.login("MTAwMTEwODc3OTQzOTUwNTQxOA.GnAngP.Ho0xAMy4Dml5NTk5WpV-hrMn2gaUPMkPgsEgbE");
