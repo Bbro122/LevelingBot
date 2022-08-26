@@ -9,3 +9,4 @@ function sync() {
 function reSync() {
     sync()
 }
+sync()
