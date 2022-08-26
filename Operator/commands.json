@@ -6,5 +6,9 @@
     {
       "name": "stop",
       "description": "Deactivate the operator instance."
+    },
+    {
+      "name": "restart",
+      "description": "Restart the active instance."
     }
   ]

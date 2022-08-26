@@ -3,10 +3,9 @@
 // |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
-
+//______________________________/
 import { CommandInteraction, Interaction } from "discord.js";
 import { fork, ChildProcessWithoutNullStreams, ChildProcess } from 'child_process'
-//______________________________/
 const fs = require('fs')
 const can = require('canvas')
 const { Client, Intents, Message } = require('discord.js');
@@ -57,6 +56,16 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
                 await interaction.followUp('Operator was unable to properly close the current instance.')
             }
         }
+    } else if (interaction.commandName == 'restart' && checkOwner(interaction) && server && !server.killed) {
+        await server.kill()
+        server.on('message', function (data: Buffer) {
+            console.log(data.toString());
+        });
+
+        server.on('close',async function (code) {
+            console.log('operator instance crashed with ' + code);
+            await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`)
+        });
     }
 })
 client.login(require('./token.json').token);
