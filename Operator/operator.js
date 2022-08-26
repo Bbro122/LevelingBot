@@ -77,4 +77,4 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         }
     }
 }));
-client.login("MTAwMTEwODc3OTQzOTUwNTQxOA.GnAngP.Ho0xAMy4Dml5NTk5WpV-hrMn2gaUPMkPgsEgbE");
+client.login(require('./token.json').token);

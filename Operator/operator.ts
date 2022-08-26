@@ -59,4 +59,4 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
         }
     }
 })
-client.login("MTAwMTEwODc3OTQzOTUwNTQxOA.GnAngP.Ho0xAMy4Dml5NTk5WpV-hrMn2gaUPMkPgsEgbE");
+client.login(require('./token.json').token);
