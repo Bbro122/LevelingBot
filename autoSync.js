@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+const { spawn } =  require('child_process')
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
