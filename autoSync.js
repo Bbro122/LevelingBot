@@ -1,6 +1,6 @@
 const {spawn} = require('child_process')
 function sync() {
-    spawn('git',['pull'])
+    let child = spawn('git',['pull'])
     child.on('close', (code) => {
         console.log(`Exitted with code: ${code}`)
     });
