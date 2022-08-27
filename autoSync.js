@@ -1,12 +1,8 @@
-const {spawn} = require('child_process')
-function sync() {
-    let child = spawn('git',['pull'])
-    child.on('close', (code) => {
-        console.log(`Exitted with code: ${code}`)
-    });
-    setTimeout(reSync(),150000)
+import { spawn } from 'child_process';
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
-function reSync() {
-    sync()
+while (true) {
+    await sleep(150000)
+    spawn('git',['pull'])
 }
-sync()
