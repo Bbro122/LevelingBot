@@ -3,9 +3,10 @@ import { UserProfile } from "./xpmanager";
 const { get } = require('./xpmanager')
 import { MessageAttachment, MessageEmbed } from 'discord.js';
 import { APIMessage, APISelectMenuOption } from "discord-api-types";
+import { Embed } from "@discordjs/builders";
 const fs = require('fs')
 let can = require('canvas')
-let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw", "Reverse", "Skip"]]
+let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse", "Skip"]]
 const reso = 0.1
 type Player = { "id": string, "hand": (string | undefined)[] }
 type Game = { id: string, msg: Message, deck: string[], players: Player[], round: number, inLobby: boolean, timeouts: any[], host: string }
@@ -21,7 +22,7 @@ function getLabel(card: string) {
   })
   let success = false
   displayValues[1].forEach(type => {
-    if (card.endsWith(type.charAt(1).toLowerCase())) {
+    if (card.endsWith(type.charAt(0).toLowerCase())) {
       label = label + type
       success = true
     }
@@ -83,9 +84,6 @@ let games: Game[] = []
 function newGame(msg: Message, host: string) {
   return { id: msg.channelId, msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host }
 }
-function findGame(chanId: string) {
-  return games.find(game => game.id == chanId)
-}
 function newPlayer(plr: string) {
   return { "id": plr, "hand": [] }
 }
@@ -113,6 +111,7 @@ function randomizeArray(array: any[]) {
 }
 async function startTurn(interaction: MessageComponentInteraction, game: Game) {
   let player = game.players[game.round % game.players.length]
+  let member = interaction.guild?.members.cache.get(player.id)?interaction.guild?.members.cache.get(player.id):interaction.member
   let hands: (string | undefined)[][] = []
   hands.push(player.hand)
   for (let i = 0; i < game.players.length; i++) {
@@ -122,14 +121,10 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
     }
   }
   const attachment = new MessageAttachment(await dispBoard(hands, game, true), 'board.png');
-  if (interaction.replied) {
-    await game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] })
-  } else {
-    await interaction.update({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] })
-  }
+  await game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] })
   await game.msg.edit({
     content: null,
-    embeds: [{ "type": "rich", "title": `${interaction.member instanceof GuildMember ? interaction.member.displayName : interaction.user.id}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])],
+    embeds: [{ "type": "rich", "title": `${member instanceof GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])],
     files: [attachment]
   })
   let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == player.id, time: 20000, max: 1 })
@@ -156,13 +151,28 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
     await i.editReply({
       components: [SelectMenu],
       files: [attachment],
-      embeds: [{ "type": "rich", "title": `Time to make your move`, "description": `It is now your turn, you have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }]
+      embeds: [
+        new MessageEmbed()
+        .setTitle('Time to make your move')
+        .setDescription(`It is now your turn, you have 30 seconds to play or draw a card.`)
+        .setColor(0xed0606)
+        .setThumbnail(`attachment://board.png`)
+      ]
     })
     let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 })
     collector?.on('collect', async interaction => {
-      let msg = await interaction.reply({ content: `${interaction.user.username} Played a ${getLabel(interaction.values[0])}`, fetchReply: true })
-      setTimeout(function () { if (msg instanceof Message) { msg.delete() } }, 10000)
-      game.round = game.round + 1
+      player.hand.splice(player.hand.findIndex(card => card==interaction.values[0]),1)
+      game.deck.push(interaction.values[0])
+      let embed = new MessageEmbed()
+      .setTitle(`Round ${game.round+1}`)
+      .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
+      .setThumbnail(`attachment://board.png`)
+      await game.msg.edit({embeds:[embed],components:[]})
+      let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
+      if (msg instanceof Message) {
+        game.msg = msg
+      }
+      game.round++
       startTurn(interaction, game)
     })
   })

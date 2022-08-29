@@ -14,7 +14,7 @@ const { get } = require('./xpmanager');
 const discord_js_2 = require("discord.js");
 const fs = require('fs');
 let can = require('canvas');
-let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw", "Reverse", "Skip"]];
+let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse", "Skip"]];
 const reso = 0.1;
 function res(num) {
     return num * reso;
@@ -28,7 +28,7 @@ function getLabel(card) {
     });
     let success = false;
     displayValues[1].forEach(type => {
-        if (card.endsWith(type.charAt(1).toLowerCase())) {
+        if (card.endsWith(type.charAt(0).toLowerCase())) {
             label = label + type;
             success = true;
         }
@@ -96,9 +96,6 @@ let games = [];
 function newGame(msg, host) {
     return { id: msg.channelId, msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host };
 }
-function findGame(chanId) {
-    return games.find(game => game.id == chanId);
-}
 function newPlayer(plr) {
     return { "id": plr, "hand": [] };
 }
@@ -127,9 +124,10 @@ function randomizeArray(array) {
     return b;
 }
 function startTurn(interaction, game) {
-    var _a;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         let player = game.players[game.round % game.players.length];
+        let member = ((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.members.cache.get(player.id)) ? (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.cache.get(player.id) : interaction.member;
         let hands = [];
         hands.push(player.hand);
         for (let i = 0; i < game.players.length; i++) {
@@ -139,20 +137,15 @@ function startTurn(interaction, game) {
             }
         }
         const attachment = new discord_js_2.MessageAttachment(yield dispBoard(hands, game, true), 'board.png');
-        if (interaction.replied) {
-            yield game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
-        }
-        else {
-            yield interaction.update({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
-        }
+        yield game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
         yield game.msg.edit({
             content: null,
-            embeds: [{ "type": "rich", "title": `${interaction.member instanceof discord_js_1.GuildMember ? interaction.member.displayName : interaction.user.id}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])],
+            embeds: [{ "type": "rich", "title": `${member instanceof discord_js_1.GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])],
             files: [attachment]
         });
-        let collector = (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == player.id, time: 20000, max: 1 });
+        let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == player.id, time: 20000, max: 1 });
         collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
-            var _b;
+            var _d;
             yield i.deferReply({ ephemeral: true });
             const attachment = new discord_js_2.MessageAttachment(yield dispBoard(hands, game, false), 'board.png');
             yield game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
@@ -173,14 +166,28 @@ function startTurn(interaction, game) {
             yield i.editReply({
                 components: [SelectMenu],
                 files: [attachment],
-                embeds: [{ "type": "rich", "title": `Time to make your move`, "description": `It is now your turn, you have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }]
+                embeds: [
+                    new discord_js_2.MessageEmbed()
+                        .setTitle('Time to make your move')
+                        .setDescription(`It is now your turn, you have 30 seconds to play or draw a card.`)
+                        .setColor(0xed0606)
+                        .setThumbnail(`attachment://board.png`)
+                ]
             });
-            let collector = (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 });
+            let collector = (_d = interaction.channel) === null || _d === void 0 ? void 0 : _d.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 });
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
-                let msg = yield interaction.reply({ content: `${interaction.user.username} Played a ${getLabel(interaction.values[0])}`, fetchReply: true });
-                setTimeout(function () { if (msg instanceof discord_js_1.Message) {
-                    msg.delete();
-                } }, 10000);
+                var _e;
+                player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
+                game.deck.push(interaction.values[0]);
+                let embed = new discord_js_2.MessageEmbed()
+                    .setTitle(`Round ${game.round + 1}`)
+                    .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
+                    .setThumbnail(`attachment://board.png`);
+                yield game.msg.edit({ embeds: [embed], components: [] });
+                let msg = yield ((_e = interaction.channel) === null || _e === void 0 ? void 0 : _e.send('<a:loading:1011794755203645460>'));
+                if (msg instanceof discord_js_1.Message) {
+                    game.msg = msg;
+                }
                 game.round++;
                 startTurn(interaction, game);
             }));

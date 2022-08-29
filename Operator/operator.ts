@@ -42,9 +42,11 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
                 console.log(data.toString());
             });
 
-            server.on('close',async function (code) {
-                console.log('operator instance crashed with ' + code);
-                await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`)
+            server.on('close', async function (code) {
+                console.log('Operator instance crashed with ' + code);
+                if (code != null) {
+                    await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`)
+                }
             });
         }
     } else if (interaction.commandName == 'stop' && checkOwner(interaction) && server) {
@@ -57,14 +59,18 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
             }
         }
     } else if (interaction.commandName == 'restart' && checkOwner(interaction) && server && !server.killed) {
-        await server.kill()
+        await interaction.reply('Operator has restarted the development bot.')
+        server.kill()
+        server = fork('./index.js');
         server.on('message', function (data: Buffer) {
             console.log(data.toString());
         });
 
-        server.on('close',async function (code) {
-            console.log('operator instance crashed with ' + code);
-            await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`)
+        server.on('close', async function (code) {
+            console.log('Operator instance crashed with ' + code);
+            if (code != null) {
+                await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`)
+            }
         });
     }
 })

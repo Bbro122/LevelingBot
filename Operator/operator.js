@@ -1,8 +1,4 @@
 "use strict";
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-// |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
-// └────┐ ├──    |   |   | |──┘ |
-//  ____| |___   |   |___| |    |
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -14,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
-//______________________________/
 const fs = require('fs');
 const can = require('canvas');
 const { Client, Intents, Message } = require('discord.js');
@@ -59,8 +54,10 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             });
             server.on('close', function (code) {
                 return __awaiter(this, void 0, void 0, function* () {
-                    console.log('operator instance crashed with ' + code);
-                    yield interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`);
+                    console.log('Operator instance crashed with ' + code);
+                    if (code != null) {
+                        yield interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`);
+                    }
                 });
             });
         }
@@ -75,6 +72,22 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 yield interaction.followUp('Operator was unable to properly close the current instance.');
             }
         }
+    }
+    else if (interaction.commandName == 'restart' && checkOwner(interaction) && server && !server.killed) {
+        yield interaction.reply('Operator has restarted the development bot.');
+        server.kill();
+        server = (0, child_process_1.fork)('./index.js');
+        server.on('message', function (data) {
+            console.log(data.toString());
+        });
+        server.on('close', function (code) {
+            return __awaiter(this, void 0, void 0, function* () {
+                console.log('Operator instance crashed with ' + code);
+                if (code != null) {
+                    yield interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`);
+                }
+            });
+        });
     }
 }));
 client.login(require('./token.json').token);
