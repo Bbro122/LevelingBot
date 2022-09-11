@@ -245,7 +245,7 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
     if (interaction.isCommand()) {
         if (interaction.commandName == 'function' && checkOwner(interaction)) {
             let func = (_g = interaction.options.get('user')) === null || _g === void 0 ? void 0 : _g.value;
@@ -269,13 +269,13 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 let data2 = xp.get().users.sort((a, b) => { return b.xp - a.xp; });
                 data2.findIndex(user2 => user2 == user);
                 if (user) {
-                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (((_j = interaction.member) === null || _j === void 0 ? void 0 : _j.roles) instanceof discord_js_1.GuildMemberRoleManager) ? interaction.member.roles.cache.has('785054691008577536') : false).then(buffer => {
+                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false).then(buffer => {
                         const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
                         interaction.editReply({ files: [attachment] });
                     });
                 }
                 else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (((_k = interaction.member) === null || _k === void 0 ? void 0 : _k.roles) instanceof discord_js_1.GuildMemberRoleManager) ? interaction.member.roles.cache.has('785054691008577536') : false).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false).then(buffer => {
                         const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
                         interaction.editReply({ files: [attachment] });
                     });
@@ -286,12 +286,12 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             require('./UnoMaster.js').startNewGame(interaction);
         }
         else if (interaction.commandName == 'leaderboard') {
-            yield ((_l = interaction.guild) === null || _l === void 0 ? void 0 : _l.members.fetch());
+            yield ((_j = interaction.guild) === null || _j === void 0 ? void 0 : _j.members.fetch());
             let data = xp.get().users.sort((a, b) => { return b.xp - a.xp; });
             let fields = [];
             for (let i = 0; i <= 9; i++) {
-                if ((_m = interaction.guild) === null || _m === void 0 ? void 0 : _m.members.cache.get(data[i].id)) {
-                    fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_o = interaction.guild.members.cache.get(data[i].id)) === null || _o === void 0 ? void 0 : _o.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false });
+                if ((_k = interaction.guild) === null || _k === void 0 ? void 0 : _k.members.cache.get(data[i].id)) {
+                    fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_l = interaction.guild.members.cache.get(data[i].id)) === null || _l === void 0 ? void 0 : _l.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false });
                 }
                 else {
                     fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Xp: ${data[i].xp}`, "inline": false });
@@ -330,7 +330,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             }
         }
         else if (interaction.commandName == 'flip') {
-            let bet = (_p = interaction.options.get('amount')) === null || _p === void 0 ? void 0 : _p.value;
+            let bet = (_m = interaction.options.get('amount')) === null || _m === void 0 ? void 0 : _m.value;
             let data = xp.get();
             let user = data.users.find(prof => prof.id == interaction.user.id);
             let timeout = xp.timeouts().find(timeout => timeout.id == interaction.user.id && timeout.type == 'flipCD');
@@ -360,7 +360,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             }
         }
         else if (interaction.commandName == 'game' && checkOwner(interaction)) {
-            if (((_q = interaction.options.get('type')) === null || _q === void 0 ? void 0 : _q.value) == 'scramble') {
+            if (((_o = interaction.options.get('type')) === null || _o === void 0 ? void 0 : _o.value) == 'scramble') {
                 game.scramble();
                 interaction.reply('Starting a new unscramble.');
             }
@@ -370,16 +370,16 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             }
         }
         else if (interaction.commandName == 'give' && checkOwner(interaction)) {
-            let user = (_r = interaction.options.get('user')) === null || _r === void 0 ? void 0 : _r.user;
-            let amount = (_s = interaction.options.get('amount')) === null || _s === void 0 ? void 0 : _s.value;
+            let user = (_p = interaction.options.get('user')) === null || _p === void 0 ? void 0 : _p.user;
+            let amount = (_q = interaction.options.get('amount')) === null || _q === void 0 ? void 0 : _q.value;
             if (user && typeof amount == 'number') {
-                if (((_t = interaction.options.get('type')) === null || _t === void 0 ? void 0 : _t.value) == 'xp') {
+                if (((_r = interaction.options.get('type')) === null || _r === void 0 ? void 0 : _r.value) == 'xp') {
                     if (interaction.channel) {
                         xp.give({ author: user, channel: interaction.channel }, amount, false);
                         interaction.reply(`Giving ${amount} xp to ${user}`);
                     }
                 }
-                else if (((_u = interaction.options.get('type')) === null || _u === void 0 ? void 0 : _u.value) == 'gems') {
+                else if (((_s = interaction.options.get('type')) === null || _s === void 0 ? void 0 : _s.value) == 'gems') {
                     xp.giveGems(user.id, amount);
                     interaction.reply(`Giving ${amount} gems to ${user}`);
                 }
@@ -388,7 +388,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         else if (interaction.commandName == 'gems') {
             let data = xp.get();
             let user;
-            if ((_v = interaction.options.get('user')) === null || _v === void 0 ? void 0 : _v.user) {
+            if ((_t = interaction.options.get('user')) === null || _t === void 0 ? void 0 : _t.user) {
                 user = data.users.find(user => { var _a, _b; return user.id == ((_b = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id); });
                 if (user) {
                     interaction.reply(`<a:showoff:1004215186439274516> They have ${user.gems} gems.`);
@@ -519,10 +519,10 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             require('./punisher.js').punish(interaction);
         }
         else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
-            require('./punisher.js').getpunishments((_w = interaction.options.get('user')) === null || _w === void 0 ? void 0 : _w.user, interaction);
+            require('./punisher.js').getpunishments((_u = interaction.options.get('user')) === null || _u === void 0 ? void 0 : _u.user, interaction);
         }
         else if (interaction.commandName == 'rule') {
-            let rule = strCheck((_x = interaction.options.get('rule')) === null || _x === void 0 ? void 0 : _x.value);
+            let rule = strCheck((_v = interaction.options.get('rule')) === null || _v === void 0 ? void 0 : _v.value);
             let embed = new discord_js_1.MessageEmbed()
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule);
