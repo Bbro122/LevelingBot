@@ -222,6 +222,13 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             if (typeof func == 'string') {
                 eval(func)
             }
+        } else if (interaction.commandName == 'boostingsince') {
+            let member =  interaction.options.get('user')?.member
+            if (member instanceof GuildMember) {
+                interaction.reply(member.premiumSinceTimestamp?member.premiumSinceTimestamp.toString():'0')
+            } else {
+                interaction.reply('No')
+            }
         } else if (interaction.commandName == 'level') {
             await interaction.deferReply()
             let data = xp.get()
@@ -230,7 +237,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             if (member instanceof GuildMember) {
                 user = data.users.find(user => user.id == interaction.options.get('user')?.value)
             } else {
-                member = interaction.member!
+                member = interaction.member
                 user = data.users.find(user => user.id == interaction.user.id)
             }
             if (member instanceof GuildMember) {
