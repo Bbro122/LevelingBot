@@ -260,6 +260,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             }
             else {
                 interaction.reply('No');
+                console.log(member);
             }
         }
         else if (interaction.commandName == 'level') {

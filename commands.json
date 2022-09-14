@@ -19,7 +19,7 @@
     "description": "bruhhhhhhhh",
     "options": [
       {
-        "type": 3,
+        "type": 6,
         "name": "user",
         "description": "Specify which user",
         "required": true

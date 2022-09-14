@@ -228,6 +228,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 interaction.reply(member.premiumSinceTimestamp?member.premiumSinceTimestamp.toString():'0')
             } else {
                 interaction.reply('No')
+                console.log(member)
             }
         } else if (interaction.commandName == 'level') {
             await interaction.deferReply()
