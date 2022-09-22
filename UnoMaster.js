@@ -178,7 +178,7 @@ function startTurn(interaction, game) {
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
                 var _e;
                 player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
-                game.deck.push(interaction.values[0]);
+                game.deck.splice(0, 0, interaction.values[0]);
                 let embed = new discord_js_2.MessageEmbed()
                     .setTitle(`Round ${game.round + 1}`)
                     .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)

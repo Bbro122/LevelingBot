@@ -11,6 +11,7 @@ import can from 'canvas';
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)] });
 let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
+let axios = require('axios')
 let config = require("./config.json")
 let medals = ['🥇', '🥈', '🥉']
 let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjklzxcvbnm /?|" + '"'
@@ -217,6 +218,20 @@ client.on('messageCreate', async (msg: Message) => {
 })
 client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.isCommand()) {
+        if (interaction.commandName == 'overwatch') {
+            interaction.deferReply()
+            let data = await axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today')
+            let modes = data.data.data.modes
+            let fields:APIEmbedField[]=[]
+            modes.forEach((mode: { "name": string, "description": string }) => {
+                fields.push({name:mode.name,value:mode.description})
+            });
+            let embed = new MessageEmbed()
+            .addFields(fields)
+            .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
+            .setTitle('Overwatch Arcade Today')
+            interaction.editReply({embeds:[embed]})
+        }
         if (interaction.commandName == 'function' && checkOwner(interaction)) {
             let func = interaction.options.get('user')?.value
             if (typeof func == 'string') {

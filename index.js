@@ -17,6 +17,7 @@ const canvas_1 = __importDefault(require("canvas"));
 const client = new discord_js_1.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new discord_js_1.Intents(32767)] });
 let xp = require('./xpmanager.js');
 let game = require('./gamemanager.js');
+let axios = require('axios');
 let config = require("./config.json");
 let medals = ['🥇', '🥈', '🥉'];
 let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjklzxcvbnm /?|" + '"';
@@ -247,6 +248,20 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
     var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
     if (interaction.isCommand()) {
+        if (interaction.commandName == 'overwatch') {
+            interaction.deferReply();
+            let data = yield axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today');
+            let modes = data.data.data.modes;
+            let fields = [];
+            modes.forEach((mode) => {
+                fields.push({ name: mode.name, value: mode.description });
+            });
+            let embed = new discord_js_1.MessageEmbed()
+                .addFields(fields)
+                .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
+                .setTitle('Overwatch Arcade Today');
+            interaction.editReply({ embeds: [embed] });
+        }
         if (interaction.commandName == 'function' && checkOwner(interaction)) {
             let func = (_g = interaction.options.get('user')) === null || _g === void 0 ? void 0 : _g.value;
             if (typeof func == 'string') {

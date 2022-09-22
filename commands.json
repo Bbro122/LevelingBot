@@ -15,6 +15,34 @@
     "description": "Create a new Uno Match (InDev)"
   },
   {
+    "name": "roleselect",
+    "description": "Role select manager",
+    "options": [
+      {
+        "type": 1,
+        "name": "create",
+        "description": "Create a new role selector"
+      },
+      {
+        "type": 1,
+        "name": "edit",
+        "description": "Edit the roles for a role selector",
+        "options": [
+          {
+            "type": 3,
+            "name": "messageid",
+            "description": "Provide the message id for the role selector that needs changed",
+            "required": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "overwatch",
+    "description": "get the overwatch games for the day"
+  },
+  {
     "name": "boostingsince",
     "description": "bruhhhhhhhh",
     "options": [
@@ -39,15 +67,15 @@
   },
   {
     "name": "daily",
-    "description":"Receive your daily gems and xp."
+    "description": "Receive your daily gems and xp."
   },
   {
     "name": "leaderboard",
     "description": "display the top 10 users"
   },
   {
-    "name":"publicshop",
-    "description":"ministry command"
+    "name": "publicshop",
+    "description": "ministry command"
   },
   {
     "name": "game",
@@ -86,7 +114,7 @@
   {
     "name": "gems",
     "description": "See your gem balance.",
-    "options":[
+    "options": [
       {
         "type": 6,
         "name": "user",
