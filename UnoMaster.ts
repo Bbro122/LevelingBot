@@ -10,6 +10,10 @@ let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse
 const reso = 0.1
 type Player = { "id": string, "hand": (string | undefined)[] }
 type Game = { id: string, msg: Message, deck: string[], players: Player[], round: number, inLobby: boolean, timeouts: any[], host: string }
+const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"]
+let games: Game[] = []
+
+
 function res(num: number) {
   return num * reso
 }
@@ -32,6 +36,8 @@ function getLabel(card: string) {
   }
   return label
 }
+
+
 async function rotatedImg(card: string) {
   const canvas = can.createCanvas(450, 700)
   let ctx = canvas.getContext('2d')
@@ -41,6 +47,8 @@ async function rotatedImg(card: string) {
   ctx.drawImage(await can.loadImage(`./cards/${card}.png`, 450, 700), 0, 0)
   return canvas
 }
+
+
 async function dispBoard(hands: (string | undefined)[][], game: Game, hidden: boolean) {
   console.log(hands[0])
   const canvas = can.createCanvas(res(7000), res(7000))
@@ -79,14 +87,18 @@ async function dispBoard(hands: (string | undefined)[][], game: Game, hidden: bo
   }
   return canvas.toBuffer()
 }
-const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"]
-let games: Game[] = []
+
+
 function newGame(msg: Message, host: string) {
   return { id: msg.channelId, msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host }
 }
+
+
 function newPlayer(plr: string) {
   return { "id": plr, "hand": [] }
 }
+
+
 function createButton(string: string, id: string, style: MessageButtonStyle, emoji: EmojiIdentifierResolvable | null, disabled: boolean) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
   let button = new MessageButton()
     .setCustomId(id)
@@ -96,9 +108,13 @@ function createButton(string: string, id: string, style: MessageButtonStyle, emo
   if (emoji) { button.setEmoji(emoji) }
   return button
 }
+
+
 function row(array: MessageActionRowComponent[]) {
   return new MessageActionRow().addComponents(array)
 }
+
+
 function randomizeArray(array: any[]) {
   let a = array.slice()
   let b = []
@@ -109,6 +125,8 @@ function randomizeArray(array: any[]) {
   }
   return b
 }
+
+
 async function startTurn(interaction: MessageComponentInteraction, game: Game) {
   let player = game.players[game.round % game.players.length]
   let member = interaction.guild?.members.cache.get(player.id)?interaction.guild?.members.cache.get(player.id):interaction.member
@@ -139,7 +157,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
     })
     let playableCards = [{ label: 'Draw', value: 'draw' }]
     player.hand.forEach(card => {
-      if (card?.startsWith(game.deck[0].charAt(0)) || card?.charAt(1) == game.deck[0].charAt(1)) {
+      if (playableCards.find(card1 => card1.value==card)==undefined&&(card?.startsWith(game.deck[0].charAt(0)) || card?.charAt(1) == game.deck[0].charAt(1))) {
         playableCards.push({ label: getLabel(card), value: card })
       }
     })
@@ -162,7 +180,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
     let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 })
     collector?.on('collect', async interaction => {
       player.hand.splice(player.hand.findIndex(card => card==interaction.values[0]),1)
-      game.deck.push(interaction.values[0])
+      game.deck.splice(0,0,interaction.values[0])
       let embed = new MessageEmbed()
       .setTitle(`Round ${game.round+1}`)
       .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
@@ -177,6 +195,8 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
     })
   })
 }
+
+
 exports.startNewGame = async function startNewGame(interaction: CommandInteraction) {
   let gameChan = await interaction.guild?.channels.create(`${interaction.user.username}s-uno-match`)
   if (gameChan && interaction.member instanceof GuildMember) {
