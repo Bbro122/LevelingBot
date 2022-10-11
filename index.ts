@@ -3,7 +3,7 @@
 // |‾‾‾‾  |‾‾‾ ‾‾|‾‾ |   | |‾‾| | 
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
-//______________________________/
+//______________________________/-
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
 import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions, User, GuildMemberRoleManager } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
