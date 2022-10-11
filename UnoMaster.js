@@ -16,6 +16,8 @@ const fs = require('fs');
 let can = require('canvas');
 let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse", "Skip"]];
 const reso = 0.1;
+const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"];
+let games = [];
 function res(num) {
     return num * reso;
 }
@@ -91,8 +93,6 @@ function dispBoard(hands, game, hidden) {
         return canvas.toBuffer();
     });
 }
-const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"];
-let games = [];
 function newGame(msg, host) {
     return { id: msg.channelId, msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host };
 }
@@ -156,7 +156,7 @@ function startTurn(interaction, game) {
             });
             let playableCards = [{ label: 'Draw', value: 'draw' }];
             player.hand.forEach(card => {
-                if ((card === null || card === void 0 ? void 0 : card.startsWith(game.deck[0].charAt(0))) || (card === null || card === void 0 ? void 0 : card.charAt(1)) == game.deck[0].charAt(1)) {
+                if (playableCards.find(card1 => card1.value == card) == undefined && ((card === null || card === void 0 ? void 0 : card.startsWith(game.deck[0].charAt(0))) || (card === null || card === void 0 ? void 0 : card.charAt(1)) == game.deck[0].charAt(1))) {
                     playableCards.push({ label: getLabel(card), value: card });
                 }
             });
@@ -178,18 +178,27 @@ function startTurn(interaction, game) {
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
                 var _e;
                 player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
-                game.deck.splice(0, 0, interaction.values[0]);
-                let embed = new discord_js_2.MessageEmbed()
-                    .setTitle(`Round ${game.round + 1}`)
-                    .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
-                    .setThumbnail(`attachment://board.png`);
-                yield game.msg.edit({ embeds: [embed], components: [] });
-                let msg = yield ((_e = interaction.channel) === null || _e === void 0 ? void 0 : _e.send('<a:loading:1011794755203645460>'));
-                if (msg instanceof discord_js_1.Message) {
-                    game.msg = msg;
+                if (player.hand.length == 0) {
+                    let embed = new discord_js_2.MessageEmbed()
+                        .setTitle(`Game Over`)
+                        .setDescription(`${interaction.user.username} has won the game.`);
+                    yield game.msg.channel.send({ embeds: [embed] });
                 }
-                game.round++;
-                startTurn(interaction, game);
+                else {
+                    game.deck.splice(0, 0, interaction.values[0]);
+                    let embed = new discord_js_2.MessageEmbed()
+                        .setTitle(`Round ${game.round + 1}`)
+                        .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
+                        .setThumbnail(`attachment://board.png`);
+                    if (interaction.values[0].startsWith('w'))
+                        yield game.msg.edit({ embeds: [embed], components: [] });
+                    let msg = yield ((_e = interaction.channel) === null || _e === void 0 ? void 0 : _e.send('<a:loading:1011794755203645460>'));
+                    if (msg instanceof discord_js_1.Message) {
+                        game.msg = msg;
+                    }
+                    game.round++;
+                    startTurn(interaction, game);
+                }
             }));
         }));
     });

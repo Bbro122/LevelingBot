@@ -129,7 +129,7 @@ function randomizeArray(array: any[]) {
 
 async function startTurn(interaction: MessageComponentInteraction, game: Game) {
   let player = game.players[game.round % game.players.length]
-  let member = interaction.guild?.members.cache.get(player.id)?interaction.guild?.members.cache.get(player.id):interaction.member
+  let member = interaction.guild?.members.cache.get(player.id) ? interaction.guild?.members.cache.get(player.id) : interaction.member
   let hands: (string | undefined)[][] = []
   hands.push(player.hand)
   for (let i = 0; i < game.players.length; i++) {
@@ -157,7 +157,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
     })
     let playableCards = [{ label: 'Draw', value: 'draw' }]
     player.hand.forEach(card => {
-      if (playableCards.find(card1 => card1.value==card)==undefined&&(card?.startsWith(game.deck[0].charAt(0)) || card?.charAt(1) == game.deck[0].charAt(1))) {
+      if (playableCards.find(card1 => card1.value == card) == undefined && (card?.startsWith(game.deck[0].charAt(0)) || card?.charAt(1) == game.deck[0].charAt(1))) {
         playableCards.push({ label: getLabel(card), value: card })
       }
     })
@@ -171,27 +171,35 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
       files: [attachment],
       embeds: [
         new MessageEmbed()
-        .setTitle('Time to make your move')
-        .setDescription(`It is now your turn, you have 30 seconds to play or draw a card.`)
-        .setColor(0xed0606)
-        .setThumbnail(`attachment://board.png`)
+          .setTitle('Time to make your move')
+          .setDescription(`It is now your turn, you have 30 seconds to play or draw a card.`)
+          .setColor(0xed0606)
+          .setThumbnail(`attachment://board.png`)
       ]
     })
     let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 })
     collector?.on('collect', async interaction => {
-      player.hand.splice(player.hand.findIndex(card => card==interaction.values[0]),1)
-      game.deck.splice(0,0,interaction.values[0])
-      let embed = new MessageEmbed()
-      .setTitle(`Round ${game.round+1}`)
-      .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
-      .setThumbnail(`attachment://board.png`)
-      await game.msg.edit({embeds:[embed],components:[]})
-      let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
-      if (msg instanceof Message) {
-        game.msg = msg
+      player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1)
+      if (player.hand.length == 0) {
+        let embed = new MessageEmbed()
+          .setTitle(`Game Over`)
+          .setDescription(`${interaction.user.username} has won the game.`)
+        await game.msg.channel.send({ embeds: [embed] })
+      } else {
+        game.deck.splice(0, 0, interaction.values[0])
+        let embed = new MessageEmbed()
+          .setTitle(`Round ${game.round + 1}`)
+          .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
+          .setThumbnail(`attachment://board.png`)
+        if (interaction.values[0].startsWith('w'))
+        await game.msg.edit({ embeds: [embed], components: [] })
+        let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
+        if (msg instanceof Message) {
+          game.msg = msg
+        }
+        game.round++
+        startTurn(interaction, game)
       }
-      game.round++
-      startTurn(interaction, game)
     })
   })
 }

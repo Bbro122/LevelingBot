@@ -100,9 +100,12 @@ function getImage(exp, requirement, username, number, level, imagelink, rank, mi
         context.fillStyle = '#00EDFF';
         context.fillRect(325, 200, Math.round((exp - xp.level(level - 1)) / (requirement - xp.level(level - 1)) * 800), 50);
         context.drawImage(yield canvas_1.default.loadImage(imagelink), 50, 50, 200, 200);
-        context.drawImage(yield canvas_1.default.loadImage('./Overlay.png'), 0, 0, 1200, 300);
         if (ministry) {
             context.drawImage(yield canvas_1.default.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30);
+            context.drawImage(yield canvas_1.default.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300);
+        }
+        else {
+            context.drawImage(yield canvas_1.default.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300);
         }
         context.fillStyle = '#ffffff';
         context.font = '40px Arial';
