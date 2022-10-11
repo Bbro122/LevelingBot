@@ -102,7 +102,7 @@ function getImage(exp, requirement, username, number, level, imagelink, rank, mi
         context.drawImage(yield canvas_1.default.loadImage(imagelink), 50, 50, 200, 200);
         if (ministry) {
             context.drawImage(yield canvas_1.default.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30);
-            context.drawImage(yield canvas_1.default.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300);
+            context.drawImage(yield canvas_1.default.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300);
         }
         else {
             context.drawImage(yield canvas_1.default.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300);
