@@ -76,7 +76,7 @@ async function getWelcomeBanner(imagelink: string) {
     context.drawImage(await can.loadImage('./welcome.png'), 0, 0, 1200, 300)
     return canvas.toBuffer('image/png')
 }
-async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any, ministry?: boolean) {
+async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any, ministry?: boolean,overwatch?: boolean) {
     let canvas = can.createCanvas(1200, 300)
     let context = canvas.getContext('2d')
     context.fillStyle = '#171717'
@@ -87,6 +87,7 @@ async function getImage(exp: number, requirement: number, username: any, number:
     context.fillRect(325, 200, Math.round((exp - xp.level(level - 1)) / (requirement - xp.level(level - 1)) * 800), 50)
     context.drawImage(await can.loadImage(imagelink), 50, 50, 200, 200)
     if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30);context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300) }
+    else if (overwatch) {context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300)}
     else {context.drawImage(await can.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300)}
     context.fillStyle = '#ffffff'
     context.font = '40px Arial'
@@ -260,12 +261,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 let data2 = xp.get().users.sort((a, b) => { return b.xp - a.xp })
                 data2.findIndex(user2 => user2 == user)
                 if (user) {
-                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false).then(buffer => {
+                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false,(member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
                 } else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false,(member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })

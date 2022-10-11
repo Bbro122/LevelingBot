@@ -89,7 +89,7 @@ function getWelcomeBanner(imagelink) {
         return canvas.toBuffer('image/png');
     });
 }
-function getImage(exp, requirement, username, number, level, imagelink, rank, ministry) {
+function getImage(exp, requirement, username, number, level, imagelink, rank, ministry, overwatch) {
     return __awaiter(this, void 0, void 0, function* () {
         let canvas = canvas_1.default.createCanvas(1200, 300);
         let context = canvas.getContext('2d');
@@ -103,6 +103,9 @@ function getImage(exp, requirement, username, number, level, imagelink, rank, mi
         if (ministry) {
             context.drawImage(yield canvas_1.default.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30);
             context.drawImage(yield canvas_1.default.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300);
+        }
+        else if (overwatch) {
+            context.drawImage(yield canvas_1.default.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300);
         }
         else {
             context.drawImage(yield canvas_1.default.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300);
@@ -297,13 +300,13 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 let data2 = xp.get().users.sort((a, b) => { return b.xp - a.xp; });
                 data2.findIndex(user2 => user2 == user);
                 if (user) {
-                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false).then(buffer => {
+                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
                         const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
                         interaction.editReply({ files: [attachment] });
                     });
                 }
                 else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
                         const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
                         interaction.editReply({ files: [attachment] });
                     });
