@@ -5,7 +5,7 @@
 //  ____| |___   |   |___| |    |
 //______________________________/-
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions, User, GuildMemberRoleManager } from "discord.js";
+import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions, User, GuildMemberRoleManager, MessageButton } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 import can from 'canvas';
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)] });
@@ -76,7 +76,7 @@ async function getWelcomeBanner(imagelink: string) {
     context.drawImage(await can.loadImage('./welcome.png'), 0, 0, 1200, 300)
     return canvas.toBuffer('image/png')
 }
-async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any, ministry?: boolean,overwatch?: boolean) {
+async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any, ministry?: boolean, overwatch?: boolean) {
     let canvas = can.createCanvas(1200, 300)
     let context = canvas.getContext('2d')
     context.fillStyle = '#171717'
@@ -86,9 +86,9 @@ async function getImage(exp: number, requirement: number, username: any, number:
     context.fillStyle = '#00EDFF'
     context.fillRect(325, 200, Math.round((exp - xp.level(level - 1)) / (requirement - xp.level(level - 1)) * 800), 50)
     context.drawImage(await can.loadImage(imagelink), 50, 50, 200, 200)
-    if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30);context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300) }
-    else if (overwatch) {context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300)}
-    else {context.drawImage(await can.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300)}
+    if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30); context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300) }
+    else if (overwatch) { context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300) }
+    else { context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300) }
     context.fillStyle = '#ffffff'
     context.font = '40px Arial'
     context.fillText(`Rank #${rank}`, 325, 100)
@@ -223,15 +223,15 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             interaction.deferReply()
             let data = await axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today')
             let modes = data.data.data.modes
-            let fields:APIEmbedField[]=[]
+            let fields: APIEmbedField[] = []
             modes.forEach((mode: { "name": string, "description": string }) => {
-                fields.push({name:mode.name,value:mode.description})
+                fields.push({ name: mode.name, value: mode.description })
             });
             let embed = new MessageEmbed()
-            .addFields(fields)
-            .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
-            .setTitle('Overwatch Arcade Today')
-            interaction.editReply({embeds:[embed]})
+                .addFields(fields)
+                .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
+                .setTitle('Overwatch Arcade Today')
+            interaction.editReply({ embeds: [embed] })
         }
         if (interaction.commandName == 'function' && checkOwner(interaction)) {
             let func = interaction.options.get('user')?.value
@@ -239,9 +239,9 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 eval(func)
             }
         } else if (interaction.commandName == 'boostingsince') {
-            let member =  interaction.options.get('user')?.member
+            let member = interaction.options.get('user')?.member
             if (member instanceof GuildMember) {
-                interaction.reply(member.premiumSinceTimestamp?member.premiumSinceTimestamp.toString():'0')
+                interaction.reply(member.premiumSinceTimestamp ? member.premiumSinceTimestamp.toString() : '0')
             } else {
                 interaction.reply('No')
                 console.log(member)
@@ -261,12 +261,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 let data2 = xp.get().users.sort((a, b) => { return b.xp - a.xp })
                 data2.findIndex(user2 => user2 == user)
                 if (user) {
-                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false,(member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
+                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
                 } else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false,(member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
@@ -430,30 +430,50 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 {
                                     "label": "Server Boost | 2x xp- 1 hour",
                                     "description": "This item costs 100 gems",
-                                    "value": "2_1_100"
+                                    "value": "0_2_1_100"
                                 },
                                 {
                                     "label": "Server Boost | 2x xp- 6 hours",
                                     "description": "This item costs 500 gems",
-                                    "value": "2_6_500"
+                                    "value": "0_2_6_500"
                                 },
                                 {
                                     "label": "Server Boost | 2x xp- 24 hours",
                                     "description": "This item costs 2000 gems",
-                                    "value": "2_24_2000"
+                                    "value": "0_2_24_2000"
                                 },
                                 {
                                     "label": "Server Boost | 4x xp- 1 hour",
                                     "description": "This item costs 300 gems",
-                                    "value": "4_1_300"
+                                    "value": "0_4_1_300"
+                                },
+                                {
+                                    "label": "Overwatch Namecard",
+                                    "description": "Costs 300",
+                                    "value": "1_overwatch_300"
+                                },
+                                {
+                                    "label": "Magma Namecard",
+                                    "description": "Costs 600",
+                                    "value": "1_magma_600"
+                                },
+                                {
+                                    "label": "Ministry Namecard",
+                                    "description": "Costs 10000000",
+                                    "value": "1_ministry_10000000"
+                                },
+                                {
+                                    "label": "Red-Sky Namecard",
+                                    "description": "Costs 600",
+                                    "value": "1_red-sky_600"
                                 }
                             ])
                             .setMinValues(1)
                             .setMaxValues(1)
                     )
                 const embed = new MessageEmbed()
-                    .setTitle('Booster Shop')
-                    .setDescription('Welcome to the shop, spend your gems here.\nBoosters can be used with /item\nAll sales are final')
+                    .setTitle('Shop')
+                    .setDescription('Welcome to the shop, spend your gems here.\nBoosters/Namecards can be used with /items\nAll sales are final')
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: false })
             } else {
                 interaction.reply(`No userdata found.`)
@@ -468,20 +488,31 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 let embed = new MessageEmbed()
                     .setTitle('Inventory')
                     .setDescription('View all your items here.\nUse the select menu to use an item.')
-                user.items.forEach(item => {
-                    fields.push(item.display)
-                    if (item.type == 'booster') {
-                        options.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
-                    }
-                })
                 const row = new MessageActionRow()
                     .addComponents(
-                        new MessageSelectMenu()
-                            .setCustomId('use')
-                            .addOptions(options)
-                            .setMinValues(1)
-                            .setMaxValues(1)
+                        new MessageButton()
+                            .setCustomId('namecard')
+                            .setStyle('PRIMARY')
+                            .setLabel('Set Namecard'),
+                        new MessageButton()
+                            .setCustomId('booster')
+                            .setStyle('PRIMARY')
+                            .setLabel('Use booster')
                     )
+                user.items.forEach(item => {
+                    fields.push(item.display)
+                   // if (item.type == 'booster') {
+                     //   options.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
+                    //}
+                })
+                //const row = new MessageActionRow()
+                //  .addComponents(
+                //    new MessageSelectMenu()
+                //      .setCustomId('use')
+                //    .addOptions(options)
+                //  .setMinValues(1)
+                //.setMaxValues(1)
+                // )
                 embed.setFields(fields)
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
             } else {
@@ -503,14 +534,23 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             let args = interaction.values[0].split('_')
             let data = xp.get()
             let user = data.users.find(user => user.id == interaction.user.id)
-            if (user && user.gems > parseInt(args[2])) {
+            if (user) {
                 if (user.items == undefined) {
                     user.items = []
                 }
-                user.items.push({ type: 'booster', display: { name: `${args[0]}x Booster`, value: `Lasts ${args[1]}h`, inline: false }, data: { multiplier: args[0], length: parseInt(args[1]) } })
-                user.gems = user.gems - parseInt(args[2])
-                xp.write(data)
-                reply.silent(interaction, `Successfully bought item.`)
+                if (args[0] == '0' && user.gems > parseInt(args[3])) {
+                    user.items.push({ type: 'booster', display: { name: `${args[1]}x Booster`, value: `Lasts ${args[2]}h`, inline: false }, data: { multiplier: args[1], length: parseInt(args[2]) } })
+                    user.gems = user.gems - parseInt(args[3])
+                    xp.write(data)
+                    reply.silent(interaction, `Successfully bought booster. Use it by running /items in #bot-cmds.`)
+                } else if (args[0] == '1' && user.gems > parseInt(args[2])) {
+                    let name = `${args[1]} Namecard`
+                    name[0].toUpperCase()
+                    user.items.push({ type: 'namecard', display: { name: name, value: `Equip in your inventory`, inline: false }, data: { file: `./namecards/${args[1]}.png` } })
+                    user.gems = user.gems - parseInt(args[3])
+                    xp.write(data)
+                    reply.silent(interaction, `Successfully bought namecard. Equip it using /items in #bot-cmds.`)
+                }
             } else {
                 reply.error(interaction, `You can't afford this item.`)
             }

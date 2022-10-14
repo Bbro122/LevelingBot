@@ -10,13 +10,18 @@ export type UserProfile = {
     "id": string,
     "xp": number,
     "level": number,
-    "gems": number
+    "gems": number,
     "items": {
         type:string,
         display:{name:string,value:string,inline:false}
         data:any
     }[],
-    "epoch":number
+    "epoch":number,
+    "namecard"?: {
+        type:string,
+        display:{name:string,value:string,inline:false}
+        data:any
+    }
 }
 export type UserData = {
     "name": "users",

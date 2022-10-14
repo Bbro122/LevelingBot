@@ -108,7 +108,7 @@ function getImage(exp, requirement, username, number, level, imagelink, rank, mi
             context.drawImage(yield canvas_1.default.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300);
         }
         else {
-            context.drawImage(yield canvas_1.default.loadImage('./namecards/Overlay.png'), 0, 0, 1200, 300);
+            context.drawImage(yield canvas_1.default.loadImage('./namecards/default.png'), 0, 0, 1200, 300);
         }
         context.fillStyle = '#ffffff';
         context.font = '40px Arial';
@@ -489,29 +489,49 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     {
                         "label": "Server Boost | 2x xp- 1 hour",
                         "description": "This item costs 100 gems",
-                        "value": "2_1_100"
+                        "value": "0_2_1_100"
                     },
                     {
                         "label": "Server Boost | 2x xp- 6 hours",
                         "description": "This item costs 500 gems",
-                        "value": "2_6_500"
+                        "value": "0_2_6_500"
                     },
                     {
                         "label": "Server Boost | 2x xp- 24 hours",
                         "description": "This item costs 2000 gems",
-                        "value": "2_24_2000"
+                        "value": "0_2_24_2000"
                     },
                     {
                         "label": "Server Boost | 4x xp- 1 hour",
                         "description": "This item costs 300 gems",
-                        "value": "4_1_300"
+                        "value": "0_4_1_300"
+                    },
+                    {
+                        "label": "Overwatch Namecard",
+                        "description": "Costs 300",
+                        "value": "1_overwatch_300"
+                    },
+                    {
+                        "label": "Magma Namecard",
+                        "description": "Costs 600",
+                        "value": "1_magma_600"
+                    },
+                    {
+                        "label": "Ministry Namecard",
+                        "description": "Costs 10000000",
+                        "value": "1_ministry_10000000"
+                    },
+                    {
+                        "label": "Red-Sky Namecard",
+                        "description": "Costs 600",
+                        "value": "1_red-sky_600"
                     }
                 ])
                     .setMinValues(1)
                     .setMaxValues(1));
                 const embed = new discord_js_1.MessageEmbed()
-                    .setTitle('Booster Shop')
-                    .setDescription('Welcome to the shop, spend your gems here.\nBoosters can be used with /item\nAll sales are final');
+                    .setTitle('Shop')
+                    .setDescription('Welcome to the shop, spend your gems here.\nBoosters/Namecards can be used with /items\nAll sales are final');
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
             }
             else {
@@ -527,18 +547,28 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 let embed = new discord_js_1.MessageEmbed()
                     .setTitle('Inventory')
                     .setDescription('View all your items here.\nUse the select menu to use an item.');
+                const row = new discord_js_1.MessageActionRow()
+                    .addComponents(new discord_js_1.MessageButton()
+                    .setCustomId('namecard')
+                    .setStyle('PRIMARY')
+                    .setLabel('Set Namecard'), new discord_js_1.MessageButton()
+                    .setCustomId('booster')
+                    .setStyle('PRIMARY')
+                    .setLabel('Use booster'));
                 user.items.forEach(item => {
                     fields.push(item.display);
-                    if (item.type == 'booster') {
-                        options.push({ label: item.display.name, description: item.display.value, value: user === null || user === void 0 ? void 0 : user.items.findIndex(sitem => sitem == item).toString() });
-                    }
+                    // if (item.type == 'booster') {
+                    //   options.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
+                    //}
                 });
-                const row = new discord_js_1.MessageActionRow()
-                    .addComponents(new discord_js_1.MessageSelectMenu()
-                    .setCustomId('use')
-                    .addOptions(options)
-                    .setMinValues(1)
-                    .setMaxValues(1));
+                //const row = new MessageActionRow()
+                //  .addComponents(
+                //    new MessageSelectMenu()
+                //      .setCustomId('use')
+                //    .addOptions(options)
+                //  .setMinValues(1)
+                //.setMaxValues(1)
+                // )
                 embed.setFields(fields);
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
             }
@@ -565,14 +595,24 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             let args = interaction.values[0].split('_');
             let data = xp.get();
             let user = data.users.find(user => user.id == interaction.user.id);
-            if (user && user.gems > parseInt(args[2])) {
+            if (user) {
                 if (user.items == undefined) {
                     user.items = [];
                 }
-                user.items.push({ type: 'booster', display: { name: `${args[0]}x Booster`, value: `Lasts ${args[1]}h`, inline: false }, data: { multiplier: args[0], length: parseInt(args[1]) } });
-                user.gems = user.gems - parseInt(args[2]);
-                xp.write(data);
-                reply.silent(interaction, `Successfully bought item.`);
+                if (args[0] == '0' && user.gems > parseInt(args[3])) {
+                    user.items.push({ type: 'booster', display: { name: `${args[1]}x Booster`, value: `Lasts ${args[2]}h`, inline: false }, data: { multiplier: args[1], length: parseInt(args[2]) } });
+                    user.gems = user.gems - parseInt(args[3]);
+                    xp.write(data);
+                    reply.silent(interaction, `Successfully bought booster. Use it by running /items in #bot-cmds.`);
+                }
+                else if (args[0] == '1' && user.gems > parseInt(args[2])) {
+                    let name = `${args[1]} Namecard`;
+                    name[0].toUpperCase();
+                    user.items.push({ type: 'namecard', display: { name: name, value: `Equip in your inventory`, inline: false }, data: { file: `./namecards/${args[1]}.png` } });
+                    user.gems = user.gems - parseInt(args[3]);
+                    xp.write(data);
+                    reply.silent(interaction, `Successfully bought namecard. Equip it using /items in #bot-cmds.`);
+                }
             }
             else {
                 reply.error(interaction, `You can't afford this item.`);
