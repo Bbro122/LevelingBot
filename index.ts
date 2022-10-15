@@ -539,6 +539,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             if (user) {
                                 user.namecard = user.items[typeof interaction.values[0] == 'number' ? interaction.values[0] : 0].data.file
                             }
+                            interaction.reply({ephemeral: true,content:'Sucessfully set namecard'})
                         })
                         } else {
                             i.followUp('error')
