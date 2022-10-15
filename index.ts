@@ -515,6 +515,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 // )
                 embed.setFields(fields)
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
+                
             } else {
                 reply.error(interaction, 'You have no items.')
             }
