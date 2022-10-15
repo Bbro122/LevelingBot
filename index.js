@@ -89,7 +89,7 @@ function getWelcomeBanner(imagelink) {
         return canvas.toBuffer('image/png');
     });
 }
-function getImage(exp, requirement, username, number, level, imagelink, rank, ministry, overwatch) {
+function getImage(exp, requirement, username, number, level, imagelink, rank, ministry, namecard) {
     return __awaiter(this, void 0, void 0, function* () {
         let canvas = canvas_1.default.createCanvas(1200, 300);
         let context = canvas.getContext('2d');
@@ -100,15 +100,19 @@ function getImage(exp, requirement, username, number, level, imagelink, rank, mi
         context.fillStyle = '#00EDFF';
         context.fillRect(325, 200, Math.round((exp - xp.level(level - 1)) / (requirement - xp.level(level - 1)) * 800), 50);
         context.drawImage(yield canvas_1.default.loadImage(imagelink), 50, 50, 200, 200);
-        if (ministry) {
-            context.drawImage(yield canvas_1.default.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30);
-            context.drawImage(yield canvas_1.default.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300);
-        }
-        else if (overwatch) {
-            context.drawImage(yield canvas_1.default.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300);
+        //if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30); context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300) }
+        //else if (overwatch) { context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300) }
+        //else { context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300) }
+        if (namecard) {
+            context.drawImage(yield canvas_1.default.loadImage((namecard && typeof namecard == 'string') ? namecard : './namecards/ministry.png'), 0, 0, 1200, 300);
         }
         else {
-            context.drawImage(yield canvas_1.default.loadImage('./namecards/default.png'), 0, 0, 1200, 300);
+            if (ministry) {
+                context.drawImage(yield canvas_1.default.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300);
+            }
+            else {
+                context.drawImage(yield canvas_1.default.loadImage('./namecards/default.png'), 0, 0, 1200, 300);
+            }
         }
         context.fillStyle = '#ffffff';
         context.font = '40px Arial';
@@ -252,7 +256,7 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
     if (interaction.isCommand()) {
         if (interaction.commandName == 'overwatch') {
             interaction.deferReply();
@@ -300,13 +304,13 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 let data2 = xp.get().users.sort((a, b) => { return b.xp - a.xp; });
                 data2.findIndex(user2 => user2 == user);
                 if (user) {
-                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
+                    getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, user.namecard).then(buffer => {
                         const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
                         interaction.editReply({ files: [attachment] });
                     });
                 }
                 else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('987102259634647100') : false).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, undefined).then(buffer => {
                         const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
                         interaction.editReply({ files: [attachment] });
                     });
@@ -543,7 +547,8 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             let user = data.users.find(user => user.id == interaction.user.id);
             if (user && user.items.length > 0) {
                 let fields = [];
-                let options = [];
+                let nameoptions = [];
+                let boostoptions = [];
                 let embed = new discord_js_1.MessageEmbed()
                     .setTitle('Inventory')
                     .setDescription('View all your items here.\nUse the select menu to use an item.');
@@ -557,9 +562,12 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     .setLabel('Use booster'));
                 user.items.forEach(item => {
                     fields.push(item.display);
-                    // if (item.type == 'booster') {
-                    //   options.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
-                    //}
+                    if (item.type == 'booster') {
+                        boostoptions.push({ label: item.display.name, description: item.display.value, value: user === null || user === void 0 ? void 0 : user.items.findIndex(sitem => sitem == item).toString() });
+                    }
+                    else if (item.type == 'namecard') {
+                        nameoptions.push({ label: item.display.name, description: item.display.value, value: user === null || user === void 0 ? void 0 : user.items.findIndex(sitem => sitem == item).toString() });
+                    }
                 });
                 //const row = new MessageActionRow()
                 //  .addComponents(
@@ -571,19 +579,54 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 // )
                 embed.setFields(fields);
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-            }
-            else {
-                reply.error(interaction, 'You have no items.');
+                let collector = (_v = interaction.channel) === null || _v === void 0 ? void 0 : _v.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
+                collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(void 0, void 0, void 0, function* () {
+                    var _y;
+                    if (i.customId == 'namecard') {
+                        let embed = new discord_js_1.MessageEmbed()
+                            .setTitle('Namecard Inventory')
+                            .setDescription('Use the selector menu below to equip a namecard.');
+                        const row = new discord_js_1.MessageActionRow()
+                            .addComponents(new discord_js_1.MessageSelectMenu()
+                            .setCustomId('usenamecard')
+                            .addOptions(nameoptions));
+                        i.reply({ embeds: [embed], components: [row], ephemeral: true });
+                        let collect = (_y = i.channel) === null || _y === void 0 ? void 0 : _y.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
+                        if (collect) {
+                            collect.on('collect', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
+                                let data = xp.get();
+                                let user = data.users.find(user => user.id == interaction.user.id);
+                                if (user) {
+                                    user.namecard = user.items[typeof interaction.values[0] == 'number' ? interaction.values[0] : 0].data.file;
+                                }
+                                interaction.reply({ ephemeral: true, content: 'Sucessfully set namecard' });
+                            }));
+                        }
+                        else {
+                            i.followUp('error');
+                        }
+                    }
+                    else if (i.customId == 'booster') {
+                        let embed = new discord_js_1.MessageEmbed()
+                            .setTitle('Booster Inventory')
+                            .setDescription('Use the selector menu below to use a booster.');
+                        const row = new discord_js_1.MessageActionRow()
+                            .addComponents(new discord_js_1.MessageSelectMenu()
+                            .setCustomId('use')
+                            .addOptions(boostoptions));
+                        i.reply({ embeds: [embed], components: [row], ephemeral: true });
+                    }
+                }));
             }
         }
         else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
             require('./punisher.js').punish(interaction);
         }
         else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
-            require('./punisher.js').getpunishments((_v = interaction.options.get('user')) === null || _v === void 0 ? void 0 : _v.user, interaction);
+            require('./punisher.js').getpunishments((_w = interaction.options.get('user')) === null || _w === void 0 ? void 0 : _w.user, interaction);
         }
         else if (interaction.commandName == 'rule') {
-            let rule = strCheck((_w = interaction.options.get('rule')) === null || _w === void 0 ? void 0 : _w.value);
+            let rule = strCheck((_x = interaction.options.get('rule')) === null || _x === void 0 ? void 0 : _x.value);
             let embed = new discord_js_1.MessageEmbed()
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule);
