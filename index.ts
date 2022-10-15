@@ -543,6 +543,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             )
                         i.reply({ embeds: [embed], components: [row], ephemeral: true })
                         let collector = i.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
+                        if (collector) {
                         collector.on('collect', async interaction => {
                             let data = xp.get()
                             let user = data.users.find(user => user.id == interaction.user.id)
@@ -550,6 +551,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 user.namecard = user.items[typeof interaction.values[0] == 'number' ? interaction.values[0] : 0].data.file
                             }
                         })
+                        }
                     }
                 })
             }
