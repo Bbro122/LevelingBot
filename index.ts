@@ -542,7 +542,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                     .addOptions(boostoptions)
                             )
                         i.reply({ embeds: [embed], components: [row], ephemeral: true })
-                        let collector = i.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
+                        let collector = i.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
                         collector.on('collect', async interaction => {
                             let data = xp.get()
                             let user = data.users.find(user => user.id == interaction.user.id)
