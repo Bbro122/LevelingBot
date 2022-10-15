@@ -532,7 +532,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             )
                         i.reply({ embeds: [embed], components: [row], ephemeral: true })
                         let collect = i.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
-                        collector.on('collect', async interaction => {
+                        collect.on('collect', async interaction => {
                             let data = xp.get()
                             let user = data.users.find(user => user.id == interaction.user.id)
                             if (user) {
