@@ -76,7 +76,7 @@ async function getWelcomeBanner(imagelink: string) {
     context.drawImage(await can.loadImage('./welcome.png'), 0, 0, 1200, 300)
     return canvas.toBuffer('image/png')
 }
-async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any, ministry?: boolean, namecard?: boolean) {
+async function getImage(exp: number, requirement: number, username: any, number: any, level: any, imagelink: any, rank: any, ministry?: boolean, namecard?: string) {
     let canvas = can.createCanvas(1200, 300)
     let context = canvas.getContext('2d')
     context.fillStyle = '#171717'
@@ -275,7 +275,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                         interaction.editReply({ files: [attachment] })
                     })
                 } else {
-                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, user.namecard).then(buffer => {
+                    getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, undefined).then(buffer => {
                         const attachment = new MessageAttachment(buffer, "LevelCard.png")
                         interaction.editReply({ files: [attachment] })
                     })
