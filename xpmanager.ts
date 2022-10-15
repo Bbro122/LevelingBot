@@ -17,11 +17,7 @@ export type UserProfile = {
         data:any
     }[],
     "epoch":number,
-    "namecard"?: {
-        type:string,
-        display:{name:string,value:string,inline:false}
-        data:any
-    }
+    "namecard"?: string
 }
 export type UserData = {
     "name": "users",

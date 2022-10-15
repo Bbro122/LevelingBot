@@ -484,7 +484,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             let user = data.users.find(user => user.id == interaction.user.id)
             if (user && user.items.length > 0) {
                 let fields: EmbedField[] = []
-                let options: any[] = []
+                let nameoptions: any[] = []
+                let boostoptions: any[] = []
                 let embed = new MessageEmbed()
                     .setTitle('Inventory')
                     .setDescription('View all your items here.\nUse the select menu to use an item.')
@@ -501,9 +502,11 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     )
                 user.items.forEach(item => {
                     fields.push(item.display)
-                   // if (item.type == 'booster') {
-                     //   options.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
-                    //}
+                    if (item.type == 'booster') {
+                        nameoptions.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
+                    } else if (item.type == 'namecard') {
+                        boostoptions.push({ label: item.display.name, description: item.display.value, value: user?.items.findIndex(sitem => sitem == item).toString() })
+                    }
                 })
                 //const row = new MessageActionRow()
                 //  .addComponents(
@@ -515,63 +518,92 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 // )
                 embed.setFields(fields)
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
-                
-            } else {
-                reply.error(interaction, 'You have no items.')
+                let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 })
+                collector?.on('collect', async i => {
+                    if (i.customId == 'namecard') {
+                        let embed = new MessageEmbed()
+                            .setTitle('Namecard Inventory')
+                            .setDescription('Use the selector menu below to equip a namecard.')
+                        const row = new MessageActionRow()
+                            .addComponents(
+                                new MessageSelectMenu()
+                                    .setCustomId('usenamecard')
+                                    .addOptions(nameoptions)
+                            )
+                        i.reply({ embeds: [embed], components: [row], ephemeral: true })
+                    } else if (i.customId == 'booster') {
+                        let embed = new MessageEmbed()
+                            .setTitle('Booster Inventory')
+                            .setDescription('Use the selector menu below to use a booster.')
+                        const row = new MessageActionRow()
+                            .addComponents(
+                                new MessageSelectMenu()
+                                    .setCustomId('usebooster')
+                                    .addOptions(boostoptions)
+                            )
+                        i.reply({ embeds: [embed], components: [row], ephemeral: true })
+                        let collector = i.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
+                        collector.on('collect', async interaction => {
+                            let data = xp.get()
+                            let user = data.users.find(user => user.id == interaction.user.id)
+                            user.namecard = user.items[interaction.values[0]].data.file
+                        })
+                    }
+                })
             }
-        } else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
-            require('./punisher.js').punish(interaction)
-        } else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
-            require('./punisher.js').getpunishments(interaction.options.get('user')?.user, interaction)
-        } else if (interaction.commandName == 'rule') {
-            let rule: string = strCheck(interaction.options.get('rule')?.value)
-            let embed = new MessageEmbed()
-                .setTitle(interaction.options.getSubcommand())
-                .setDescription(rule)
-            reply.embed(interaction, embed)
-        }
-    } else if (interaction.isSelectMenu()) {
-        if (interaction.customId == 'shop') {
-            let args = interaction.values[0].split('_')
-            let data = xp.get()
-            let user = data.users.find(user => user.id == interaction.user.id)
-            if (user) {
-                if (user.items == undefined) {
-                    user.items = []
-                }
-                if (args[0] == '0' && user.gems > parseInt(args[3])) {
-                    user.items.push({ type: 'booster', display: { name: `${args[1]}x Booster`, value: `Lasts ${args[2]}h`, inline: false }, data: { multiplier: args[1], length: parseInt(args[2]) } })
-                    user.gems = user.gems - parseInt(args[3])
-                    xp.write(data)
-                    reply.silent(interaction, `Successfully bought booster. Use it by running /items in #bot-cmds.`)
-                } else if (args[0] == '1' && user.gems > parseInt(args[2])) {
-                    let name = `${args[1]} Namecard`
-                    name[0].toUpperCase()
-                    user.items.push({ type: 'namecard', display: { name: name, value: `Equip in your inventory`, inline: false }, data: { file: `./namecards/${args[1]}.png` } })
-                    user.gems = user.gems - parseInt(args[3])
-                    xp.write(data)
-                    reply.silent(interaction, `Successfully bought namecard. Equip it using /items in #bot-cmds.`)
-                }
-            } else {
-                reply.error(interaction, `You can't afford this item.`)
+            } else if (interaction.commandName == 'punish' && checkOwner(interaction)) {
+                require('./punisher.js').punish(interaction)
+            } else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
+                require('./punisher.js').getpunishments(interaction.options.get('user')?.user, interaction)
+            } else if (interaction.commandName == 'rule') {
+                let rule: string = strCheck(interaction.options.get('rule')?.value)
+                let embed = new MessageEmbed()
+                    .setTitle(interaction.options.getSubcommand())
+                    .setDescription(rule)
+                reply.embed(interaction, embed)
             }
-        } else if (interaction.customId == 'use') {
-            if (xp.getMultiplier() == 1) {
-                let index = interaction.values[0]
+        } else if (interaction.isSelectMenu()) {
+            if (interaction.customId == 'shop') {
+                let args = interaction.values[0].split('_')
                 let data = xp.get()
                 let user = data.users.find(user => user.id == interaction.user.id)
                 if (user) {
-                    let booster = user.items[parseInt(index)]
-                    xp.setMultiplier(booster.data.multiplier, booster.data.length * 3600000)
-                    user.items.splice(parseInt(index), 1)
-                    interaction.reply(`@here | <@${interaction.user.id}> has activated a ${booster.data.multiplier}x XP Booster for ${remainingTime(booster.data.length * 3600000)}`)
+                    if (user.items == undefined) {
+                        user.items = []
+                    }
+                    if (args[0] == '0' && user.gems > parseInt(args[3])) {
+                        user.items.push({ type: 'booster', display: { name: `${args[1]}x Booster`, value: `Lasts ${args[2]}h`, inline: false }, data: { multiplier: args[1], length: parseInt(args[2]) } })
+                        user.gems = user.gems - parseInt(args[3])
+                        xp.write(data)
+                        reply.silent(interaction, `Successfully bought booster. Use it by running /items in #bot-cmds.`)
+                    } else if (args[0] == '1' && user.gems > parseInt(args[2])) {
+                        let name = `${args[1]} Namecard`
+                        name[0].toUpperCase()
+                        user.items.push({ type: 'namecard', display: { name: name, value: `Equip in your inventory`, inline: false }, data: { file: `./namecards/${args[1]}.png` } })
+                        user.gems = user.gems - parseInt(args[3])
+                        xp.write(data)
+                        reply.silent(interaction, `Successfully bought namecard. Equip it using /items in #bot-cmds.`)
+                    }
                 } else {
-                    reply.error(interaction, 'User not found.')
+                    reply.error(interaction, `You can't afford this item.`)
                 }
-            } else {
-                reply.error(interaction, 'A booster is already active.')
+            } else if (interaction.customId == 'use') {
+                if (xp.getMultiplier() == 1) {
+                    let index = interaction.values[0]
+                    let data = xp.get()
+                    let user = data.users.find(user => user.id == interaction.user.id)
+                    if (user) {
+                        let booster = user.items[parseInt(index)]
+                        xp.setMultiplier(booster.data.multiplier, booster.data.length * 3600000)
+                        user.items.splice(parseInt(index), 1)
+                        interaction.reply(`@here | <@${interaction.user.id}> has activated a ${booster.data.multiplier}x XP Booster for ${remainingTime(booster.data.length * 3600000)}`)
+                    } else {
+                        reply.error(interaction, 'User not found.')
+                    }
+                } else {
+                    reply.error(interaction, 'A booster is already active.')
+                }
             }
         }
-    }
-})
+    })
 client.login(config.server.token);
