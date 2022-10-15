@@ -90,7 +90,7 @@ async function getImage(exp: number, requirement: number, username: any, number:
     //else if (overwatch) { context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300) }
     //else { context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300) }
     if (namecard) {
-        context.drawImage(await can.loadImage(namecard), 0, 0, 1200, 300)
+        context.drawImage(await can.loadImage(namecard?namecard:'./namecards/ministry.png'), 0, 0, 1200, 300)
     } else {
         if (ministry) {
             context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300)
