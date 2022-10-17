@@ -5,7 +5,7 @@
 //  ____| |___   |   |___| |    |
 //______________________________/-
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions, User, GuildMemberRoleManager, MessageButton } from "discord.js";
+import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions, User, GuildMemberRoleManager, MessageButton, ButtonInteraction } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 import can from 'canvas';
 const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)] });
@@ -21,13 +21,13 @@ let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjk
 //  |     |____| |  \| |___   |   __|__  |___| |  \|  ____| |
 //__________________________________________________________/
 let reply = {
-    silent: function (interaction: CommandInteraction | SelectMenuInteraction, reply: string) {
+    silent: function (interaction: CommandInteraction | SelectMenuInteraction | ButtonInteraction, reply: string) {
         interaction.reply({ content: reply, ephemeral: true })
     },
-    error: function (interaction: CommandInteraction | SelectMenuInteraction, error: string) {
+    error: function (interaction: CommandInteraction | SelectMenuInteraction | ButtonInteraction, error: string) {
         interaction.reply({ content: `**Error |** ${error}`, ephemeral: true })
     },
-    embed: function (interaction: CommandInteraction | SelectMenuInteraction, embed: MessageEmbed, row?: MessageActionRow) {
+    embed: function (interaction: CommandInteraction | SelectMenuInteraction | ButtonInteraction, embed: MessageEmbed, row?: MessageActionRow) {
         interaction.reply({ embeds: [embed], components: row ? [row] : undefined })
     }
 }
@@ -89,8 +89,9 @@ async function getImage(exp: number, requirement: number, username: any, number:
     //if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30); context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300) }
     //else if (overwatch) { context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300) }
     //else { context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300) }
+    console.log(namecard)
     if (namecard) {
-        context.drawImage(await can.loadImage((namecard&&typeof namecard == 'string')?namecard:'./namecards/ministry.png'), 0, 0, 1200, 300)
+        context.drawImage(await can.loadImage((namecard && typeof namecard == 'string') ? namecard : './namecards/ministry.png'), 0, 0, 1200, 300)
     } else {
         if (ministry) {
             context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300)
@@ -542,14 +543,20 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                         i.reply({ embeds: [embed], components: [row], ephemeral: true })
                         let collect = i.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
                         if (collect) {
-                        collect.on('collect', async interaction => {
-                            let data = xp.get()
-                            let user = data.users.find(user => user.id == interaction.user.id)
-                            if (user) {
-                                user.namecard = user.items[typeof interaction.values[0] == 'number' ? interaction.values[0] : 0].data.file
-                            }
-                            interaction.reply({ephemeral: true,content:'Sucessfully set namecard'})
-                        })
+                            collect.on('collect', async interaction => {
+                                let data = xp.get()
+                                let user = data.users.find(user => user.id == interaction.user.id)
+                                if (user) {
+                                    let file = user.items[typeof parseInt(interaction.values[0]) == 'number' ? parseInt(interaction.values[0]) : 0].data.file
+                                    if (file) {
+                                        user.namecard = file
+                                        xp.write(data)
+                                        interaction.reply({ ephemeral: true, content: 'Sucessfully set namecard' })
+                                    } else {
+                                        reply.error(interaction,'File not found')
+                                    }
+                                }
+                            })
                         } else {
                             i.followUp('error')
                         }
@@ -599,6 +606,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     user.gems = user.gems - parseInt(args[3])
                     xp.write(data)
                     reply.silent(interaction, `Successfully bought namecard. Equip it using /items in #bot-cmds.`)
+                } else {
+                    reply.error(interaction, `You can't afford this item.`)
                 }
             } else {
                 reply.error(interaction, `You can't afford this item.`)

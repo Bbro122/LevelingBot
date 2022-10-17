@@ -103,6 +103,7 @@ function getImage(exp, requirement, username, number, level, imagelink, rank, mi
         //if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30); context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300) }
         //else if (overwatch) { context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300) }
         //else { context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300) }
+        console.log(namecard);
         if (namecard) {
             context.drawImage(yield canvas_1.default.loadImage((namecard && typeof namecard == 'string') ? namecard : './namecards/ministry.png'), 0, 0, 1200, 300);
         }
@@ -597,9 +598,16 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                 let data = xp.get();
                                 let user = data.users.find(user => user.id == interaction.user.id);
                                 if (user) {
-                                    user.namecard = user.items[typeof interaction.values[0] == 'number' ? interaction.values[0] : 0].data.file;
+                                    let file = user.items[typeof parseInt(interaction.values[0]) == 'number' ? parseInt(interaction.values[0]) : 0].data.file;
+                                    if (file) {
+                                        user.namecard = file;
+                                        xp.write(data);
+                                        interaction.reply({ ephemeral: true, content: 'Sucessfully set namecard' });
+                                    }
+                                    else {
+                                        reply.error(interaction, 'File not found');
+                                    }
                                 }
-                                interaction.reply({ ephemeral: true, content: 'Sucessfully set namecard' });
                             }));
                         }
                         else {
@@ -655,6 +663,9 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     user.gems = user.gems - parseInt(args[3]);
                     xp.write(data);
                     reply.silent(interaction, `Successfully bought namecard. Equip it using /items in #bot-cmds.`);
+                }
+                else {
+                    reply.error(interaction, `You can't afford this item.`);
                 }
             }
             else {
