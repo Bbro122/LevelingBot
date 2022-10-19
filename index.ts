@@ -4,11 +4,11 @@
 // └────┐ ├──    |   |   | |──┘ |
 //  ____| |___   |   |___| |    |
 //______________________________/-
-import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember, APIInteractionGuildMember } from "discord-api-types";
-import { MessageAttachment, Client, Intents, MessageActionRow, Channel, CommandInteraction, Guild, GuildMember, Interaction, Message, MessageEmbed, Permissions, TextChannel, SelectMenuInteraction, MessageSelectMenu, EmbedField, MessageSelectMenuOptions, User, GuildMemberRoleManager, MessageButton, ButtonInteraction } from "discord.js";
+import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember } from "discord-api-types";
+import { AttachmentBuilder, Client, ActionRowBuilder, CommandInteraction, GuildMember, Interaction, Message, Embed, TextChannel, SelectMenuInteraction, SelectMenuBuilder, EmbedField, SelectMenuOptionBuilder, User, GuildMemberRoleManager, ButtonBuilder, ButtonInteraction, Partials, GatewayIntentBits, AnyAPIActionRowComponent, AnyComponentBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, ButtonStyle, ComponentType } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 import can from 'canvas';
-const client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new Intents(32767)] });
+const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 32767 });
 let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let axios = require('axios')
@@ -27,8 +27,8 @@ let reply = {
     error: function (interaction: CommandInteraction | SelectMenuInteraction | ButtonInteraction, error: string) {
         interaction.reply({ content: `**Error |** ${error}`, ephemeral: true })
     },
-    embed: function (interaction: CommandInteraction | SelectMenuInteraction | ButtonInteraction, embed: MessageEmbed, row?: MessageActionRow) {
-        interaction.reply({ embeds: [embed], components: row ? [row] : undefined })
+    embed: function (interaction: CommandInteraction | SelectMenuInteraction | ButtonInteraction, embed: EmbedBuilder) {
+        interaction.reply({ embeds: [embed] })
     }
 }
 function remainingTime(milliseconds: number): string {
@@ -60,8 +60,8 @@ function strCheck(str: any) {
 }
 function checkOwner(interaction: CommandInteraction) {
     let permissions = interaction.member?.permissions
-    if (permissions instanceof Permissions) {
-        if (permissions.has('ADMINISTRATOR')) {
+    if (typeof permissions != 'string' && permissions instanceof Permissions) {
+        if (permissions.has(PermissionFlagsBits.Administrator)) {
             return true
         } else {
             interaction.reply("This command is reserved for Ministry usage only.")
@@ -135,7 +135,7 @@ client.on('guildMemberAdd', async (member: GuildMember) => {
     if (url) {
         getWelcomeBanner(url).then(buffer => {
             if (mainchat && mainchat instanceof TextChannel) {
-                const attachment = new MessageAttachment(buffer, "Welcome.png")
+                const attachment = new AttachmentBuilder(buffer)
                 mainchat.send({ content: `<@${member.id}> has joined the server.`, files: [attachment] })
             }
         })
@@ -148,7 +148,7 @@ client.on('guildMemberAdd', async (member: GuildMember) => {
         }
     })
     if (!guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) {
-        await guild.channels.create(`User-Count-${members}`, { type: 'GUILD_VOICE', permissionOverwrites: [{ id: guild.roles.everyone.id, deny: ['CONNECT'] }] })
+        await guild.channels.create({ name: `User-Count-${members}`, type: ChannelType.GuildVoice, permissionOverwrites: [{ id: guild.roles.everyone.id, deny: [PermissionFlagsBits.Connect] }] })
     } else {
         guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))?.setName(`User-Count-${members}`)
     }
@@ -182,7 +182,7 @@ client.on('ready', async () => {
             }
         })
         if (!guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) {
-            await guild.channels.create(`User-Count-${members}`, { type: 'GUILD_VOICE', permissionOverwrites: [{ id: guild.roles.everyone.id, deny: ['CONNECT'] }] })
+            await guild.channels.create({ name: `User-Count-${members}`, type: ChannelType.GuildVoice, permissionOverwrites: [{ id: guild.roles.everyone.id, deny: [PermissionFlagsBits.Connect] }] })
         } else {
             guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))?.setName(`User-Count-${members}`)
         }
@@ -228,7 +228,7 @@ client.on('messageCreate', async (msg: Message) => {
     }
 })
 client.on('interactionCreate', async (interaction: Interaction) => {
-    if (interaction.isCommand()) {
+    if (interaction.isChatInputCommand()) {
         if (interaction.commandName == 'overwatch') {
             interaction.deferReply()
             let data = await axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today')
@@ -237,7 +237,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             modes.forEach((mode: { "name": string, "description": string }) => {
                 fields.push({ name: mode.name, value: mode.description })
             });
-            let embed = new MessageEmbed()
+            let embed = new EmbedBuilder()
                 .addFields(fields)
                 .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
                 .setTitle('Overwatch Arcade Today')
@@ -272,12 +272,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 data2.findIndex(user2 => user2 == user)
                 if (user) {
                     getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, user.namecard).then(buffer => {
-                        const attachment = new MessageAttachment(buffer, "LevelCard.png")
+                        const attachment = new AttachmentBuilder(buffer)
                         interaction.editReply({ files: [attachment] })
                     })
                 } else {
                     getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, undefined).then(buffer => {
-                        const attachment = new MessageAttachment(buffer, "LevelCard.png")
+                        const attachment = new AttachmentBuilder(buffer)
                         interaction.editReply({ files: [attachment] })
                     })
                 }
@@ -295,7 +295,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Xp: ${data[i].xp}`, "inline": false })
                 }
             }
-            let embed = new MessageEmbed()
+            let embed = new EmbedBuilder()
                 .setTitle('XP Leaderboard')
                 .addFields(fields)
             reply.embed(interaction, embed)
@@ -387,54 +387,13 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     interaction.reply(`<:kek:1004270229397970974> You're broke.`)
                 }
             }
-        } else if (interaction.commandName == 'shop') {
-            let data = xp.get()
-            let user = data.users.find(user => user.id == interaction.user.id)
-            if (user) {
-                const row = new MessageActionRow()
-                    .addComponents(
-                        new MessageSelectMenu()
-                            .setCustomId('shop')
-                            .addOptions([
-                                {
-                                    "label": "Server Boost | 2x xp- 1 hour",
-                                    "description": "This item costs 100 gems",
-                                    "value": "2_1_100"
-                                },
-                                {
-                                    "label": "Server Boost | 2x xp- 6 hours",
-                                    "description": "This item costs 500 gems",
-                                    "value": "2_6_500"
-                                },
-                                {
-                                    "label": "Server Boost | 2x xp- 24 hours",
-                                    "description": "This item costs 2000 gems",
-                                    "value": "2_24_2000"
-                                },
-                                {
-                                    "label": "Server Boost | 4x xp- 1 hour",
-                                    "description": "This item costs 300 gems",
-                                    "value": "4_1_300"
-                                }
-                            ])
-                            .setMinValues(1)
-                            .setMaxValues(1)
-                    )
-                const embed = new MessageEmbed()
-                    .setTitle('Booster Shop')
-                    .setDescription('Welcome to the shop, spend your gems here.\nBoosters can be used with /item\nAll sales are final')
-                interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
-            } else {
-                interaction.reply(`No userdata found.`)
-            }
-
         } else if (interaction.commandName == 'publicshop' && checkOwner(interaction)) {
             let data = xp.get()
             let user = data.users.find(user => user.id == interaction.user.id)
             if (user) {
-                const row = new MessageActionRow()
+                const row = new ActionRowBuilder<SelectMenuBuilder>()
                     .addComponents(
-                        new MessageSelectMenu()
+                        new SelectMenuBuilder()
                             .setCustomId('shop')
                             .addOptions([
                                 {
@@ -481,7 +440,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             .setMinValues(1)
                             .setMaxValues(1)
                     )
-                const embed = new MessageEmbed()
+                const embed = new EmbedBuilder()
                     .setTitle('Shop')
                     .setDescription('Welcome to the shop, spend your gems here.\nBoosters/Namecards can be used with /items\nAll sales are final')
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: false })
@@ -496,18 +455,18 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 let fields: EmbedField[] = []
                 let nameoptions: any[] = []
                 let boostoptions: any[] = []
-                let embed = new MessageEmbed()
+                let embed = new EmbedBuilder()
                     .setTitle('Inventory')
                     .setDescription('View all your items here.\nUse the select menu to use an item.')
-                const row = new MessageActionRow()
+                const row = new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(
-                        new MessageButton()
+                        new ButtonBuilder()
                             .setCustomId('namecard')
-                            .setStyle('PRIMARY')
+                            .setStyle(ButtonStyle.Primary)
                             .setLabel('Set Namecard'),
-                        new MessageButton()
+                        new ButtonBuilder()
                             .setCustomId('booster')
-                            .setStyle('PRIMARY')
+                            .setStyle(ButtonStyle.Primary)
                             .setLabel('Use booster')
                     )
                 user.items.forEach(item => {
@@ -528,20 +487,20 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 // )
                 embed.setFields(fields)
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true })
-                let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 })
+                let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 })
                 collector?.on('collect', async i => {
                     if (i.customId == 'namecard') {
-                        let embed = new MessageEmbed()
+                        let embed = new EmbedBuilder()
                             .setTitle('Namecard Inventory')
                             .setDescription('Use the selector menu below to equip a namecard.')
-                        const row = new MessageActionRow()
+                        const row = new ActionRowBuilder<SelectMenuBuilder>()
                             .addComponents(
-                                new MessageSelectMenu()
+                                new SelectMenuBuilder()
                                     .setCustomId('usenamecard')
                                     .addOptions(nameoptions)
                             )
                         i.reply({ embeds: [embed], components: [row], ephemeral: true })
-                        let collect = i.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
+                        let collect = i.channel?.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
                         if (collect) {
                             collect.on('collect', async interaction => {
                                 let data = xp.get()
@@ -553,7 +512,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                         xp.write(data)
                                         interaction.reply({ ephemeral: true, content: 'Sucessfully set namecard' })
                                     } else {
-                                        reply.error(interaction,'File not found')
+                                        reply.error(interaction, 'File not found')
                                     }
                                 }
                             })
@@ -561,12 +520,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             i.followUp('error')
                         }
                     } else if (i.customId == 'booster') {
-                        let embed = new MessageEmbed()
+                        let embed = new EmbedBuilder()
                             .setTitle('Booster Inventory')
                             .setDescription('Use the selector menu below to use a booster.')
-                        const row = new MessageActionRow()
+                        const row = new ActionRowBuilder<SelectMenuBuilder>()
                             .addComponents(
-                                new MessageSelectMenu()
+                                new SelectMenuBuilder()
                                     .setCustomId('use')
                                     .addOptions(boostoptions)
                             )
@@ -580,7 +539,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             require('./punisher.js').getpunishments(interaction.options.get('user')?.user, interaction)
         } else if (interaction.commandName == 'rule') {
             let rule: string = strCheck(interaction.options.get('rule')?.value)
-            let embed = new MessageEmbed()
+            let embed = new EmbedBuilder()
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule)
             reply.embed(interaction, embed)

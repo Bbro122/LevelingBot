@@ -1,9 +1,7 @@
-import { BaseMessageComponent, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, MessageActionRow, MessageActionRowComponent, MessageButton, MessageButtonStyle, MessageComponent, MessageComponentInteraction, MessageSelectMenu, MessageSelectMenuOptions, MessageSelectOption } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength } from "discord.js";
 import { UserProfile } from "./xpmanager";
 const { get } = require('./xpmanager')
-import { MessageAttachment, MessageEmbed } from 'discord.js';
-import { APIMessage, APISelectMenuOption } from "discord-api-types";
-import { Embed } from "@discordjs/builders";
+import {AttachmentBuilder, EmbedBuilder} from 'discord.js';
 const fs = require('fs')
 let can = require('canvas')
 let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse", "Skip"]]
@@ -99,22 +97,23 @@ function newPlayer(plr: string) {
 }
 
 
-function createButton(string: string, id: string, style: MessageButtonStyle, emoji: EmojiIdentifierResolvable | null, disabled: boolean) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
-  let button = new MessageButton()
-    .setCustomId(id)
-    .setLabel(string)
-    .setStyle(style)
-    .setDisabled(disabled)
-  if (emoji) { button.setEmoji(emoji) }
-  return button
+function createButtons(rawButtons:{string: string, id: string, style: ButtonStyle, emoji?: ComponentEmojiResolvable | null, disabled?: boolean}[]) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
+  let buttons:ButtonBuilder[] = []
+  rawButtons.forEach(buttonData=>{
+    let button = new ButtonBuilder()
+    .setCustomId(buttonData.id)
+    .setLabel(buttonData.string)
+    .setStyle(buttonData.style)
+    .setDisabled(buttonData.disabled)
+    if (buttonData.emoji) {
+      button.setEmoji(buttonData.emoji)
+    }
+    buttons.push(button)
+  })
+  let row = new ActionRowBuilder<ButtonBuilder>()
+  .addComponents(buttons)
+  return row
 }
-
-
-function row(array: MessageActionRowComponent[]) {
-  return new MessageActionRow().addComponents(array)
-}
-
-
 function randomizeArray(array: any[]) {
   let a = array.slice()
   let b = []
@@ -138,21 +137,21 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
       hands.push(plr.hand)
     }
   }
-  const attachment = new MessageAttachment(await dispBoard(hands, game, true), 'board.png');
+  const attachment = new AttachmentBuilder(await dispBoard(hands, game, true));
   await game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] })
   await game.msg.edit({
     content: null,
-    embeds: [{ "type": "rich", "title": `${member instanceof GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])],
+    embeds: [{ "title": `${member instanceof GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [createButtons([{string:"Begin Turn", id:"turn", style:ButtonStyle.Primary}])],
     files: [attachment]
   })
-  let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == player.id, time: 20000, max: 1 })
+  let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: i => i.user.id == player.id, time: 20000, max: 1 })
   collector?.on('collect', async i => {
     await i.deferReply({ ephemeral: true })
-    const attachment = new MessageAttachment(await dispBoard(hands, game, false), 'board.png');
+    const attachment = new AttachmentBuilder(await dispBoard(hands, game, false));
     await game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] })
     await game.msg.edit({
       content: null,
-      embeds: [{ "type": "rich", "title": `${i.member instanceof GuildMember ? i.member.displayName : i.user.id} has begun round ${game.round + 1}`, "description": `They have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: undefined,
+      embeds: [{ "title": `${i.member instanceof GuildMember ? i.member.displayName : i.user.id} has begun round ${game.round + 1}`, "description": `They have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: undefined,
       files: Array.from(game.msg.attachments.values())
     })
     let playableCards = [{ label: 'Draw', value: 'draw' }]
@@ -161,8 +160,8 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
         playableCards.push({ label: getLabel(card), value: card })
       }
     })
-    let SelectMenu = new MessageActionRow().addComponents(
-      new MessageSelectMenu()
+    let SelectMenu = new ActionRowBuilder<SelectMenuBuilder>().addComponents(
+        new SelectMenuBuilder()
         .setCustomId('playcard')
         .addOptions(playableCards)
     )
@@ -170,24 +169,24 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
       components: [SelectMenu],
       files: [attachment],
       embeds: [
-        new MessageEmbed()
+        new EmbedBuilder()
           .setTitle('Time to make your move')
           .setDescription(`It is now your turn, you have 30 seconds to play or draw a card.`)
           .setColor(0xed0606)
           .setThumbnail(`attachment://board.png`)
       ]
     })
-    let collector = interaction.channel?.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 })
+    let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, time: 35000, max: 1 })
     collector?.on('collect', async interaction => {
       player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1)
       if (player.hand.length == 0) {
-        let embed = new MessageEmbed()
+        let embed = new EmbedBuilder()
           .setTitle(`Game Over`)
           .setDescription(`${interaction.user.username} has won the game.`)
         await game.msg.channel.send({ embeds: [embed] })
       } else {
         game.deck.splice(0, 0, interaction.values[0])
-        let embed = new MessageEmbed()
+        let embed = new EmbedBuilder()
           .setTitle(`Round ${game.round + 1}`)
           .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
           .setThumbnail(`attachment://board.png`)
@@ -206,11 +205,14 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
 
 
 exports.startNewGame = async function startNewGame(interaction: CommandInteraction) {
-  let gameChan = await interaction.guild?.channels.create(`${interaction.user.username}s-uno-match`)
-  if (gameChan && interaction.member instanceof GuildMember) {
+  let unochan = interaction.guild?.channels.cache.find(chan => chan.id == '1031792184539742229')
+  if (unochan&&unochan.type==ChannelType.GuildForum) {
+  let gameChan = await interaction.guild?.channels.create({name:`${interaction.user.username}s-uno-match`})
+  let member = interaction.member
+  if (gameChan && member instanceof GuildMember) {
     let msg = await gameChan.send({
       embeds: [{
-        "title": `${interaction?.member?.displayName}'s Uno Match`,
+        "title": `${member.displayName}'s Uno Match`,
         "description": `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/4 players have joined`,
         "color": 0xed0606,
         "thumbnail": {
@@ -218,14 +220,14 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
           "height": 700,
           "width": 450
         },
-        "fields": [{ name: interaction?.member?.displayName, value: `Level ${require('./userdata.json').users.find((user: UserProfile) => user.id = interaction.user.id).level}` }]
-      }], components: [row([createButton("🎮 Join Match", "join", "SUCCESS", null, false), createButton("Start Match", "start", "SUCCESS", "814199679704891423", false), createButton("Cancel Match", "cancel", "DANGER", "814199666778308638", false)])]
+        "fields": [{ name: member.displayName, value: `Level ${require('./userdata.json').users.find((user: UserProfile) => user.id = interaction.user.id).level}` }]
+      }], components: [createButtons([{string:"🎮 Join Match", id:"join", style:ButtonStyle.Success},{string:"Start Match", id:"start", style: ButtonStyle.Success,emoji:"814199679704891423"},{string:"Cancel Match", id:"cancel", style:ButtonStyle.Danger, emoji:"814199666778308638"}])]
     })
     if (msg) {
       let game: Game = newGame(msg, interaction.user.id)
       games.push(game)
       interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`)
-      const collector = gameChan?.createMessageComponentCollector({ componentType: 'BUTTON' })
+      const collector = gameChan?.createMessageComponentCollector({ componentType: ComponentType.Button })
       collector?.on('collect', async i => {
         if (i.customId == 'join') {
           if (game.players.find(plr => plr.id == i.user.id)) {
@@ -234,9 +236,14 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
             game.players.push(newPlayer(i.user.id))
             let embed = game.msg.embeds[0]
             let user = require('./userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
-            embed.description = `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`
             embed.fields.push({ name: i.member?.displayName, value: `Level ${user.level}`, inline: false })
-            await i.update({ embeds: [embed] })
+            let newEmbed = new EmbedBuilder()
+            .setTitle(embed.title)
+            .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
+            .addFields(embed.fields)
+            .setColor('Gold')
+            .setThumbnail('https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png')
+            await i.update({ embeds: [newEmbed] })
           }
         } else if (i.user?.id == game.host) {
           if (i.customId == 'cancel') {
@@ -268,4 +275,7 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
       await interaction.reply('Failed to create game')
     }
   }
+} else {
+  interaction.reply('Could not find uno forum.')
+}
 }

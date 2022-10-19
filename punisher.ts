@@ -1,4 +1,4 @@
-import { ButtonInteraction, Client, CommandInteraction, GuildMember, Interaction, User } from "discord.js"
+import { ButtonInteraction, ChatInputCommandInteraction, Client, CommandInteraction, ComponentType, GuildMember, Interaction, User } from "discord.js"
 const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const fs = require('fs')
 type Warning = {
@@ -35,7 +35,7 @@ exports.write = function write(file: PunishData) {
 exports.get = function read() {
     return require("./punishments.json")
 }
-exports.punish = function punish(interaction: CommandInteraction) {
+exports.punish = function punish(interaction: ChatInputCommandInteraction) {
     //data.warnings.push({"pid":data.warnings.length,"id":options.get('user')?.user?.id,"epoch":date.getTime(),"reason":interaction.options.get('reason')?.value})
     //exports.write(data)
     let mod = interaction.member!
@@ -60,7 +60,7 @@ exports.punish = function punish(interaction: CommandInteraction) {
             ],
             ephemeral: true
         })
-        let collector = interaction.channel?.createMessageComponentCollector({ componentType: "BUTTON", filter: (i => i.customId == 'punish'),time:600000})
+        let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: (i => i.customId == 'punish'),time:600000})
         collector?.on('collect', i => {
             let data = exports.get()
             let member = i.member
@@ -79,7 +79,7 @@ exports.punish = function punish(interaction: CommandInteraction) {
                 if (pmember.moderatable) {
                     console.log('Moddable')
                     if (type === 'ban') {
-                        pmember.ban({ days: numCheck(interaction.options.get('messageremove')?.value), reason: interaction.options.get('reason')?.value!.toString() })
+                        pmember.ban({reason: interaction.options.get('reason')?.value!.toString()})
                     } else if (type === 'timeout') {
                         pmember.timeout(numCheck(interaction.options.get('time')?.value) * 60000, strCheck(interaction.options.get('reason')?.value))
                     } else if (type === 'kick') {

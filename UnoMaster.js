@@ -204,77 +204,84 @@ function startTurn(interaction, game) {
     });
 }
 exports.startNewGame = function startNewGame(interaction) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function* () {
-        let gameChan = yield ((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.channels.create(`${interaction.user.username}s-uno-match`));
-        if (gameChan && interaction.member instanceof discord_js_1.GuildMember) {
-            let msg = yield gameChan.send({
-                embeds: [{
-                        "title": `${(_b = interaction === null || interaction === void 0 ? void 0 : interaction.member) === null || _b === void 0 ? void 0 : _b.displayName}'s Uno Match`,
-                        "description": `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/4 players have joined`,
-                        "color": 0xed0606,
-                        "thumbnail": {
-                            "url": `https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png`,
-                            "height": 700,
-                            "width": 450
-                        },
-                        "fields": [{ name: (_c = interaction === null || interaction === void 0 ? void 0 : interaction.member) === null || _c === void 0 ? void 0 : _c.displayName, value: `Level ${require('./userdata.json').users.find((user) => user.id = interaction.user.id).level}` }]
-                    }], components: [row([createButton("🎮 Join Match", "join", "SUCCESS", null, false), createButton("Start Match", "start", "SUCCESS", "814199679704891423", false), createButton("Cancel Match", "cancel", "DANGER", "814199666778308638", false)])]
-            });
-            if (msg) {
-                let game = newGame(msg, interaction.user.id);
-                games.push(game);
-                interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`);
-                const collector = gameChan === null || gameChan === void 0 ? void 0 : gameChan.createMessageComponentCollector({ componentType: 'BUTTON' });
-                collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
-                    var _d, _e, _f;
-                    if (i.customId == 'join') {
-                        if (game.players.find(plr => plr.id == i.user.id)) {
-                            yield i.reply({ content: 'You are already in this match.', ephemeral: true });
-                        }
-                        else if (i.member instanceof discord_js_1.GuildMember) {
-                            game.players.push(newPlayer(i.user.id));
-                            let embed = game.msg.embeds[0];
-                            let user = require('./userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
-                            embed.description = `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`;
-                            embed.fields.push({ name: (_d = i.member) === null || _d === void 0 ? void 0 : _d.displayName, value: `Level ${user.level}`, inline: false });
-                            yield i.update({ embeds: [embed] });
-                        }
-                    }
-                    else if (((_e = i.user) === null || _e === void 0 ? void 0 : _e.id) == game.host) {
-                        if (i.customId == 'cancel') {
-                            if (i.user.id == game.host) {
-                                (_f = i.channel) === null || _f === void 0 ? void 0 : _f.delete();
-                                games.splice(games.indexOf(game), 1);
+        let unochan = (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.channels.cache.find(chan => chan.id == '1031792184539742229');
+        console.log((_b = unochan === null || unochan === void 0 ? void 0 : unochan.parent) === null || _b === void 0 ? void 0 : _b.type);
+        if (unochan) {
+            let gameChan = yield ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.channels.create(`${interaction.user.username}s-uno-match`));
+            if (gameChan && interaction.member instanceof discord_js_1.GuildMember) {
+                let msg = yield gameChan.send({
+                    embeds: [{
+                            "title": `${(_d = interaction === null || interaction === void 0 ? void 0 : interaction.member) === null || _d === void 0 ? void 0 : _d.displayName}'s Uno Match`,
+                            "description": `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/4 players have joined`,
+                            "color": 0xed0606,
+                            "thumbnail": {
+                                "url": `https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png`,
+                                "height": 700,
+                                "width": 450
+                            },
+                            "fields": [{ name: (_e = interaction === null || interaction === void 0 ? void 0 : interaction.member) === null || _e === void 0 ? void 0 : _e.displayName, value: `Level ${require('./userdata.json').users.find((user) => user.id = interaction.user.id).level}` }]
+                        }], components: [row([createButton("🎮 Join Match", "join", "SUCCESS", null, false), createButton("Start Match", "start", "SUCCESS", "814199679704891423", false), createButton("Cancel Match", "cancel", "DANGER", "814199666778308638", false)])]
+                });
+                if (msg) {
+                    let game = newGame(msg, interaction.user.id);
+                    games.push(game);
+                    interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`);
+                    const collector = gameChan === null || gameChan === void 0 ? void 0 : gameChan.createMessageComponentCollector({ componentType: 'BUTTON' });
+                    collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
+                        var _f, _g, _h;
+                        if (i.customId == 'join') {
+                            if (game.players.find(plr => plr.id == i.user.id)) {
+                                yield i.reply({ content: 'You are already in this match.', ephemeral: true });
                             }
-                            else {
-                                yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
+                            else if (i.member instanceof discord_js_1.GuildMember) {
+                                game.players.push(newPlayer(i.user.id));
+                                let embed = game.msg.embeds[0];
+                                let user = require('./userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
+                                embed.description = `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`;
+                                embed.fields.push({ name: (_f = i.member) === null || _f === void 0 ? void 0 : _f.displayName, value: `Level ${user.level}`, inline: false });
+                                yield i.update({ embeds: [embed] });
                             }
                         }
-                        else if (i.customId == 'start') {
-                            if (game.players.length > 1) {
-                                collector.stop();
-                                game.deck = randomizeArray(game.deck);
-                                for (let i = 0; i < game.players.length; i++) {
-                                    const element = game.players[i];
-                                    element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()];
+                        else if (((_g = i.user) === null || _g === void 0 ? void 0 : _g.id) == game.host) {
+                            if (i.customId == 'cancel') {
+                                if (i.user.id == game.host) {
+                                    (_h = i.channel) === null || _h === void 0 ? void 0 : _h.delete();
+                                    games.splice(games.indexOf(game), 1);
                                 }
-                                startTurn(i, game);
+                                else {
+                                    yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
+                                }
                             }
-                            else {
-                                yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
+                            else if (i.customId == 'start') {
+                                if (game.players.length > 1) {
+                                    collector.stop();
+                                    game.deck = randomizeArray(game.deck);
+                                    for (let i = 0; i < game.players.length; i++) {
+                                        const element = game.players[i];
+                                        element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()];
+                                    }
+                                    startTurn(i, game);
+                                }
+                                else {
+                                    yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
+                                }
                             }
                         }
-                    }
-                    else {
-                        yield i.reply({ content: 'Command is only available to host', ephemeral: true });
-                    }
-                }));
+                        else {
+                            yield i.reply({ content: 'Command is only available to host', ephemeral: true });
+                        }
+                    }));
+                }
+                else {
+                    yield gameChan.delete();
+                    yield interaction.reply('Failed to create game');
+                }
             }
-            else {
-                yield gameChan.delete();
-                yield interaction.reply('Failed to create game');
-            }
+        }
+        else {
+            interaction.reply('Could not find uno forum.');
         }
     });
 };
