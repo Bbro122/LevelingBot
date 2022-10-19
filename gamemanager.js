@@ -81,7 +81,6 @@ exports.scramble = function scramble() {
     }
 };
 exports.checkWord = function (msg) {
-    console.log(msg, ' ', currentWord);
     if (msg.content.toLowerCase() == currentWord) {
         msg.channel.send(`<@${msg.author.id}> solved the problem.`);
         require('./xpmanager.js').give(msg, 50, false, client);
