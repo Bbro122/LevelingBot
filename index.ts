@@ -8,7 +8,7 @@ import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember } from "
 import { AttachmentBuilder, Client, ActionRowBuilder, CommandInteraction, GuildMember, Interaction, Message, Embed, TextChannel, SelectMenuInteraction, SelectMenuBuilder, EmbedField, SelectMenuOptionBuilder, User, GuildMemberRoleManager, ButtonBuilder, ButtonInteraction, Partials, GatewayIntentBits, AnyAPIActionRowComponent, AnyComponentBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, ButtonStyle, ComponentType } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 import can from 'canvas';
-const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 3276799 });
+const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 131071 });
 let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let axios = require('axios')
