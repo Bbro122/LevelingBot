@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const canvas_1 = __importDefault(require("canvas"));
-const client = new discord_js_1.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER', 'USER'], intents: [new discord_js_1.Intents(32767)] });
+const client = new discord_js_1.Client({ partials: [discord_js_1.Partials.Message, discord_js_1.Partials.Channel, discord_js_1.Partials.Reaction, discord_js_1.Partials.GuildMember, discord_js_1.Partials.User], intents: 32767 });
 let xp = require('./xpmanager.js');
 let game = require('./gamemanager.js');
 let axios = require('axios');
@@ -33,8 +33,8 @@ let reply = {
     error: function (interaction, error) {
         interaction.reply({ content: `**Error |** ${error}`, ephemeral: true });
     },
-    embed: function (interaction, embed, row) {
-        interaction.reply({ embeds: [embed], components: row ? [row] : undefined });
+    embed: function (interaction, embed) {
+        interaction.reply({ embeds: [embed] });
     }
 };
 function remainingTime(milliseconds) {
@@ -70,8 +70,8 @@ function strCheck(str) {
 function checkOwner(interaction) {
     var _a;
     let permissions = (_a = interaction.member) === null || _a === void 0 ? void 0 : _a.permissions;
-    if (permissions instanceof discord_js_1.Permissions) {
-        if (permissions.has('ADMINISTRATOR')) {
+    if (typeof permissions != 'string' && permissions instanceof Permissions) {
+        if (permissions.has(discord_js_1.PermissionFlagsBits.Administrator)) {
             return true;
         }
         else {
@@ -153,7 +153,7 @@ client.on('guildMemberAdd', (member) => __awaiter(void 0, void 0, void 0, functi
     if (url) {
         getWelcomeBanner(url).then(buffer => {
             if (mainchat && mainchat instanceof discord_js_1.TextChannel) {
-                const attachment = new discord_js_1.MessageAttachment(buffer, "Welcome.png");
+                const attachment = new discord_js_1.AttachmentBuilder(buffer);
                 mainchat.send({ content: `<@${member.id}> has joined the server.`, files: [attachment] });
             }
         });
@@ -166,7 +166,7 @@ client.on('guildMemberAdd', (member) => __awaiter(void 0, void 0, void 0, functi
         }
     });
     if (!guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) {
-        yield guild.channels.create(`User-Count-${members}`, { type: 'GUILD_VOICE', permissionOverwrites: [{ id: guild.roles.everyone.id, deny: ['CONNECT'] }] });
+        yield guild.channels.create({ name: `User-Count-${members}`, type: discord_js_1.ChannelType.GuildVoice, permissionOverwrites: [{ id: guild.roles.everyone.id, deny: [discord_js_1.PermissionFlagsBits.Connect] }] });
     }
     else {
         (_a = guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) === null || _a === void 0 ? void 0 : _a.setName(`User-Count-${members}`);
@@ -204,7 +204,7 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
             }
         });
         if (!guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) {
-            yield guild.channels.create(`User-Count-${members}`, { type: 'GUILD_VOICE', permissionOverwrites: [{ id: guild.roles.everyone.id, deny: ['CONNECT'] }] });
+            yield guild.channels.create({ name: `User-Count-${members}`, type: discord_js_1.ChannelType.GuildVoice, permissionOverwrites: [{ id: guild.roles.everyone.id, deny: [discord_js_1.PermissionFlagsBits.Connect] }] });
         }
         else {
             (_d = guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))) === null || _d === void 0 ? void 0 : _d.setName(`User-Count-${members}`);
@@ -258,7 +258,7 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
     var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
-    if (interaction.isCommand()) {
+    if (interaction.isChatInputCommand()) {
         if (interaction.commandName == 'overwatch') {
             interaction.deferReply();
             let data = yield axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today');
@@ -267,7 +267,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             modes.forEach((mode) => {
                 fields.push({ name: mode.name, value: mode.description });
             });
-            let embed = new discord_js_1.MessageEmbed()
+            let embed = new discord_js_1.EmbedBuilder()
                 .addFields(fields)
                 .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
                 .setTitle('Overwatch Arcade Today');
@@ -306,13 +306,13 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 data2.findIndex(user2 => user2 == user);
                 if (user) {
                     getImage(user.xp, xp.level(user.level), member.user.username, member.user.discriminator, user.level, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, user.namecard).then(buffer => {
-                        const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
+                        const attachment = new discord_js_1.AttachmentBuilder(buffer);
                         interaction.editReply({ files: [attachment] });
                     });
                 }
                 else {
                     getImage(55, xp.level(0), member.user.username, member.user.discriminator, 0, member.displayAvatarURL().replace('webp', 'png'), data2.findIndex(user2 => user2 == user) + 1, (member.roles instanceof discord_js_1.GuildMemberRoleManager) ? member.roles.cache.has('785054691008577536') : false, undefined).then(buffer => {
-                        const attachment = new discord_js_1.MessageAttachment(buffer, "LevelCard.png");
+                        const attachment = new discord_js_1.AttachmentBuilder(buffer);
                         interaction.editReply({ files: [attachment] });
                     });
                 }
@@ -333,7 +333,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Xp: ${data[i].xp}`, "inline": false });
                 }
             }
-            let embed = new discord_js_1.MessageEmbed()
+            let embed = new discord_js_1.EmbedBuilder()
                 .setTitle('XP Leaderboard')
                 .addFields(fields);
             reply.embed(interaction, embed);
@@ -447,8 +447,8 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             let data = xp.get();
             let user = data.users.find(user => user.id == interaction.user.id);
             if (user) {
-                const row = new discord_js_1.MessageActionRow()
-                    .addComponents(new discord_js_1.MessageSelectMenu()
+                const row = new discord_js_1.ActionRowBuilder()
+                    .addComponents(new discord_js_1.SelectMenuBuilder()
                     .setCustomId('shop')
                     .addOptions([
                     {
@@ -494,7 +494,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 ])
                     .setMinValues(1)
                     .setMaxValues(1));
-                const embed = new discord_js_1.MessageEmbed()
+                const embed = new discord_js_1.EmbedBuilder()
                     .setTitle('Shop')
                     .setDescription('Welcome to the shop, spend your gems here.\nBoosters/Namecards can be used with /items\nAll sales are final');
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
@@ -510,16 +510,16 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 let fields = [];
                 let nameoptions = [];
                 let boostoptions = [];
-                let embed = new discord_js_1.MessageEmbed()
+                let embed = new discord_js_1.EmbedBuilder()
                     .setTitle('Inventory')
                     .setDescription('View all your items here.\nUse the select menu to use an item.');
-                const row = new discord_js_1.MessageActionRow()
-                    .addComponents(new discord_js_1.MessageButton()
+                const row = new discord_js_1.ActionRowBuilder()
+                    .addComponents(new discord_js_1.ButtonBuilder()
                     .setCustomId('namecard')
-                    .setStyle('PRIMARY')
-                    .setLabel('Set Namecard'), new discord_js_1.MessageButton()
+                    .setStyle(discord_js_1.ButtonStyle.Primary)
+                    .setLabel('Set Namecard'), new discord_js_1.ButtonBuilder()
                     .setCustomId('booster')
-                    .setStyle('PRIMARY')
+                    .setStyle(discord_js_1.ButtonStyle.Primary)
                     .setLabel('Use booster'));
                 user.items.forEach(item => {
                     fields.push(item.display);
@@ -540,19 +540,19 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 // )
                 embed.setFields(fields);
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-                let collector = (_v = interaction.channel) === null || _v === void 0 ? void 0 : _v.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
+                let collector = (_v = interaction.channel) === null || _v === void 0 ? void 0 : _v.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
                 collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(void 0, void 0, void 0, function* () {
                     var _y;
                     if (i.customId == 'namecard') {
-                        let embed = new discord_js_1.MessageEmbed()
+                        let embed = new discord_js_1.EmbedBuilder()
                             .setTitle('Namecard Inventory')
                             .setDescription('Use the selector menu below to equip a namecard.');
-                        const row = new discord_js_1.MessageActionRow()
-                            .addComponents(new discord_js_1.MessageSelectMenu()
+                        const row = new discord_js_1.ActionRowBuilder()
+                            .addComponents(new discord_js_1.SelectMenuBuilder()
                             .setCustomId('usenamecard')
                             .addOptions(nameoptions));
                         i.reply({ embeds: [embed], components: [row], ephemeral: true });
-                        let collect = (_y = i.channel) === null || _y === void 0 ? void 0 : _y.createMessageComponentCollector({ componentType: 'SELECT_MENU', filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
+                        let collect = (_y = i.channel) === null || _y === void 0 ? void 0 : _y.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
                         if (collect) {
                             collect.on('collect', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
                                 let data = xp.get();
@@ -575,11 +575,11 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         }
                     }
                     else if (i.customId == 'booster') {
-                        let embed = new discord_js_1.MessageEmbed()
+                        let embed = new discord_js_1.EmbedBuilder()
                             .setTitle('Booster Inventory')
                             .setDescription('Use the selector menu below to use a booster.');
-                        const row = new discord_js_1.MessageActionRow()
-                            .addComponents(new discord_js_1.MessageSelectMenu()
+                        const row = new discord_js_1.ActionRowBuilder()
+                            .addComponents(new discord_js_1.SelectMenuBuilder()
                             .setCustomId('use')
                             .addOptions(boostoptions));
                         i.reply({ embeds: [embed], components: [row], ephemeral: true });
@@ -595,7 +595,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         }
         else if (interaction.commandName == 'rule') {
             let rule = strCheck((_x = interaction.options.get('rule')) === null || _x === void 0 ? void 0 : _x.value);
-            let embed = new discord_js_1.MessageEmbed()
+            let embed = new discord_js_1.EmbedBuilder()
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule);
             reply.embed(interaction, embed);

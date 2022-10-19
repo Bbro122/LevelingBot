@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const builders_1 = require("@discordjs/builders");
 let client;
 let channel;
 let currentWord;
@@ -33,15 +34,11 @@ exports.math = function math() {
             }
         }
         currentWord = eval(terms).toString();
-        let embed = {
-            "type": "rich",
-            "title": `Solve the problem`,
-            "description": terms,
-            "color": 0x00FFFF,
-            "footer": {
-                "text": `You have 2 hours to solve for 50 xp`
-            }
-        };
+        let embed = new builders_1.Embed()
+            .setTitle(`Solve the problem`)
+            .setDescription(terms)
+            .setColor(0x00FFFF)
+            .setFooter({ text: `You have 2 hours to solve for 50 xp` });
         if (channel) {
             channel.send({ embeds: [embed] });
         }
@@ -70,15 +67,11 @@ exports.scramble = function scramble() {
         if (wordArr.join('') == currentWord) {
             Randomize();
         }
-        let embed = {
-            "type": "rich",
-            "title": `Unscramble the word`,
-            "description": wordArr.join(''),
-            "color": 0x00FFFF,
-            "footer": {
-                "text": `You have 2 hours to unscramble for 50 xp`
-            }
-        };
+        let embed = new builders_1.Embed()
+            .setTitle(`Unscramble the word`)
+            .setDescription(wordArr.join(''))
+            .setColor(0x00FFFF)
+            .setFooter({ text: `You have 2 hours to unscramble for 50 xp` });
         if (channel) {
             channel.send({ embeds: [embed] });
         }

@@ -50,9 +50,9 @@ exports.punish = function punish(interaction) {
             ],
             ephemeral: true
         });
-        let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: "BUTTON", filter: (i => i.customId == 'punish'), time: 600000 });
+        let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: (i => i.customId == 'punish'), time: 600000 });
         collector === null || collector === void 0 ? void 0 : collector.on('collect', i => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
             let data = exports.get();
             let member = i.member;
             let pmember = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.member;
@@ -70,13 +70,13 @@ exports.punish = function punish(interaction) {
                 if (pmember.moderatable) {
                     console.log('Moddable');
                     if (type === 'ban') {
-                        pmember.ban({ days: numCheck((_f = interaction.options.get('messageremove')) === null || _f === void 0 ? void 0 : _f.value), reason: (_g = interaction.options.get('reason')) === null || _g === void 0 ? void 0 : _g.value.toString() });
+                        pmember.ban({ reason: (_f = interaction.options.get('reason')) === null || _f === void 0 ? void 0 : _f.value.toString() });
                     }
                     else if (type === 'timeout') {
-                        pmember.timeout(numCheck((_h = interaction.options.get('time')) === null || _h === void 0 ? void 0 : _h.value) * 60000, strCheck((_j = interaction.options.get('reason')) === null || _j === void 0 ? void 0 : _j.value));
+                        pmember.timeout(numCheck((_g = interaction.options.get('time')) === null || _g === void 0 ? void 0 : _g.value) * 60000, strCheck((_h = interaction.options.get('reason')) === null || _h === void 0 ? void 0 : _h.value));
                     }
                     else if (type === 'kick') {
-                        pmember.kick(strCheck((_k = interaction.options.get('reason')) === null || _k === void 0 ? void 0 : _k.value));
+                        pmember.kick(strCheck((_j = interaction.options.get('reason')) === null || _j === void 0 ? void 0 : _j.value));
                     }
                     i.reply({ embeds: [embed], content: `<@${pmember.id}> A punishment has been issued.` });
                     data.warnings.push(log);

@@ -99,19 +99,22 @@ function newGame(msg, host) {
 function newPlayer(plr) {
     return { "id": plr, "hand": [] };
 }
-function createButton(string, id, style, emoji, disabled) {
-    let button = new discord_js_1.MessageButton()
-        .setCustomId(id)
-        .setLabel(string)
-        .setStyle(style)
-        .setDisabled(disabled);
-    if (emoji) {
-        button.setEmoji(emoji);
-    }
-    return button;
-}
-function row(array) {
-    return new discord_js_1.MessageActionRow().addComponents(array);
+function createButtons(rawButtons) {
+    let buttons = [];
+    rawButtons.forEach(buttonData => {
+        let button = new discord_js_1.ButtonBuilder()
+            .setCustomId(buttonData.id)
+            .setLabel(buttonData.string)
+            .setStyle(buttonData.style)
+            .setDisabled(buttonData.disabled);
+        if (buttonData.emoji) {
+            button.setEmoji(buttonData.emoji);
+        }
+        buttons.push(button);
+    });
+    let row = new discord_js_1.ActionRowBuilder()
+        .addComponents(buttons);
+    return row;
 }
 function randomizeArray(array) {
     let a = array.slice();
@@ -136,22 +139,22 @@ function startTurn(interaction, game) {
                 hands.push(plr.hand);
             }
         }
-        const attachment = new discord_js_2.MessageAttachment(yield dispBoard(hands, game, true), 'board.png');
+        const attachment = new discord_js_2.AttachmentBuilder(yield dispBoard(hands, game, true));
         yield game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
         yield game.msg.edit({
             content: null,
-            embeds: [{ "type": "rich", "title": `${member instanceof discord_js_1.GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [row([createButton("Begin Turn", "turn", "SUCCESS", null, false)])],
+            embeds: [{ "title": `${member instanceof discord_js_1.GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [createButtons([{ string: "Begin Turn", id: "turn", style: discord_js_1.ButtonStyle.Primary }])],
             files: [attachment]
         });
-        let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: 'BUTTON', filter: i => i.user.id == player.id, time: 20000, max: 1 });
+        let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id, time: 20000, max: 1 });
         collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
             var _d;
             yield i.deferReply({ ephemeral: true });
-            const attachment = new discord_js_2.MessageAttachment(yield dispBoard(hands, game, false), 'board.png');
+            const attachment = new discord_js_2.AttachmentBuilder(yield dispBoard(hands, game, false));
             yield game.msg.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] });
             yield game.msg.edit({
                 content: null,
-                embeds: [{ "type": "rich", "title": `${i.member instanceof discord_js_1.GuildMember ? i.member.displayName : i.user.id} has begun round ${game.round + 1}`, "description": `They have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: undefined,
+                embeds: [{ "title": `${i.member instanceof discord_js_1.GuildMember ? i.member.displayName : i.user.id} has begun round ${game.round + 1}`, "description": `They have 30 seconds to play or draw a card.`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: undefined,
                 files: Array.from(game.msg.attachments.values())
             });
             let playableCards = [{ label: 'Draw', value: 'draw' }];
@@ -160,33 +163,33 @@ function startTurn(interaction, game) {
                     playableCards.push({ label: getLabel(card), value: card });
                 }
             });
-            let SelectMenu = new discord_js_1.MessageActionRow().addComponents(new discord_js_1.MessageSelectMenu()
+            let SelectMenu = new discord_js_1.ActionRowBuilder().addComponents(new discord_js_1.SelectMenuBuilder()
                 .setCustomId('playcard')
                 .addOptions(playableCards));
             yield i.editReply({
                 components: [SelectMenu],
                 files: [attachment],
                 embeds: [
-                    new discord_js_2.MessageEmbed()
+                    new discord_js_2.EmbedBuilder()
                         .setTitle('Time to make your move')
                         .setDescription(`It is now your turn, you have 30 seconds to play or draw a card.`)
                         .setColor(0xed0606)
                         .setThumbnail(`attachment://board.png`)
                 ]
             });
-            let collector = (_d = interaction.channel) === null || _d === void 0 ? void 0 : _d.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 35000, max: 1 });
+            let collector = (_d = interaction.channel) === null || _d === void 0 ? void 0 : _d.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, time: 35000, max: 1 });
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
                 var _e;
                 player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
                 if (player.hand.length == 0) {
-                    let embed = new discord_js_2.MessageEmbed()
+                    let embed = new discord_js_2.EmbedBuilder()
                         .setTitle(`Game Over`)
                         .setDescription(`${interaction.user.username} has won the game.`);
                     yield game.msg.channel.send({ embeds: [embed] });
                 }
                 else {
                     game.deck.splice(0, 0, interaction.values[0]);
-                    let embed = new discord_js_2.MessageEmbed()
+                    let embed = new discord_js_2.EmbedBuilder()
                         .setTitle(`Round ${game.round + 1}`)
                         .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
                         .setThumbnail(`attachment://board.png`);
@@ -204,16 +207,16 @@ function startTurn(interaction, game) {
     });
 }
 exports.startNewGame = function startNewGame(interaction) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         let unochan = (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.channels.cache.find(chan => chan.id == '1031792184539742229');
-        console.log((_b = unochan === null || unochan === void 0 ? void 0 : unochan.parent) === null || _b === void 0 ? void 0 : _b.type);
-        if (unochan) {
-            let gameChan = yield ((_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.channels.create(`${interaction.user.username}s-uno-match`));
-            if (gameChan && interaction.member instanceof discord_js_1.GuildMember) {
+        if (unochan && unochan.type == discord_js_1.ChannelType.GuildForum) {
+            let gameChan = yield ((_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.channels.create({ name: `${interaction.user.username}s-uno-match` }));
+            let member = interaction.member;
+            if (gameChan && member instanceof discord_js_1.GuildMember) {
                 let msg = yield gameChan.send({
                     embeds: [{
-                            "title": `${(_d = interaction === null || interaction === void 0 ? void 0 : interaction.member) === null || _d === void 0 ? void 0 : _d.displayName}'s Uno Match`,
+                            "title": `${member.displayName}'s Uno Match`,
                             "description": `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/4 players have joined`,
                             "color": 0xed0606,
                             "thumbnail": {
@@ -221,16 +224,16 @@ exports.startNewGame = function startNewGame(interaction) {
                                 "height": 700,
                                 "width": 450
                             },
-                            "fields": [{ name: (_e = interaction === null || interaction === void 0 ? void 0 : interaction.member) === null || _e === void 0 ? void 0 : _e.displayName, value: `Level ${require('./userdata.json').users.find((user) => user.id = interaction.user.id).level}` }]
-                        }], components: [row([createButton("🎮 Join Match", "join", "SUCCESS", null, false), createButton("Start Match", "start", "SUCCESS", "814199679704891423", false), createButton("Cancel Match", "cancel", "DANGER", "814199666778308638", false)])]
+                            "fields": [{ name: member.displayName, value: `Level ${require('./userdata.json').users.find((user) => user.id = interaction.user.id).level}` }]
+                        }], components: [createButtons([{ string: "🎮 Join Match", id: "join", style: discord_js_1.ButtonStyle.Success }, { string: "Start Match", id: "start", style: discord_js_1.ButtonStyle.Success, emoji: "814199679704891423" }, { string: "Cancel Match", id: "cancel", style: discord_js_1.ButtonStyle.Danger, emoji: "814199666778308638" }])]
                 });
                 if (msg) {
                     let game = newGame(msg, interaction.user.id);
                     games.push(game);
                     interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`);
-                    const collector = gameChan === null || gameChan === void 0 ? void 0 : gameChan.createMessageComponentCollector({ componentType: 'BUTTON' });
+                    const collector = gameChan === null || gameChan === void 0 ? void 0 : gameChan.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button });
                     collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
-                        var _f, _g, _h;
+                        var _c, _d, _e;
                         if (i.customId == 'join') {
                             if (game.players.find(plr => plr.id == i.user.id)) {
                                 yield i.reply({ content: 'You are already in this match.', ephemeral: true });
@@ -239,15 +242,20 @@ exports.startNewGame = function startNewGame(interaction) {
                                 game.players.push(newPlayer(i.user.id));
                                 let embed = game.msg.embeds[0];
                                 let user = require('./userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
-                                embed.description = `Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`;
-                                embed.fields.push({ name: (_f = i.member) === null || _f === void 0 ? void 0 : _f.displayName, value: `Level ${user.level}`, inline: false });
-                                yield i.update({ embeds: [embed] });
+                                embed.fields.push({ name: (_c = i.member) === null || _c === void 0 ? void 0 : _c.displayName, value: `Level ${user.level}`, inline: false });
+                                let newEmbed = new discord_js_2.EmbedBuilder()
+                                    .setTitle(embed.title)
+                                    .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
+                                    .addFields(embed.fields)
+                                    .setColor('Gold')
+                                    .setThumbnail('https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png');
+                                yield i.update({ embeds: [newEmbed] });
                             }
                         }
-                        else if (((_g = i.user) === null || _g === void 0 ? void 0 : _g.id) == game.host) {
+                        else if (((_d = i.user) === null || _d === void 0 ? void 0 : _d.id) == game.host) {
                             if (i.customId == 'cancel') {
                                 if (i.user.id == game.host) {
-                                    (_h = i.channel) === null || _h === void 0 ? void 0 : _h.delete();
+                                    (_e = i.channel) === null || _e === void 0 ? void 0 : _e.delete();
                                     games.splice(games.indexOf(game), 1);
                                 }
                                 else {
