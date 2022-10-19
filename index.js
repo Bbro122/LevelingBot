@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const canvas_1 = __importDefault(require("canvas"));
-const client = new discord_js_1.Client({ partials: [discord_js_1.Partials.Message, discord_js_1.Partials.Channel, discord_js_1.Partials.Reaction, discord_js_1.Partials.GuildMember, discord_js_1.Partials.User], intents: 32767 });
+const client = new discord_js_1.Client({ partials: [discord_js_1.Partials.Message, discord_js_1.Partials.Channel, discord_js_1.Partials.Reaction, discord_js_1.Partials.GuildMember, discord_js_1.Partials.User], intents: 3276541 });
 let xp = require('./xpmanager.js');
 let game = require('./gamemanager.js');
 let axios = require('axios');
@@ -70,7 +70,7 @@ function strCheck(str) {
 function checkOwner(interaction) {
     var _a;
     let permissions = (_a = interaction.member) === null || _a === void 0 ? void 0 : _a.permissions;
-    if (typeof permissions != 'string' && permissions instanceof Permissions) {
+    if (permissions && typeof permissions != 'string') {
         if (permissions.has(discord_js_1.PermissionFlagsBits.Administrator)) {
             return true;
         }
@@ -225,7 +225,7 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
 }));
 client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* () {
     var _e, _f;
-    if (((_e = msg.guild) === null || _e === void 0 ? void 0 : _e.id) == config.server.mainserver && msg.channel instanceof discord_js_1.TextChannel) {
+    if (((_e = msg.guild) === null || _e === void 0 ? void 0 : _e.id) == config.server.mainserver && msg.channel.isTextBased()) {
         if (msg.author.bot == false) {
             if (msg.content.length > 5) {
                 xp.give({ author: msg.author, channel: msg.channel }, 15 + Math.floor(Math.random() * 10), true);

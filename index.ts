@@ -8,7 +8,7 @@ import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember } from "
 import { AttachmentBuilder, Client, ActionRowBuilder, CommandInteraction, GuildMember, Interaction, Message, Embed, TextChannel, SelectMenuInteraction, SelectMenuBuilder, EmbedField, SelectMenuOptionBuilder, User, GuildMemberRoleManager, ButtonBuilder, ButtonInteraction, Partials, GatewayIntentBits, AnyAPIActionRowComponent, AnyComponentBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, ButtonStyle, ComponentType } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 import can from 'canvas';
-const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 32767 });
+const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 3276541 });
 let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
 let axios = require('axios')
@@ -60,7 +60,7 @@ function strCheck(str: any) {
 }
 function checkOwner(interaction: CommandInteraction) {
     let permissions = interaction.member?.permissions
-    if (typeof permissions != 'string' && permissions instanceof Permissions) {
+    if (permissions&&typeof permissions != 'string') {
         if (permissions.has(PermissionFlagsBits.Administrator)) {
             return true
         } else {
@@ -200,7 +200,7 @@ client.on('ready', async () => {
     }
 })
 client.on('messageCreate', async (msg: Message) => {
-    if (msg.guild?.id == config.server.mainserver && msg.channel instanceof TextChannel) {
+    if (msg.guild?.id == config.server.mainserver && msg.channel.isTextBased()) {
         if (msg.author.bot == false) {
             if (msg.content.length > 5) {
                 xp.give({ author: msg.author, channel: msg.channel }, 15 + Math.floor(Math.random() * 10), true)
