@@ -131,6 +131,8 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
   let unochan = interaction.guild?.channels.cache.find(chan => chan.name == 'uno-matches')
   let member = interaction.member
   if (unochan && unochan.type == ChannelType.GuildForum && member instanceof GuildMember) {
+    let message = undefined
+    let game: Game
     let embed = new EmbedBuilder()
       .setTitle(`${member.displayName}'s Uno Match`)
       .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/4 players have joined`)
@@ -138,60 +140,49 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
       .setThumbnail(`https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png`)
       .addFields([{ name: member.displayName, value: `Level ${require('./userdata.json').users.find((user: UserProfile) => user.id = interaction.user.id).level}` }])
     let gameChan = await unochan.threads.create({ name: `${interaction.user.username}s-uno-match`, message: { embeds: [embed], components: [createButtons([{ string: "🎮 Join Match", id: "join", style: ButtonStyle.Success }, { string: "Start Match", id: "start", style: ButtonStyle.Success, emoji: "814199679704891423" }, { string: "Cancel Match", id: "cancel", style: ButtonStyle.Danger, emoji: "814199666778308638" }])] } })
-    let game: Game = { id: gameChan.id, msg: gameChan.lastMessage, deck: newDeck, players: [newPlayer(interaction.user.id)], round: 0, inLobby: true, timeouts: [], host: interaction.user.id }
-    games.push(game)
     interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`)
-    if (gameChan.lastMessage instanceof Message) {
-      const collector = gameChan?.createMessageComponentCollector({ componentType: ComponentType.Button })
-      collector?.on('collect', async i => {
-        console.log('received')
-        if (i.customId == 'join') {
-          if (game.players.find(plr => plr.id == i.user.id)) {
-            await i.reply({ content: 'You are already in this match.', ephemeral: true })
-          } else if (i.member instanceof GuildMember) {
-            game.players.push(newPlayer(i.user.id))
-            let embed = game.msg?.embeds[0]
-            if (embed) {
-            let user = require('./userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
-            if (user) {
-            embed?.fields.push({ name: i.member?.displayName, value: `Level ${user.level}`, inline: false })
-            let newEmbed = new EmbedBuilder()
-              .setTitle(embed?embed.title:null)
-              .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
-              .setColor('Gold')
-              .setThumbnail('https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png')
-            await i.update({ embeds: [newEmbed] })
-            }
-          } else {
-            i.followUp('Userdata error')
-          }
-          }
-        } else if (i.user?.id == game.host) {
-          if (i.customId == 'cancel') {
-            if (i.user.id == game.host) {
-              gameChan.delete('Game cancelled')
-              games.splice(games.indexOf(game), 1)
-            } else {
-              await i.reply({ content: "Only the host can perform this action", ephemeral: true })
-            }
-          } else if (i.customId == 'start') {
-            if (game.players.length > 1) {
-              collector.stop()
-              game.deck = randomizeArray(game.deck)
-              for (let i = 0; i < game.players.length; i++) {
-                const element = game.players[i];
-                element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()]
-              }
-              startTurn(i, game)
-            } else {
-              await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
-            }
-          }
-        } else {
-          await i.reply({ content: 'Command is only available to host', ephemeral: true })
+    const collector = gameChan?.createMessageComponentCollector({ componentType: ComponentType.Button })
+    collector?.on('collect', async i => {
+      console.log('received')
+      if (!game) {
+        game = { id: gameChan.id, msg: i.message, deck: newDeck, players: [newPlayer(interaction.user.id)], round: 0, inLobby: true, timeouts: [], host: interaction.user.id }
+        games.push(game)
+      }
+      if (i.customId == 'join') {
+        if (game.players.find(plr => plr.id == i.user.id)) {
+          await i.reply({ content: 'You are already in this match.', ephemeral: true })
+        } else if (i.member instanceof GuildMember) {
+          game.players.push(newPlayer(i.user.id))
+          let user = require('./userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
+          embed?.addFields({ name: i.member?.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false })
+          embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
+          await i.update({ embeds: [embed] })
         }
-      })
-    }
+      } else if (i.user?.id == game.host) {
+        if (i.customId == 'cancel') {
+          if (i.user.id == game.host) {
+            gameChan.delete('Game cancelled')
+            games.splice(games.indexOf(game), 1)
+          } else {
+            await i.reply({ content: "Only the host can perform this action", ephemeral: true })
+          }
+        } else if (i.customId == 'start') {
+          if (game.players.length > 1) {
+            collector.stop()
+            game.deck = randomizeArray(game.deck)
+            for (let i = 0; i < game.players.length; i++) {
+              const element = game.players[i];
+              element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()]
+            }
+            startTurn(i, game)
+          } else {
+            await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
+          }
+        }
+      } else {
+        await i.reply({ content: 'Command is only available to host', ephemeral: true })
+      }
+    })
   } else {
     interaction.reply('Could not find uno forum.')
   }
@@ -265,39 +256,39 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
             .setThumbnail(`attachment://board.png`)
           if (interaction.values[0].startsWith('w')) {
             let row = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-              new ButtonBuilder()
-              .setCustomId('red')
-              .setLabel('Red')
-              .setStyle(ButtonStyle.Danger),
-              new ButtonBuilder()
-              .setCustomId('blue')
-              .setLabel('Blue')
-              .setStyle(ButtonStyle.Primary),
-              new ButtonBuilder()
-              .setCustomId('green')
-              .setLabel('Green')
-              .setStyle(ButtonStyle.Success),
-              new ButtonBuilder()
-              .setCustomId('yellow')
-              .setLabel('Yellow')
-              .setStyle(ButtonStyle.Secondary)
-              .setEmoji('1032791232449085590')
-            )
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('red')
+                  .setLabel('Red')
+                  .setStyle(ButtonStyle.Danger),
+                new ButtonBuilder()
+                  .setCustomId('blue')
+                  .setLabel('Blue')
+                  .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                  .setCustomId('green')
+                  .setLabel('Green')
+                  .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                  .setCustomId('yellow')
+                  .setLabel('Yellow')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('1032791232449085590')
+              )
             let embed1 = new EmbedBuilder()
-            .setTitle(`Round ${game.round + 1}`)
-            .setDescription(`Choose a color to switch to.`)
-            .setThumbnail(`attachment://board.png`)
-            interaction.channel?.send({components:[row],embeds:[embed1]})
-            let collector = interaction.channel?.createMessageComponentCollector({componentType: ComponentType.Button, filter: i => i.user.id == player.id&&['green','red','blue','yellow'].includes(i.customId),max:1})
-            collector?.on('collect',i => {
-              if (i.customId=='red') {
+              .setTitle(`Round ${game.round + 1}`)
+              .setDescription(`Choose a color to switch to.`)
+              .setThumbnail(`attachment://board.png`)
+            interaction.channel?.send({ components: [row], embeds: [embed1] })
+            let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: i => i.user.id == player.id && ['green', 'red', 'blue', 'yellow'].includes(i.customId), max: 1 })
+            collector?.on('collect', i => {
+              if (i.customId == 'red') {
                 game.deck.splice(0, 0, 'r')
-              } else if (i.customId=='green') {
+              } else if (i.customId == 'green') {
                 game.deck.splice(0, 0, 'g')
-              } else if (i.customId=='yellow') {
+              } else if (i.customId == 'yellow') {
                 game.deck.splice(0, 0, 'y')
-              } else if (i.customId=='blue') {
+              } else if (i.customId == 'blue') {
                 game.deck.splice(0, 0, 'b')
               }
               embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`)

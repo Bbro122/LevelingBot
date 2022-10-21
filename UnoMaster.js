@@ -136,6 +136,8 @@ exports.startNewGame = function startNewGame(interaction) {
         let unochan = (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.channels.cache.find(chan => chan.name == 'uno-matches');
         let member = interaction.member;
         if (unochan && unochan.type == discord_js_1.ChannelType.GuildForum && member instanceof discord_js_1.GuildMember) {
+            let message = undefined;
+            let game;
             let embed = new discord_js_2.EmbedBuilder()
                 .setTitle(`${member.displayName}'s Uno Match`)
                 .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/4 players have joined`)
@@ -143,68 +145,56 @@ exports.startNewGame = function startNewGame(interaction) {
                 .setThumbnail(`https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png`)
                 .addFields([{ name: member.displayName, value: `Level ${require('./userdata.json').users.find((user) => user.id = interaction.user.id).level}` }]);
             let gameChan = yield unochan.threads.create({ name: `${interaction.user.username}s-uno-match`, message: { embeds: [embed], components: [createButtons([{ string: "🎮 Join Match", id: "join", style: discord_js_1.ButtonStyle.Success }, { string: "Start Match", id: "start", style: discord_js_1.ButtonStyle.Success, emoji: "814199679704891423" }, { string: "Cancel Match", id: "cancel", style: discord_js_1.ButtonStyle.Danger, emoji: "814199666778308638" }])] } });
-            let game = { id: gameChan.id, msg: gameChan.lastMessage, deck: newDeck, players: [newPlayer(interaction.user.id)], round: 0, inLobby: true, timeouts: [], host: interaction.user.id };
-            games.push(game);
             interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`);
-            if (gameChan.lastMessage instanceof discord_js_1.Message) {
-                const collector = gameChan === null || gameChan === void 0 ? void 0 : gameChan.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button });
-                collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
-                    var _b, _c, _d;
-                    console.log('received');
-                    if (i.customId == 'join') {
-                        if (game.players.find(plr => plr.id == i.user.id)) {
-                            yield i.reply({ content: 'You are already in this match.', ephemeral: true });
+            const collector = gameChan === null || gameChan === void 0 ? void 0 : gameChan.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button });
+            collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
+                var _b, _c;
+                console.log('received');
+                if (!game) {
+                    game = { id: gameChan.id, msg: i.message, deck: newDeck, players: [newPlayer(interaction.user.id)], round: 0, inLobby: true, timeouts: [], host: interaction.user.id };
+                    games.push(game);
+                }
+                if (i.customId == 'join') {
+                    if (game.players.find(plr => plr.id == i.user.id)) {
+                        yield i.reply({ content: 'You are already in this match.', ephemeral: true });
+                    }
+                    else if (i.member instanceof discord_js_1.GuildMember) {
+                        game.players.push(newPlayer(i.user.id));
+                        let user = require('./userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
+                        embed === null || embed === void 0 ? void 0 : embed.addFields({ name: (_b = i.member) === null || _b === void 0 ? void 0 : _b.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false });
+                        embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`);
+                        yield i.update({ embeds: [embed] });
+                    }
+                }
+                else if (((_c = i.user) === null || _c === void 0 ? void 0 : _c.id) == game.host) {
+                    if (i.customId == 'cancel') {
+                        if (i.user.id == game.host) {
+                            gameChan.delete('Game cancelled');
+                            games.splice(games.indexOf(game), 1);
                         }
-                        else if (i.member instanceof discord_js_1.GuildMember) {
-                            game.players.push(newPlayer(i.user.id));
-                            let embed = (_b = game.msg) === null || _b === void 0 ? void 0 : _b.embeds[0];
-                            if (embed) {
-                                let user = require('./userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
-                                if (user) {
-                                    embed === null || embed === void 0 ? void 0 : embed.fields.push({ name: (_c = i.member) === null || _c === void 0 ? void 0 : _c.displayName, value: `Level ${user.level}`, inline: false });
-                                    let newEmbed = new discord_js_2.EmbedBuilder()
-                                        .setTitle(embed ? embed.title : null)
-                                        .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
-                                        .setColor('Gold')
-                                        .setThumbnail('https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png');
-                                    yield i.update({ embeds: [newEmbed] });
-                                }
-                            }
-                            else {
-                                i.followUp('Userdata error');
-                            }
+                        else {
+                            yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
                         }
                     }
-                    else if (((_d = i.user) === null || _d === void 0 ? void 0 : _d.id) == game.host) {
-                        if (i.customId == 'cancel') {
-                            if (i.user.id == game.host) {
-                                gameChan.delete('Game cancelled');
-                                games.splice(games.indexOf(game), 1);
+                    else if (i.customId == 'start') {
+                        if (game.players.length > 1) {
+                            collector.stop();
+                            game.deck = randomizeArray(game.deck);
+                            for (let i = 0; i < game.players.length; i++) {
+                                const element = game.players[i];
+                                element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()];
                             }
-                            else {
-                                yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
-                            }
+                            startTurn(i, game);
                         }
-                        else if (i.customId == 'start') {
-                            if (game.players.length > 1) {
-                                collector.stop();
-                                game.deck = randomizeArray(game.deck);
-                                for (let i = 0; i < game.players.length; i++) {
-                                    const element = game.players[i];
-                                    element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()];
-                                }
-                                startTurn(i, game);
-                            }
-                            else {
-                                yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
-                            }
+                        else {
+                            yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
                         }
                     }
-                    else {
-                        yield i.reply({ content: 'Command is only available to host', ephemeral: true });
-                    }
-                }));
-            }
+                }
+                else {
+                    yield i.reply({ content: 'Command is only available to host', ephemeral: true });
+                }
+            }));
         }
         else {
             interaction.reply('Could not find uno forum.');
