@@ -14,9 +14,9 @@ const { get } = require('./xpmanager');
 const discord_js_2 = require("discord.js");
 const fs = require('fs');
 let can = require('canvas');
-let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse", "Skip"]];
+let displayValues = [["Red ", "Blue ", "Green ", "Yellow ", "Wild "], ["Draw 2", "Reverse", "Skip"]];
 const reso = 0.1;
-const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"];
+const newDeck = ["w", "w", "wz", "wz", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"];
 let games = [];
 function res(num) {
     return num * reso;
@@ -36,9 +36,29 @@ function getLabel(card) {
         }
     });
     if (!success) {
-        label = label + card.charAt(1);
+        if (card.endsWith('z')) {
+            label = label + 'Draw 4';
+        }
+        else {
+            label = label + card.charAt(1);
+        }
     }
     return label;
+}
+function reverseCycle(players, currentID) {
+    for (let i = 0; i < players.length; i++) {
+        let player = players.pop();
+        if (player) {
+            players.splice(i, 0, player);
+        }
+    }
+    while (players[0].id != currentID) {
+        let player = players.pop();
+        if (player) {
+            players.splice(0, 0, player);
+        }
+    }
+    return players;
 }
 function rotatedImg(card) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -223,7 +243,7 @@ function startTurn(interaction, game) {
                 embeds: [{ "title": `${member instanceof discord_js_1.GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [createButtons([{ string: "Begin Turn", id: "turn", style: discord_js_1.ButtonStyle.Primary }])],
                 files: [attachment]
             });
-            let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id, time: 20000, max: 1 });
+            let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id, max: 1 });
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
                 var _e, _f, _g;
                 yield i.deferReply({ ephemeral: true });
@@ -236,7 +256,7 @@ function startTurn(interaction, game) {
                 }));
                 let playableCards = [{ label: 'Draw', value: 'draw' }];
                 player.hand.forEach(card => {
-                    if (playableCards.find(card1 => card1.value == card) == undefined && ((card === null || card === void 0 ? void 0 : card.startsWith(game.deck[0].charAt(0))) || (card === null || card === void 0 ? void 0 : card.charAt(1)) == game.deck[0].charAt(1) || (card === null || card === void 0 ? void 0 : card.startsWith('w')))) {
+                    if (playableCards.find(card1 => card1.value == card) == undefined && ((card === null || card === void 0 ? void 0 : card.startsWith(game.forceColor ? game.forceColor : game.deck[0].charAt(0))) || (card === null || card === void 0 ? void 0 : card.charAt(1)) == game.deck[0].charAt(1) || (card === null || card === void 0 ? void 0 : card.startsWith('w')))) {
                         playableCards.push({ label: getLabel(card), value: card });
                     }
                 });
@@ -254,58 +274,90 @@ function startTurn(interaction, game) {
                             .setThumbnail(`attachment://board.png`)
                     ]
                 });
-                let collector = (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, time: 35000, max: 1 });
+                let collector = (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, max: 1 });
                 collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
                     var _h, _j, _k, _l, _m;
-                    player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
-                    if (player.hand.length == 0) {
-                        let embed = new discord_js_2.EmbedBuilder()
-                            .setTitle(`Game Over`)
-                            .setDescription(`${interaction.user.username} has won the game.`);
-                        yield ((_h = game.msg) === null || _h === void 0 ? void 0 : _h.channel.send({ embeds: [embed] }));
+                    if (interaction.values[0] !== 'draw') {
+                        game.forceColor = undefined;
+                        player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
+                        game.deck.splice(0, 0, interaction.values[0]);
+                        if (player.hand.length == 0) {
+                            let embed = new discord_js_2.EmbedBuilder()
+                                .setTitle(`Game Over`)
+                                .setDescription(`${interaction.user.username} has won the game.`);
+                            yield ((_h = game.msg) === null || _h === void 0 ? void 0 : _h.channel.send({ embeds: [embed] }));
+                        }
+                        games.splice(games.findIndex(gam => gam == game), 1);
+                    }
+                    let embed = new discord_js_2.EmbedBuilder()
+                        .setTitle(`Round ${game.round + 1}`)
+                        .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
+                        .setThumbnail(`attachment://board.png`);
+                    if (interaction.values[0].startsWith('w')) {
+                        let row = new discord_js_1.ActionRowBuilder()
+                            .addComponents(new discord_js_1.ButtonBuilder()
+                            .setCustomId('red')
+                            .setLabel('Red')
+                            .setStyle(discord_js_1.ButtonStyle.Danger), new discord_js_1.ButtonBuilder()
+                            .setCustomId('blue')
+                            .setLabel('Blue')
+                            .setStyle(discord_js_1.ButtonStyle.Primary), new discord_js_1.ButtonBuilder()
+                            .setCustomId('green')
+                            .setLabel('Green')
+                            .setStyle(discord_js_1.ButtonStyle.Success), new discord_js_1.ButtonBuilder()
+                            .setCustomId('yellow')
+                            .setLabel('Yellow')
+                            .setStyle(discord_js_1.ButtonStyle.Secondary)
+                            .setEmoji('1032791232449085590'));
+                        let embed1 = new discord_js_2.EmbedBuilder()
+                            .setTitle(`Round ${game.round + 1}`)
+                            .setDescription(`Choose a color to switch to.`)
+                            .setThumbnail(`attachment://board.png`);
+                        let message = yield ((_j = interaction.channel) === null || _j === void 0 ? void 0 : _j.send({ components: [row], embeds: [embed1] }));
+                        let collector = (_k = interaction.channel) === null || _k === void 0 ? void 0 : _k.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id && ['green', 'red', 'blue', 'yellow'].includes(i.customId), max: 1 });
+                        collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
+                            var _o, _p;
+                            embed1.setDescription(`The color is now ${i.customId}.`);
+                            message === null || message === void 0 ? void 0 : message.edit({ embeds: [embed] });
+                            game.forceColor = i.customId.charAt(0);
+                            if (interaction.values[0].endsWith('d')) {
+                                let nextPlr = game.players[(game.round + 1) % game.players.length];
+                                nextPlr.hand.push(game.deck.pop());
+                                nextPlr.hand.push(game.deck.pop());
+                                nextPlr.hand.push(game.deck.pop());
+                                nextPlr.hand.push(game.deck.pop());
+                                embed.setDescription(embed.data.description + ` and made @<${nextPlr.id}> draw 4 cards. The color is now ${i.customId}.`);
+                                game.round++;
+                            }
+                            else {
+                                embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`);
+                            }
+                            yield ((_o = game.msg) === null || _o === void 0 ? void 0 : _o.edit({ embeds: [embed], components: [] }));
+                            let msg = yield ((_p = interaction.channel) === null || _p === void 0 ? void 0 : _p.send('<a:loading:1011794755203645460>'));
+                            if (msg instanceof discord_js_1.Message) {
+                                game.msg = msg;
+                            }
+                            game.round++;
+                            startTurn(interaction, game);
+                        }));
                     }
                     else {
-                        let embed = new discord_js_2.EmbedBuilder()
-                            .setTitle(`Round ${game.round + 1}`)
-                            .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
-                            .setThumbnail(`attachment://board.png`);
-                        if (interaction.values[0].startsWith('w')) {
-                            let row = new discord_js_1.ActionRowBuilder()
-                                .addComponents(new discord_js_1.ButtonBuilder()
-                                .setCustomId('red')
-                                .setLabel('Red')
-                                .setStyle(discord_js_1.ButtonStyle.Danger), new discord_js_1.ButtonBuilder()
-                                .setCustomId('blue')
-                                .setLabel('Blue')
-                                .setStyle(discord_js_1.ButtonStyle.Primary), new discord_js_1.ButtonBuilder()
-                                .setCustomId('green')
-                                .setLabel('Green')
-                                .setStyle(discord_js_1.ButtonStyle.Success), new discord_js_1.ButtonBuilder()
-                                .setCustomId('yellow')
-                                .setLabel('Yellow')
-                                .setStyle(discord_js_1.ButtonStyle.Secondary)
-                                .setEmoji('1032791232449085590'));
-                            let embed1 = new discord_js_2.EmbedBuilder()
-                                .setTitle(`Round ${game.round + 1}`)
-                                .setDescription(`Choose a color to switch to.`)
-                                .setThumbnail(`attachment://board.png`);
-                            (_j = interaction.channel) === null || _j === void 0 ? void 0 : _j.send({ components: [row], embeds: [embed1] });
-                            let collector = (_k = interaction.channel) === null || _k === void 0 ? void 0 : _k.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id && ['green', 'red', 'blue', 'yellow'].includes(i.customId), max: 1 });
-                            collector === null || collector === void 0 ? void 0 : collector.on('collect', i => {
-                                if (i.customId == 'red') {
-                                    game.deck.splice(0, 0, 'r');
-                                }
-                                else if (i.customId == 'green') {
-                                    game.deck.splice(0, 0, 'g');
-                                }
-                                else if (i.customId == 'yellow') {
-                                    game.deck.splice(0, 0, 'y');
-                                }
-                                else if (i.customId == 'blue') {
-                                    game.deck.splice(0, 0, 'b');
-                                }
-                                embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`);
-                            });
+                        if (interaction.values[0].endsWith('s')) {
+                            game.round++;
+                        }
+                        else if (interaction.values[0].endsWith('d')) {
+                            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop());
+                            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop());
+                            game.round++;
+                        }
+                        else if (interaction.values[0].endsWith('r')) {
+                            reverseCycle(game.players, player.id);
+                            if (game.players.length == 2) {
+                                game.round++;
+                            }
+                        }
+                        else if (interaction.values[0] == 'draw') {
+                            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop());
                         }
                         yield ((_l = game.msg) === null || _l === void 0 ? void 0 : _l.edit({ embeds: [embed], components: [] }));
                         let msg = yield ((_m = interaction.channel) === null || _m === void 0 ? void 0 : _m.send('<a:loading:1011794755203645460>'));
