@@ -4,17 +4,17 @@ const { get } = require('./xpmanager')
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 const fs = require('fs')
 let can = require('canvas')
-let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse", "Skip"]]
+let displayValues = [["Red ", "Blue ", "Green ", "Yellow ", "Wild "], ["Draw 2", "Reverse", "Skip"]]
 const reso = 0.1
 type Player = { "id": string, "hand": (string | undefined)[] }
 type Game = { id: string, msg: Message | null, deck: string[], players: Player[], round: number, inLobby: boolean, timeouts: any[], host: string }
-const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"]
+const newDeck = ["w","w","wz","wz","g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"]
 let games: Game[] = []
-
 
 function res(num: number) {
   return num * reso
 }
+
 function getLabel(card: string) {
   let label = ''
   displayValues[0].forEach(color => {
@@ -30,11 +30,14 @@ function getLabel(card: string) {
     }
   })
   if (!success) {
-    label = label + card.charAt(1)
+    if (card.endsWith('z')) {
+      label = label + 'Draw 4'
+    } else {
+    	label = label + card.charAt(1)
+    }
   }
   return label
 }
-
 
 async function rotatedImg(card: string) {
   const canvas = can.createCanvas(450, 700)
@@ -45,7 +48,6 @@ async function rotatedImg(card: string) {
   ctx.drawImage(await can.loadImage(`./cards/${card}.png`, 450, 700), 0, 0)
   return canvas
 }
-
 
 async function dispBoard(hands: (string | undefined)[][], game: Game, hidden: boolean) {
   console.log(hands[0])
@@ -86,16 +88,13 @@ async function dispBoard(hands: (string | undefined)[][], game: Game, hidden: bo
   return canvas.toBuffer()
 }
 
-
 function newGame(msg: Message, host: string) {
   return { id: msg.thread?.id ? msg.thread.id : '', msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host }
 }
 
-
 function newPlayer(plr: string) {
   return { "id": plr, "hand": [] }
 }
-
 
 function createButtons(rawButtons: { string: string, id: string, style: ButtonStyle, emoji?: ComponentEmojiResolvable | null, disabled?: boolean }[]) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
   let buttons: ButtonBuilder[] = []
@@ -152,19 +151,19 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
             game.players.push(newPlayer(i.user.id))
             let embed = game.msg?.embeds[0]
             if (embed) {
-            let user = require('./userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
-            if (user) {
-            embed?.fields.push({ name: i.member?.displayName, value: `Level ${user.level}`, inline: false })
-            let newEmbed = new EmbedBuilder()
-              .setTitle(embed?embed.title:null)
-              .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
-              .setColor('Gold')
-              .setThumbnail('https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png')
-            await i.update({ embeds: [newEmbed] })
+              let user = require('./userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
+              if (user) {
+                embed?.fields.push({ name: i.member?.displayName, value: `Level ${user.level}`, inline: false })
+                let newEmbed = new EmbedBuilder()
+                  .setTitle(embed ? embed.title : null)
+                  .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
+                  .setColor('Gold')
+                  .setThumbnail('https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png')
+                await i.update({ embeds: [newEmbed] })
+              }
+            } else {
+              i.followUp('Userdata error')
             }
-          } else {
-            i.followUp('Userdata error')
-          }
           }
         } else if (i.user?.id == game.host) {
           if (i.customId == 'cancel') {
@@ -265,43 +264,58 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
             .setThumbnail(`attachment://board.png`)
           if (interaction.values[0].startsWith('w')) {
             let row = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-              new ButtonBuilder()
-              .setCustomId('red')
-              .setLabel('Red')
-              .setStyle(ButtonStyle.Danger),
-              new ButtonBuilder()
-              .setCustomId('blue')
-              .setLabel('Blue')
-              .setStyle(ButtonStyle.Primary),
-              new ButtonBuilder()
-              .setCustomId('green')
-              .setLabel('Green')
-              .setStyle(ButtonStyle.Success),
-              new ButtonBuilder()
-              .setCustomId('yellow')
-              .setLabel('Yellow')
-              .setStyle(ButtonStyle.Secondary)
-              .setEmoji('1032791232449085590')
-            )
+              .addComponents(
+                new ButtonBuilder()
+                  .setCustomId('red')
+                  .setLabel('Red')
+                  .setStyle(ButtonStyle.Danger),
+                new ButtonBuilder()
+                  .setCustomId('blue')
+                  .setLabel('Blue')
+                  .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                  .setCustomId('green')
+                  .setLabel('Green')
+                  .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                  .setCustomId('yellow')
+                  .setLabel('Yellow')
+                  .setStyle(ButtonStyle.Secondary)
+                  .setEmoji('1032791232449085590')
+              )
             let embed1 = new EmbedBuilder()
-            .setTitle(`Round ${game.round + 1}`)
-            .setDescription(`Choose a color to switch to.`)
-            .setThumbnail(`attachment://board.png`)
-            interaction.channel?.send({components:[row],embeds:[embed1]})
-            let collector = interaction.channel?.createMessageComponentCollector({componentType: ComponentType.Button, filter: i => i.user.id == player.id&&['green','red','blue','yellow'].includes(i.customId),max:1})
-            collector?.on('collect',i => {
-              if (i.customId=='red') {
+              .setTitle(`Round ${game.round + 1}`)
+              .setDescription(`Choose a color to switch to.`)
+              .setThumbnail(`attachment://board.png`)
+            interaction.channel?.send({ components: [row], embeds: [embed1] })
+            let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: i => i.user.id == player.id && ['green', 'red', 'blue', 'yellow'].includes(i.customId), max: 1 })
+            collector?.on('collect', i => {
+              if (i.customId == 'red') {
                 game.deck.splice(0, 0, 'r')
-              } else if (i.customId=='green') {
+              } else if (i.customId == 'green') {
                 game.deck.splice(0, 0, 'g')
-              } else if (i.customId=='yellow') {
+              } else if (i.customId == 'yellow') {
                 game.deck.splice(0, 0, 'y')
-              } else if (i.customId=='blue') {
+              } else if (i.customId == 'blue') {
                 game.deck.splice(0, 0, 'b')
               }
-              embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`)
+              if (interaction.values[0].endsWith('d')) {
+                let nextPlr = game.players[(game.round + 1) % game.players.length]
+                nextPlr.hand.push(game.deck.pop())
+                nextPlr.hand.push(game.deck.pop())
+                nextPlr.hand.push(game.deck.pop())
+                nextPlr.hand.push(game.deck.pop())
+                embed.setDescription(embed.data.description + ` and made @<${nextPlr.id}> draw 4 cards. The color is now ${i.customId}.`)
+              } else {
+                embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`)
+              }
             })
+          } else if (interaction.values[0].endsWith('s')) {
+            game.round++
+          } else if (interaction.values[0].endsWith('d')) {
+
+            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop())
+            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop())
           }
           await game.msg?.edit({ embeds: [embed], components: [] })
           let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
