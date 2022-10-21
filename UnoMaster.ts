@@ -4,17 +4,17 @@ const { get } = require('./xpmanager')
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 const fs = require('fs')
 let can = require('canvas')
-let displayValues = [["Red ", "Blue ", "Green ", "Yellow "], ["Draw 2", "Reverse", "Skip"]]
+let displayValues = [["Red ", "Blue ", "Green ", "Yellow ", "Wild "], ["Draw 2", "Reverse", "Skip"]]
 const reso = 0.1
 type Player = { "id": string, "hand": (string | undefined)[] }
 type Game = { id: string, msg: Message | null, deck: string[], players: Player[], round: number, inLobby: boolean, timeouts: any[], host: string }
-const newDeck = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"]
+const newDeck = ["w","w","wz","wz","g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g0", "gs", "gd", "gr", "gs", "gd", "gr", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b0", "bs", "bd", "br", "bs", "bd", "br", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y0", "ys", "yd", "yr", "ys", "yd", "yr", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r0", "rs", "rd", "rr", "rs", "rd", "rr"]
 let games: Game[] = []
-
 
 function res(num: number) {
   return num * reso
 }
+
 function getLabel(card: string) {
   let label = ''
   displayValues[0].forEach(color => {
@@ -30,11 +30,14 @@ function getLabel(card: string) {
     }
   })
   if (!success) {
-    label = label + card.charAt(1)
+    if (card.endsWith('z')) {
+      label = label + 'Draw 4'
+    } else {
+    	label = label + card.charAt(1)
+    }
   }
   return label
 }
-
 
 async function rotatedImg(card: string) {
   const canvas = can.createCanvas(450, 700)
@@ -45,7 +48,6 @@ async function rotatedImg(card: string) {
   ctx.drawImage(await can.loadImage(`./cards/${card}.png`, 450, 700), 0, 0)
   return canvas
 }
-
 
 async function dispBoard(hands: (string | undefined)[][], game: Game, hidden: boolean) {
   console.log(hands[0])
@@ -86,16 +88,13 @@ async function dispBoard(hands: (string | undefined)[][], game: Game, hidden: bo
   return canvas.toBuffer()
 }
 
-
 function newGame(msg: Message, host: string) {
   return { id: msg.thread?.id ? msg.thread.id : '', msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host }
 }
 
-
 function newPlayer(plr: string) {
   return { "id": plr, "hand": [] }
 }
-
 
 function createButtons(rawButtons: { string: string, id: string, style: ButtonStyle, emoji?: ComponentEmojiResolvable | null, disabled?: boolean }[]) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
   let buttons: ButtonBuilder[] = []
@@ -291,8 +290,23 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
               } else if (i.customId == 'blue') {
                 game.deck.splice(0, 0, 'b')
               }
-              embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`)
+              if (interaction.values[0].endsWith('d')) {
+                let nextPlr = game.players[(game.round + 1) % game.players.length]
+                nextPlr.hand.push(game.deck.pop())
+                nextPlr.hand.push(game.deck.pop())
+                nextPlr.hand.push(game.deck.pop())
+                nextPlr.hand.push(game.deck.pop())
+                embed.setDescription(embed.data.description + ` and made @<${nextPlr.id}> draw 4 cards. The color is now ${i.customId}.`)
+              } else {
+                embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`)
+              }
             })
+          } else if (interaction.values[0].endsWith('s')) {
+            game.round++
+          } else if (interaction.values[0].endsWith('d')) {
+
+            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop())
+            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop())
           }
           await game.msg?.edit({ embeds: [embed], components: [] })
           let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
