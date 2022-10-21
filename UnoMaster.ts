@@ -173,7 +173,10 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
         }
       } else if (i.user?.id == game.host) {
         if (i.customId == 'cancel') {
-          if (i.user.id == game.host) {
+          if (i.user.id == interaction.user.id) {
+            if (game) {
+              games.splice(games.indexOf(game), 1)
+            }
             gameChan.delete('Game cancelled')
             games.splice(games.indexOf(game), 1)
           } else {

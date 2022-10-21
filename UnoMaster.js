@@ -188,7 +188,10 @@ exports.startNewGame = function startNewGame(interaction) {
                 }
                 else if (((_c = i.user) === null || _c === void 0 ? void 0 : _c.id) == game.host) {
                     if (i.customId == 'cancel') {
-                        if (i.user.id == game.host) {
+                        if (i.user.id == interaction.user.id) {
+                            if (game) {
+                                games.splice(games.indexOf(game), 1);
+                            }
                             gameChan.delete('Game cancelled');
                             games.splice(games.indexOf(game), 1);
                         }
