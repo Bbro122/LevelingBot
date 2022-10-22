@@ -360,7 +360,7 @@ function startTurn(interaction, game) {
                             }
                         }
                         else if (interaction.values[0] == 'draw') {
-                            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop());
+                            game.players[game.round % game.players.length].hand.push(game.deck.pop());
                         }
                         yield ((_l = game.msg) === null || _l === void 0 ? void 0 : _l.edit({ embeds: [embed], components: [] }));
                         let msg = yield ((_m = interaction.channel) === null || _m === void 0 ? void 0 : _m.send('<a:loading:1011794755203645460>'));

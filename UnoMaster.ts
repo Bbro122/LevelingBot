@@ -338,7 +338,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
               game.round++
             }
           } else if (interaction.values[0] == 'draw') {
-            game.players[(game.round + 1) % game.players.length].hand.push(game.deck.pop())
+            game.players[game.round % game.players.length].hand.push(game.deck.pop())
           }
           await game.msg?.edit({ embeds: [embed], components: [] })
           let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
