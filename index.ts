@@ -351,9 +351,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             if (interaction.options.get('type')?.value == 'scramble') {
                 game.scramble()
                 interaction.reply('Starting a new unscramble.')
-            } else {
+            } else if (interaction.options.get('type')?.value=='math') {
                 game.math()
                 interaction.reply('Creating a new math problem.')
+            } else if (interaction.options.get('type')?.value=='trivia') {
+                game.trivia()
+                interaction.reply('Creating a new trivia problem.')
             }
         } else if (interaction.commandName == 'give' && checkOwner(interaction)) {
             let user = interaction.options.get('user')?.user

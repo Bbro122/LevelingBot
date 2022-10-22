@@ -1,6 +1,6 @@
 import { Embed } from "@discordjs/builders"
-import { Channel, Client, CommandInteraction, Message, TextChannel } from "discord.js"
-
+import { ActionRowBuilder, Channel, Client, CommandInteraction, EmbedBuilder, Message, SelectMenuBuilder, TextChannel } from "discord.js"
+let axios = require('axios')
 let client: Client
 let channel: TextChannel
 let currentWord: string
@@ -13,10 +13,13 @@ exports.setup = function setup(client1: Client, channel1: TextChannel) {
     channel = channel1
 }
 exports.selGame = function selectGame() {
-    if (randomize(0, 1)) {
+    let random = randomize(0, 2)
+    if (random==0) {
         exports.scramble()
-    } else {
+    } else if (random==1) {
         exports.math()
+    } else if (random==2) {
+        exports.trivia()
     }
 }
 exports.math = function math() {
@@ -45,6 +48,55 @@ exports.math = function math() {
         }
     }
 }
+exports.trivia = async function trivia() {
+    miniTimer = setTimeout(() => {exports.selGame()}, 7200000)
+    let time = new Date().getHours()
+    if (time >= 7 && time <= 22) {
+        let question = (await axios.get('https://the-trivia-api.com/api/questions?limit=1&difficulty=easy')).data[0]
+        let answers = [question.correctAnswer].concat(question.incorrectAnswers)
+        function Randomize() {
+            for (let i = answers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [answers[i], answers[j]] = [answers[j], answers[i]];
+            }
+        }
+        Randomize()
+        let embed = new EmbedBuilder()
+        .setColor('LuminousVividPink')
+        .setTitle(question.category)
+        .setDescription(question.question)
+        .addFields([{value:answers[0],name:'A.'},{value:answers[1],name:'B.'},{value:answers[2],name:'C.'},{value:answers[3],name:'D.'}])
+        .setFooter({text:'Do not enter the answer by letter, answer correctly for 50 xp'})
+        let row = new ActionRowBuilder<SelectMenuBuilder>()
+        .addComponents(
+            new SelectMenuBuilder()
+            .addOptions({value:answers[0],label:answers[0]},{value:answers[1],label:answers[1]},{value:answers[2],label:answers[2]},{value:answers[3],label:answers[3]})
+            .setCustomId('guess')
+        )
+        if (channel) {
+            channel.send({embeds: [embed],components: [row] }).then(msg => {
+                setTimeout(() => {msg.edit({components:undefined})}, 7200000)
+            })
+            let collector = channel.createMessageComponentCollector({time:7200000})
+            let users:string[] = []
+            collector.on('collect', interaction => {
+                if (users.includes(interaction.user.id)) {
+                    interaction.reply({ephemeral:true,content:'Question already attempted.'})
+                } else if (interaction.isSelectMenu()) {
+                    users.push(interaction.user.id)
+                    if (interaction.values[0]==question.correctAnswer) {
+                        interaction.reply(`<@${interaction.user.id}> Chose the correct answer.`)
+                        require('./xpmanager.js').give({author:interaction.user,channel:channel}, 50, false, client)
+                    } else {
+                        interaction.reply(`<@${interaction.user.id}> Chose incorrectly.`)
+                    }
+                }
+            })
+        } else {
+            client.channels.cache.get(require('./config.json').server.gamechannel)
+        }
+    }
+}
 exports.scramble = function scramble() {
     miniTimer = setTimeout(() => exports.selGame(), 7200000)
     let time = new Date().getHours()
@@ -61,8 +113,7 @@ exports.scramble = function scramble() {
                 [wordArr[i], wordArr[j]] = [wordArr[j], wordArr[i]];
             }
         }
-        Randomize()
-        if (wordArr.join('') == currentWord) { Randomize() }
+        while (wordArr.join('') == currentWord) { Randomize() }
         let embed = new Embed()
             .setTitle(`Unscramble the word`)
             .setDescription(wordArr.join(''))
@@ -76,7 +127,7 @@ exports.scramble = function scramble() {
     }
 }
 exports.checkWord = function (msg: Message) {
-    if (msg.content.toLowerCase() == currentWord) {
+    if (msg.content.toLowerCase() == currentWord.toLowerCase()) {
         msg.channel.send(`<@${msg.author.id}> solved the problem.`)
         require('./xpmanager.js').give(msg, 50, false, client)
         currentWord = ''

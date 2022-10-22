@@ -257,7 +257,7 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName == 'overwatch') {
             interaction.deferReply();
@@ -400,22 +400,26 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 game.scramble();
                 interaction.reply('Starting a new unscramble.');
             }
-            else {
+            else if (((_q = interaction.options.get('type')) === null || _q === void 0 ? void 0 : _q.value) == 'math') {
                 game.math();
                 interaction.reply('Creating a new math problem.');
             }
+            else if (((_r = interaction.options.get('type')) === null || _r === void 0 ? void 0 : _r.value) == 'trivia') {
+                game.trivia();
+                interaction.reply('Creating a new trivia problem.');
+            }
         }
         else if (interaction.commandName == 'give' && checkOwner(interaction)) {
-            let user = (_q = interaction.options.get('user')) === null || _q === void 0 ? void 0 : _q.user;
-            let amount = (_r = interaction.options.get('amount')) === null || _r === void 0 ? void 0 : _r.value;
+            let user = (_s = interaction.options.get('user')) === null || _s === void 0 ? void 0 : _s.user;
+            let amount = (_t = interaction.options.get('amount')) === null || _t === void 0 ? void 0 : _t.value;
             if (user && typeof amount == 'number') {
-                if (((_s = interaction.options.get('type')) === null || _s === void 0 ? void 0 : _s.value) == 'xp') {
+                if (((_u = interaction.options.get('type')) === null || _u === void 0 ? void 0 : _u.value) == 'xp') {
                     if (interaction.channel) {
                         xp.give({ author: user, channel: interaction.channel }, amount, false);
                         interaction.reply(`Giving ${amount} xp to ${user}`);
                     }
                 }
-                else if (((_t = interaction.options.get('type')) === null || _t === void 0 ? void 0 : _t.value) == 'gems') {
+                else if (((_v = interaction.options.get('type')) === null || _v === void 0 ? void 0 : _v.value) == 'gems') {
                     xp.giveGems(user.id, amount);
                     interaction.reply(`Giving ${amount} gems to ${user}`);
                 }
@@ -424,7 +428,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         else if (interaction.commandName == 'gems') {
             let data = xp.get();
             let user;
-            if ((_u = interaction.options.get('user')) === null || _u === void 0 ? void 0 : _u.user) {
+            if ((_w = interaction.options.get('user')) === null || _w === void 0 ? void 0 : _w.user) {
                 user = data.users.find(user => { var _a, _b; return user.id == ((_b = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id); });
                 if (user) {
                     interaction.reply(`<a:showoff:1004215186439274516> They have ${user.gems} gems.`);
@@ -540,9 +544,9 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 // )
                 embed.setFields(fields);
                 interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-                let collector = (_v = interaction.channel) === null || _v === void 0 ? void 0 : _v.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
+                let collector = (_x = interaction.channel) === null || _x === void 0 ? void 0 : _x.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
                 collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(void 0, void 0, void 0, function* () {
-                    var _y;
+                    var _0;
                     if (i.customId == 'namecard') {
                         let embed = new discord_js_1.EmbedBuilder()
                             .setTitle('Namecard Inventory')
@@ -552,7 +556,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                             .setCustomId('usenamecard')
                             .addOptions(nameoptions));
                         i.reply({ embeds: [embed], components: [row], ephemeral: true });
-                        let collect = (_y = i.channel) === null || _y === void 0 ? void 0 : _y.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
+                        let collect = (_0 = i.channel) === null || _0 === void 0 ? void 0 : _0.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
                         if (collect) {
                             collect.on('collect', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
                                 let data = xp.get();
@@ -591,10 +595,10 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             require('./punisher.js').punish(interaction);
         }
         else if (interaction.commandName == 'punishments' && checkOwner(interaction)) {
-            require('./punisher.js').getpunishments((_w = interaction.options.get('user')) === null || _w === void 0 ? void 0 : _w.user, interaction);
+            require('./punisher.js').getpunishments((_y = interaction.options.get('user')) === null || _y === void 0 ? void 0 : _y.user, interaction);
         }
         else if (interaction.commandName == 'rule') {
-            let rule = strCheck((_x = interaction.options.get('rule')) === null || _x === void 0 ? void 0 : _x.value);
+            let rule = strCheck((_z = interaction.options.get('rule')) === null || _z === void 0 ? void 0 : _z.value);
             let embed = new discord_js_1.EmbedBuilder()
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule);

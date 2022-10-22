@@ -82,6 +82,10 @@
           {
             "name": "Math Problem",
             "value": "math"
+          },
+          {
+            "name": "Trivia Problem",
+            "value": "trivia"
           }
         ],
         "required": true

@@ -1,6 +1,17 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const builders_1 = require("@discordjs/builders");
+const discord_js_1 = require("discord.js");
+let axios = require('axios');
 let client;
 let channel;
 let currentWord;
@@ -13,11 +24,15 @@ exports.setup = function setup(client1, channel1) {
     channel = channel1;
 };
 exports.selGame = function selectGame() {
-    if (randomize(0, 1)) {
+    let random = randomize(0, 2);
+    if (random == 0) {
         exports.scramble();
     }
-    else {
+    else if (random == 1) {
         exports.math();
+    }
+    else if (random == 2) {
+        exports.trivia();
     }
 };
 exports.math = function math() {
@@ -47,6 +62,58 @@ exports.math = function math() {
         }
     }
 };
+exports.trivia = function trivia() {
+    return __awaiter(this, void 0, void 0, function* () {
+        miniTimer = setTimeout(() => { exports.selGame(); }, 7200000);
+        let time = new Date().getHours();
+        if (time >= 7 && time <= 22) {
+            let question = (yield axios.get('https://the-trivia-api.com/api/questions?limit=1&difficulty=easy')).data[0];
+            let answers = [question.correctAnswer].concat(question.incorrectAnswers);
+            function Randomize() {
+                for (let i = answers.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [answers[i], answers[j]] = [answers[j], answers[i]];
+                }
+            }
+            Randomize();
+            let embed = new discord_js_1.EmbedBuilder()
+                .setColor('LuminousVividPink')
+                .setTitle(question.category)
+                .setDescription(question.question)
+                .addFields([{ value: answers[0], name: 'A.' }, { value: answers[1], name: 'B.' }, { value: answers[2], name: 'C.' }, { value: answers[3], name: 'D.' }])
+                .setFooter({ text: 'Do not enter the answer by letter, answer correctly for 50 xp' });
+            let row = new discord_js_1.ActionRowBuilder()
+                .addComponents(new discord_js_1.SelectMenuBuilder()
+                .addOptions({ value: answers[0], label: answers[0] }, { value: answers[1], label: answers[1] }, { value: answers[2], label: answers[2] }, { value: answers[3], label: answers[3] })
+                .setCustomId('guess'));
+            if (channel) {
+                channel.send({ embeds: [embed], components: [row] }).then(msg => {
+                    setTimeout(() => { msg.edit({ components: undefined }); }, 7200000);
+                });
+                let collector = channel.createMessageComponentCollector({ time: 7200000 });
+                let users = [];
+                collector.on('collect', interaction => {
+                    if (users.includes(interaction.user.id)) {
+                        interaction.reply({ ephemeral: true, content: 'Question already attempted.' });
+                    }
+                    else if (interaction.isSelectMenu()) {
+                        users.push(interaction.user.id);
+                        if (interaction.values[0] == question.correctAnswer) {
+                            interaction.reply(`<@${interaction.user.id}> Chose the correct answer.`);
+                            require('./xpmanager.js').give({ author: interaction.user, channel: channel }, 50, false, client);
+                        }
+                        else {
+                            interaction.reply(`<@${interaction.user.id}> Chose incorrectly.`);
+                        }
+                    }
+                });
+            }
+            else {
+                client.channels.cache.get(require('./config.json').server.gamechannel);
+            }
+        }
+    });
+};
 exports.scramble = function scramble() {
     miniTimer = setTimeout(() => exports.selGame(), 7200000);
     let time = new Date().getHours();
@@ -63,8 +130,7 @@ exports.scramble = function scramble() {
                 [wordArr[i], wordArr[j]] = [wordArr[j], wordArr[i]];
             }
         }
-        Randomize();
-        if (wordArr.join('') == currentWord) {
+        while (wordArr.join('') == currentWord) {
             Randomize();
         }
         let embed = new builders_1.Embed()
@@ -81,7 +147,7 @@ exports.scramble = function scramble() {
     }
 };
 exports.checkWord = function (msg) {
-    if (msg.content.toLowerCase() == currentWord) {
+    if (msg.content.toLowerCase() == currentWord.toLowerCase()) {
         msg.channel.send(`<@${msg.author.id}> solved the problem.`);
         require('./xpmanager.js').give(msg, 50, false, client);
         currentWord = '';
