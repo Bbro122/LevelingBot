@@ -367,8 +367,10 @@ function startTurn(interaction, game) {
                         if (msg instanceof discord_js_1.Message) {
                             game.msg = msg;
                         }
-                        game.round++;
-                        startTurn(interaction, game);
+                        if (player.hand.length > 0) {
+                            game.round++;
+                            startTurn(interaction, game);
+                        }
                     }
                 }));
             }));

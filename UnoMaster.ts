@@ -345,8 +345,10 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
           if (msg instanceof Message) {
             game.msg = msg
           }
+          if (player.hand.length > 0) {
           game.round++
           startTurn(interaction, game)
+          }
         }
       })
     })
