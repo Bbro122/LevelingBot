@@ -334,8 +334,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     if (user && user.gems >= bet && interaction.channel) {
                         xp.timeout(interaction.user.id, 'flipCD', 120000)
                         if (Math.round(Math.random())) {
-                            xp.giveGems(user.id, bet * 2)
-                            interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems!`)
+                            xp.giveGems(user.id, bet)
+                            interaction.reply(`<a:showoff:1004215186439274516> You won ${bet} gems!`)
                         } else {
                             xp.giveGems(user.id, -bet)
                             interaction.reply(`<:kek:1004270229397970974> You lost ${-bet} gems.`)
@@ -546,6 +546,23 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule)
             reply.embed(interaction, embed)
+        } else if (interaction.commandName == 'cat') {
+            await interaction.deferReply()
+            let cat = await axios.get('https://api.thecatapi.com/v1/images/search')
+            let url = cat.data[0].url
+            const attachment = new AttachmentBuilder(url)
+            interaction.editReply({files:[attachment]})
+        } else if (interaction.commandName == 'dog') {
+            await interaction.deferReply()
+            let cat = await axios.get('https://dog.ceo/api/breeds/image/random')
+            let url = cat.data.message
+            const attachment = new AttachmentBuilder(url)
+            interaction.editReply({files:[attachment]})
+        } else if (interaction.commandName == 'joke') {
+            await interaction.deferReply()
+            let jokes = await axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt')
+            let joke = jokes.data
+            interaction.editReply({content:joke})
         }
     } else if (interaction.isSelectMenu()) {
         if (interaction.customId == 'shop') {

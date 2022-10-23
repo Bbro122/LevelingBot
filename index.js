@@ -378,8 +378,8 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     if (user && user.gems >= bet && interaction.channel) {
                         xp.timeout(interaction.user.id, 'flipCD', 120000);
                         if (Math.round(Math.random())) {
-                            xp.giveGems(user.id, bet * 2);
-                            interaction.reply(`<a:showoff:1004215186439274516> You won ${bet * 2} gems!`);
+                            xp.giveGems(user.id, bet);
+                            interaction.reply(`<a:showoff:1004215186439274516> You won ${bet} gems!`);
                         }
                         else {
                             xp.giveGems(user.id, -bet);
@@ -603,6 +603,26 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 .setTitle(interaction.options.getSubcommand())
                 .setDescription(rule);
             reply.embed(interaction, embed);
+        }
+        else if (interaction.commandName == 'cat') {
+            yield interaction.deferReply();
+            let cat = yield axios.get('https://api.thecatapi.com/v1/images/search');
+            let url = cat.data[0].url;
+            const attachment = new discord_js_1.AttachmentBuilder(url);
+            interaction.editReply({ files: [attachment] });
+        }
+        else if (interaction.commandName == 'dog') {
+            yield interaction.deferReply();
+            let cat = yield axios.get('https://dog.ceo/api/breeds/image/random');
+            let url = cat.data.message;
+            const attachment = new discord_js_1.AttachmentBuilder(url);
+            interaction.editReply({ files: [attachment] });
+        }
+        else if (interaction.commandName == 'joke') {
+            yield interaction.deferReply();
+            let jokes = yield axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt');
+            let joke = jokes.data;
+            interaction.editReply({ content: joke });
         }
     }
     else if (interaction.isSelectMenu()) {

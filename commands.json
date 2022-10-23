@@ -67,6 +67,18 @@
     "description": "ministry command"
   },
   {
+    "name": "cat",
+    "description": "Random cat images for the family"
+  },
+  {
+    "name":"dog",
+    "description":"Random dog images, why not?"
+  },
+  {
+    "name": "joke",
+    "description": "dad jokes for days."
+  },
+  {
     "name": "game",
     "description": "start a new game",
     "options": [
