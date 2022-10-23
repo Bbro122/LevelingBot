@@ -130,7 +130,7 @@ exports.scramble = function scramble() {
     }
 }
 exports.checkWord = function (msg: Message) {
-    if (msg.content.toLowerCase() == currentWord.toLowerCase()) {
+    if (currentWord&&msg.content.toLowerCase() == currentWord.toLowerCase()) {
         msg.channel.send(`<@${msg.author.id}> solved the problem.`)
         require('./xpmanager.js').give(msg, 50, false, client)
         currentWord = ''
