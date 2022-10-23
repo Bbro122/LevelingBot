@@ -76,6 +76,9 @@ exports.trivia = function trivia() {
                 }
             }
             Randomize();
+            answers.forEach(answer => {
+                answers[answers.findIndex(a => a == answer)] = answer.slice(0, 100);
+            });
             let embed = new discord_js_1.EmbedBuilder()
                 .setColor('LuminousVividPink')
                 .setTitle(question.category)

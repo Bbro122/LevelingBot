@@ -61,6 +61,9 @@ exports.trivia = async function trivia() {
             }
         }
         Randomize()
+        answers.forEach(answer => {
+            answers[answers.findIndex(a => a == answer)] = answer.slice(0,100)
+        })
         let embed = new EmbedBuilder()
         .setColor('LuminousVividPink')
         .setTitle(question.category)
