@@ -1,8 +1,9 @@
+import { ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic } from "discord.js";
 type Game = { id: string, msg: Message | null, promptDeck: string[], responseDeck: string[], players: Player[], round: number, timeouts: any[], host: string}
 type Player = {id:string,prompts:string[],response:string[]}
 const cards = require('./cards.json')
 let games:Game[] = []
-let gameBuilder:Game = function game(this:game,interaction,msg) {
+function gameBuilder(this:Game,interaction:CommandInteraction,msg:Message) {
     this.players = []
     this.round = 0
     this.id = msg.channel
@@ -10,7 +11,7 @@ let gameBuilder:Game = function game(this:game,interaction,msg) {
     this.responseDeck = [cards.response]
     this.host = interaction.user.id
 }
-exports.createGame = function(interaction) {
+exports.createGame = function(interaction:CommandInteraction) {
     let cahthread = interaction.guild?.channels.cache.find(chan => chan.name == 'cah-matches')
     let member = interaction.member
     if (cahthread && cahthread.type == ChannelType.GuildForum && member instanceof GuildMember) {
