@@ -3,13 +3,15 @@ type Game = { id: string, msg: Message | null, promptDeck: string[], responseDec
 type Player = {id:string,prompts:string[],response:string[]}
 const cards = require('./cards.json')
 let games:Game[] = []
-function gameBuilder(fn:(interaction:CommandInteraction,msg:Message)=>Game) {
+class gameBuilder {
+  constructor(public interaction:CommandInteraction,public msg:Message) {
     this.players = []
     this.round = 0
     this.id = msg.channel.id
     this.promptDeck = [cards.prompt]
     this.responseDeck = [cards.response]
     this.host = interaction.user.id
+  }
 }
 exports.createGame = async function(interaction:CommandInteraction) {
     let cahthread = interaction.guild?.channels.cache.find(chan => chan.name == 'cah-matches')
