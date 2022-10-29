@@ -1,15 +1,21 @@
 import {EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic } from "discord.js";
 type Game = { id: string, msg: Message | null, promptDeck: string[], responseDeck: string[], players: Player[], round: number, timeouts: any[], host: string}
-type Player = {id:string,prompts:string[],response:string[]}
+type Player = {id:string,prompts:string[],responses:string[]}
 const cards = require('./cards.json')
 let games:Game[] = []
 class gameBuilder {
+  players: Player[]
+  round: number
+  id: string
+  promptDeck: string[]
+  responseDeck: string[]
+  host: string
   constructor(public interaction:CommandInteraction,public msg:Message) {
     this.players = []
     this.round = 0
     this.id = msg.channel.id
-    this.promptDeck = [cards.prompt]
-    this.responseDeck = [cards.response]
+    this.promptDeck = cards.prompt
+    this.responseDeck = cards.response
     this.host = interaction.user.id
   }
 }
@@ -58,10 +64,9 @@ exports.createGame = async function(interaction:CommandInteraction) {
           } else if (i.customId == 'start') {
             if (game.players.length > 1) {
               collector.stop()
-              game.deck = randomizeArray(game.deck)
               for (let i = 0; i < game.players.length; i++) {
                 const element = game.players[i];
-                element.hand = [game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop(), game.deck.pop()]
+                element.responses = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
               }
               startTurn(i, game)
             } else {
