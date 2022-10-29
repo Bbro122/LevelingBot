@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const { Guild } = require('discord.js');
 let fs = require('fs');
 let data = {};
 data.write = function (data) {
