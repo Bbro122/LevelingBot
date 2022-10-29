@@ -1,17 +1,17 @@
-import { ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic } from "discord.js";
+import {EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic } from "discord.js";
 type Game = { id: string, msg: Message | null, promptDeck: string[], responseDeck: string[], players: Player[], round: number, timeouts: any[], host: string}
 type Player = {id:string,prompts:string[],response:string[]}
 const cards = require('./cards.json')
 let games:Game[] = []
-function gameBuilder(this:Game,interaction:CommandInteraction,msg:Message) {
+function gameBuilder(fn:(interaction:CommandInteraction,msg:Message)=>Game) {
     this.players = []
     this.round = 0
-    this.id = msg.channel
+    this.id = msg.channel.id
     this.promptDeck = [cards.prompt]
     this.responseDeck = [cards.response]
     this.host = interaction.user.id
 }
-exports.createGame = function(interaction:CommandInteraction) {
+exports.createGame = async function(interaction:CommandInteraction) {
     let cahthread = interaction.guild?.channels.cache.find(chan => chan.name == 'cah-matches')
     let member = interaction.member
     if (cahthread && cahthread.type == ChannelType.GuildForum && member instanceof GuildMember) {
