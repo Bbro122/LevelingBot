@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+const { ActionRowBuilder, MessageButton, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 function strCheck(str) {
     if (typeof str == 'string') {
@@ -33,7 +33,7 @@ exports.punish = function punish(interaction) {
     let mod = interaction.member;
     let user = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.member;
     if (user instanceof discord_js_1.GuildMember && mod instanceof discord_js_1.GuildMember) {
-        let embed = new MessageEmbed()
+        let embed = new EmbedBuilder()
             .setTitle(interaction.options.getSubcommand())
             .setDescription((_b = interaction.options.get('reason')) === null || _b === void 0 ? void 0 : _b.value)
             .addFields([{ name: `${user.displayName} | ${user.id}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
@@ -42,11 +42,11 @@ exports.punish = function punish(interaction) {
         PendingPunishments.push({ id: mod.id, data: interaction.options });
         interaction.reply({
             embeds: [embed],
-            components: [new MessageActionRow()
-                    .addComponents(new MessageButton()
+            components: [new ActionRowBuilder()
+                    .addComponents(new discord_js_1.ButtonBuilder()
                     .setCustomId('punish')
                     .setLabel('Smite Thou Sinner')
-                    .setStyle('SUCCESS'))
+                    .setStyle(discord_js_1.ButtonStyle.Success))
             ],
             ephemeral: true
         });
@@ -59,7 +59,7 @@ exports.punish = function punish(interaction) {
             let date = new Date();
             if (pmember instanceof discord_js_1.GuildMember && member instanceof discord_js_1.GuildMember) {
                 let type = interaction.options.getSubcommand();
-                let embed = new MessageEmbed()
+                let embed = new EmbedBuilder()
                     .setTitle(type)
                     .setDescription((_b = interaction.options.get('reason')) === null || _b === void 0 ? void 0 : _b.value)
                     .addFields([{ name: `${pmember.displayName}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
@@ -112,7 +112,7 @@ exports.getpunishments = function punish(user, interaction) {
             warnings.push(warn);
         }
     }
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setTitle(desc);
     warnings.forEach(warning => {
         let date = new Date(warning.epoch);

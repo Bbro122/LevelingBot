@@ -1,5 +1,5 @@
-import { ButtonInteraction, ChatInputCommandInteraction, Client, CommandInteraction, ComponentType, GuildMember, Interaction, User } from "discord.js"
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, CommandInteraction, ComponentType, GuildMember, Interaction, User } from "discord.js"
+const { ActionRowBuilder, MessageButton, EmbedBuilder } = require('discord.js');
 const fs = require('fs')
 type Warning = {
     "pid": number,
@@ -41,7 +41,7 @@ exports.punish = function punish(interaction: ChatInputCommandInteraction) {
     let mod = interaction.member!
     let user = interaction.options.get('user')?.member!
     if (user instanceof GuildMember && mod instanceof GuildMember) {
-        let embed = new MessageEmbed()
+        let embed = new EmbedBuilder()
             .setTitle(interaction.options.getSubcommand())
             .setDescription(interaction.options.get('reason')?.value)
             .addFields([{ name: `${user.displayName} | ${user.id}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
@@ -50,12 +50,12 @@ exports.punish = function punish(interaction: ChatInputCommandInteraction) {
         PendingPunishments.push({ id: mod.id, data: interaction.options })
         interaction.reply({
             embeds: [embed],
-            components: [new MessageActionRow()
+            components: [new ActionRowBuilder()
                 .addComponents(
-                    new MessageButton()
+                    new ButtonBuilder()
                         .setCustomId('punish')
                         .setLabel('Smite Thou Sinner')
-                        .setStyle('SUCCESS')
+                        .setStyle(ButtonStyle.Success)
                 )
             ],
             ephemeral: true
@@ -68,7 +68,7 @@ exports.punish = function punish(interaction: ChatInputCommandInteraction) {
             let date = new Date();
             if (pmember instanceof GuildMember&&member instanceof GuildMember) {
                 let type: string = interaction.options.getSubcommand()
-                let embed = new MessageEmbed()
+                let embed = new EmbedBuilder()
                     .setTitle(type)
                     .setDescription(interaction.options.get('reason')?.value)
                     .addFields([{ name: `${pmember.displayName}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
@@ -116,7 +116,7 @@ exports.getpunishments = function punish(user: User, interaction: CommandInterac
             warnings.push(warn)
         }
     }
-    let embed = new MessageEmbed()
+    let embed = new EmbedBuilder()
         .setTitle(desc)
     warnings.forEach(warning => {
         let date = new Date(warning.epoch)

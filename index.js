@@ -624,6 +624,9 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             let joke = jokes.data;
             interaction.editReply({ content: joke });
         }
+        else if (interaction.commandName == 'cah') {
+            require('./cardsagainsthumanity/cah.js').createGame(interaction);
+        }
     }
     else if (interaction.isSelectMenu()) {
         if (interaction.customId == 'shop') {

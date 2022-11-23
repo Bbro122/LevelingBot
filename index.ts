@@ -563,6 +563,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             let jokes = await axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt')
             let joke = jokes.data
             interaction.editReply({content:joke})
+        } else if (interaction.commandName == 'cah') {
+            require('./cardsagainsthumanity/cah.js').createGame(interaction)
         }
     } else if (interaction.isSelectMenu()) {
         if (interaction.customId == 'shop') {

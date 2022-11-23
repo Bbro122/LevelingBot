@@ -43,6 +43,10 @@
     "description": "get the overwatch games for the day"
   },
   {
+    "name": "cah",
+    "description": "Experimental Feature"
+  },
+  {
     "name": "boostingsince",
     "description": "bruhhhhhhhh",
     "options": [
