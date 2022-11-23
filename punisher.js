@@ -38,7 +38,7 @@ exports.punish = function punish(interaction) {
             .setDescription((_b = interaction.options.get('reason')) === null || _b === void 0 ? void 0 : _b.value)
             .addFields([{ name: `${user.displayName} | ${user.id}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
             .setTimestamp(Date.now())
-            .setFooter(`Case Mod: ${mod.displayName}`);
+            .setFooter({ text: `Case Mod: ${mod.displayName}` });
         PendingPunishments.push({ id: mod.id, data: interaction.options });
         interaction.reply({
             embeds: [embed],
@@ -64,7 +64,7 @@ exports.punish = function punish(interaction) {
                     .setDescription((_b = interaction.options.get('reason')) === null || _b === void 0 ? void 0 : _b.value)
                     .addFields([{ name: `${pmember.displayName}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
                     .setTimestamp(Date.now())
-                    .setFooter(`Case Mod: ${member.displayName}`);
+                    .setFooter({ text: `Case Mod: ${member.displayName}` });
                 let log = { "pid": data.warnings.length, "id": (_d = (_c = interaction.options.get('user')) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.id, "epoch": date.getTime(), "reason": (_e = interaction.options.get('reason')) === null || _e === void 0 ? void 0 : _e.value, "type": type, "mod": i.user.id };
                 console.log('ModCheck');
                 if (pmember.moderatable) {

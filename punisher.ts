@@ -46,7 +46,7 @@ exports.punish = function punish(interaction: ChatInputCommandInteraction) {
             .setDescription(interaction.options.get('reason')?.value)
             .addFields([{ name: `${user.displayName} | ${user.id}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
             .setTimestamp(Date.now())
-            .setFooter(`Case Mod: ${mod.displayName}`)
+            .setFooter({text:`Case Mod: ${mod.displayName}`});
         PendingPunishments.push({ id: mod.id, data: interaction.options })
         interaction.reply({
             embeds: [embed],
@@ -73,7 +73,7 @@ exports.punish = function punish(interaction: ChatInputCommandInteraction) {
                     .setDescription(interaction.options.get('reason')?.value)
                     .addFields([{ name: `${pmember.displayName}`, value: `PID: ${require('./punishments.json').warnings.length}` }])
                     .setTimestamp(Date.now())
-                    .setFooter(`Case Mod: ${member.displayName}`)
+                    .setFooter({text:`Case Mod: ${member.displayName}`});
                 let log = { "pid": data.warnings.length, "id": interaction.options.get('user')?.user?.id, "epoch": date.getTime(), "reason": interaction.options.get('reason')?.value, "type": type, "mod": i.user.id }
                 console.log('ModCheck')
                 if (pmember.moderatable) {
