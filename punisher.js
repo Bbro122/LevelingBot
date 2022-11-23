@@ -117,9 +117,9 @@ exports.getpunishments = function punish(user, interaction) {
     warnings.forEach(warning => {
         let date = new Date(warning.epoch);
         let user = interaction.client.users.cache.get(warning.id);
-        embed.addField(`USER: ${user ? user.username : warning.id} | PID: ${warning.pid} | TYPE: ${warning.type}`, `DATE: ${date.toLocaleDateString()} | REASON: ${warning.reason}`, false);
+        embed.addFields({ name: `USER: ${user ? user.username : warning.id} | PID: ${warning.pid} | TYPE: ${warning.type}`, value: `DATE: ${date.toLocaleDateString()} | REASON: ${warning.reason}`, inline: false });
     });
-    if (embed.fields.length == 0) {
+    if (embed.data.fields.length == 0) {
         embed.setDescription('No punishments were found.');
     }
     interaction.reply({ embeds: [embed] });
