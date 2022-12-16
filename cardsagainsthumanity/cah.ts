@@ -102,38 +102,31 @@ exports.createGame = async function (interaction: CommandInteraction) {
             }
           }
         } else if (i.customId == 'start') {
-            if (game.players.length > 1) {
-              collector.stop()
-              for (let i = 0; i < game.players.length; i++) {
-                const element = game.players[i];
-                let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
-                array.forEach(card => {
-                  if (typeof card == 'undefined') {
-                    array.splice(array.indexOf(card),1)
-                  }
-                })
-                element.response = array
-              }
-              startTurn(i, game)
-            } else {
-              await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
-            }
-            cahChan.delete('Game cancelled')
-            games.splice(games.indexOf(game), 1)
-          } else {
-            await i.reply({ content: "Only the host can perform this action", ephemeral: true })
-          }
-        } else if (i.customId == 'start') {
           if (game.players.length > 1) {
             collector.stop()
+            for (let i = 0; i < game.players.length; i++) {
+              const element = game.players[i];
+              let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
+              array.forEach(card => {
+                if (typeof card == 'undefined') {
+                  array.splice(array.indexOf(card), 1)
+                }
+              })
+              element.response = array
+            }
             startTurn(i, game)
           } else {
             await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
           }
+          cahChan.delete('Game cancelled')
+          games.splice(games.indexOf(game), 1)
+        } else {
+          await i.reply({ content: "Only the host can perform this action", ephemeral: true })
+        }
       } else {
         await i.reply({ content: 'Command is only available to host', ephemeral: true })
       }
-    })
+      })
   } else {
     interaction.reply('Could not find cah forum.')
   }
@@ -173,14 +166,14 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
         let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, filter: interaction => interaction.user.id == i.user.id, max: 1 })
         collector?.on('collect', async interaction => {
           let card = cards.find(card => card.name == interaction.values[0])
-          if (card?.value&&interaction.customId=='playcard') {
+          if (card?.value && interaction.customId == 'playcard') {
             plays.push({ id: interaction.user.id, response: card.value })
             interaction.message.edit({ components: undefined, embeds: [], content: 'Successfully played card.' })
           }
         })
       }
     })
-    collector?.on('end',reason => {
+    collector?.on('end', reason => {
       //while (plays.length<game.players.length-1) {}
       //interaction.message.edit({content:"all replies received"})
     })
