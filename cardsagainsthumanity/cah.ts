@@ -49,13 +49,12 @@ class Player {
   id: string;
   prompt: string[];
   response: string[];
-  constructor(public identification: string, public game: Game) {
+  constructor(public id: string, public game: Game) {
     let response = []
     for (let i = 0; i < 7; i++) {
       const element = game.responseDeck.pop()
       response.push(element ? element : '')
     }
-    this.id = identification
     this.prompt = []
     this.response = response
   }
@@ -83,6 +82,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
       }
       if (i.customId == 'join') {
         console.log(game.players)
+        console.log(i.user.id)
         if (game.players.find(plr => plr.id == i.user.id)) {
           await i.reply({ content: 'You are already in this match.', ephemeral: true })
         } else if (i.member instanceof GuildMember) {
