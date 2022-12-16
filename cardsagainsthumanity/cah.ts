@@ -83,7 +83,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
       if (i.customId == 'join') {
         console.log(game.players)
         console.log(i.user.id)
-        if (game.players.find(plr => plr.id == i.user.id)) {
+        if (game.players.find(plr => plr.id === i.user.id)) {
           await i.reply({ content: 'You are already in this match.', ephemeral: true })
         } else if (i.member instanceof GuildMember) {
           game.players.push(new Player(i.user.id, game))
