@@ -37,8 +37,6 @@ exports.get = function read() {
     return require("./punishments.json")
 }
 exports.punish = function punish(interaction: ChatInputCommandInteraction) {
-    //data.warnings.push({"pid":data.warnings.length,"id":options.get('user')?.user?.id,"epoch":date.getTime(),"reason":interaction.options.get('reason')?.value})
-    //exports.write(data)
     let mod = interaction.member!
     let user = interaction.options.get('user')?.member!
     if (user instanceof GuildMember && mod instanceof GuildMember) {
