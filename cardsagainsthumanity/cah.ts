@@ -77,7 +77,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
       console.log('received')
       if (!game) {
         game = new Game(interaction, i.message)
-        game.players.push(new Player(i.user.id, game))
+        game.players.push(new Player(game.host, game))
         games.push(game)
       }
       if (i.customId == 'join') {
