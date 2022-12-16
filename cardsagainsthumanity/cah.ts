@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic, APIEmbedField } from "discord.js";
 import { UserProfile } from "../xpmanager";
 const cards = require('./cards.json')
@@ -38,21 +37,6 @@ class Game {
   responseDeck: string[];
   host: string;
   constructor(public interaction: CommandInteraction, public msg: Message) {
-=======
-import {EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic } from "discord.js";
-type Game = { id: string, msg: Message | null, promptDeck: string[], responseDeck: string[], players: Player[], round: number, timeouts: any[], host: string}
-type Player = {id:string,prompts:string[],responses:string[]}
-const cards = require('./cards.json')
-let games:Game[] = []
-class gameBuilder {
-  players: Player[]
-  round: number
-  id: string
-  promptDeck: string[]
-  responseDeck: string[]
-  host: string
-  constructor(public interaction:CommandInteraction,public msg:Message) {
->>>>>>> 040a6f3ee29f69c37e8f7d0665b2a48f9fcf735b
     this.players = []
     this.round = 0
     this.id = msg.channel.id
@@ -98,6 +82,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
         games.push(game)
       }
       if (i.customId == 'join') {
+        console.log(game.players)
         if (game.players.find(plr => plr.id == i.user.id)) {
           await i.reply({ content: 'You are already in this match.', ephemeral: true })
         } else if (i.member instanceof GuildMember) {
@@ -112,22 +97,26 @@ exports.createGame = async function (interaction: CommandInteraction) {
           if (i.user.id == interaction.user.id) {
             if (game) {
               games.splice(games.indexOf(game), 1)
-<<<<<<< HEAD
-=======
             } else {
               await i.reply({ content: "Only the host can perform this action", ephemeral: true })
             }
-          } else if (i.customId == 'start') {
+          }
+        } else if (i.customId == 'start') {
             if (game.players.length > 1) {
               collector.stop()
               for (let i = 0; i < game.players.length; i++) {
                 const element = game.players[i];
-                element.responses = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
+                let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
+                array.forEach(card => {
+                  if (typeof card == 'undefined') {
+                    array.splice(array.indexOf(card),1)
+                  }
+                })
+                element.response = array
               }
               startTurn(i, game)
             } else {
               await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
->>>>>>> 040a6f3ee29f69c37e8f7d0665b2a48f9fcf735b
             }
             cahChan.delete('Game cancelled')
             games.splice(games.indexOf(game), 1)
@@ -141,7 +130,6 @@ exports.createGame = async function (interaction: CommandInteraction) {
           } else {
             await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
           }
-        }
       } else {
         await i.reply({ content: 'Command is only available to host', ephemeral: true })
       }

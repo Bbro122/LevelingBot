@@ -90,6 +90,7 @@ exports.createGame = function (interaction) {
                     games.push(game);
                 }
                 if (i.customId == 'join') {
+                    console.log(game.players);
                     if (game.players.find(plr => plr.id == i.user.id)) {
                         yield i.reply({ content: 'You are already in this match.', ephemeral: true });
                     }
@@ -107,21 +108,43 @@ exports.createGame = function (interaction) {
                             if (game) {
                                 games.splice(games.indexOf(game), 1);
                             }
-                            cahChan.delete('Game cancelled');
-                            games.splice(games.indexOf(game), 1);
-                        }
-                        else {
-                            yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
+                            else {
+                                yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
+                            }
                         }
                     }
                     else if (i.customId == 'start') {
                         if (game.players.length > 1) {
                             collector.stop();
+                            for (let i = 0; i < game.players.length; i++) {
+                                const element = game.players[i];
+                                let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()];
+                                array.forEach(card => {
+                                    if (typeof card == 'undefined') {
+                                        array.splice(array.indexOf(card), 1);
+                                    }
+                                });
+                                element.response = array;
+                            }
                             startTurn(i, game);
                         }
                         else {
                             yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
                         }
+                        cahChan.delete('Game cancelled');
+                        games.splice(games.indexOf(game), 1);
+                    }
+                    else {
+                        yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
+                    }
+                }
+                else if (i.customId == 'start') {
+                    if (game.players.length > 1) {
+                        collector.stop();
+                        startTurn(i, game);
+                    }
+                    else {
+                        yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
                     }
                 }
                 else {
