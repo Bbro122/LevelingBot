@@ -40,10 +40,10 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
                 console.log(data.toString());
             });
 
-            server.on('close', async function (code) {
-                console.log('Operator instance crashed with ' + code);
+            server.on('error', async function (error) {
+                console.log('Operator instance crashed with ' + error.message);
                 if (code != null) {
-                    await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`)
+                    await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${error.message}`)
                 }
             });
         }
@@ -64,10 +64,10 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
             console.log(data.toString());
         });
 
-        server.on('close', async function (code) {
-            console.log('Operator instance crashed with ' + code);
+        server.on('error', async function (code) {
+            console.log('Operator instance crashed with ' + error.message);
             if (code != null) {
-                await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`)
+                await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${error.message}`)
             }
         });
     }
