@@ -1,4 +1,5 @@
 import { EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic, APIEmbedField } from "discord.js";
+import { isThisTypeNode } from "typescript";
 import { UserProfile } from "../xpmanager";
 const cards = require('./cards.json')
 let games: Game[] = []
@@ -49,12 +50,13 @@ class Player {
   id: string;
   prompt: string[];
   response: string[];
-  constructor(public id: string, public game: Game) {
+  constructor(public identifier: string, public game: Game) {
     let response = []
     for (let i = 0; i < 7; i++) {
       const element = game.responseDeck.pop()
       response.push(element ? element : '')
     }
+    this.id = identifier
     this.prompt = []
     this.response = response
   }
