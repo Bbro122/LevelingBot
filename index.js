@@ -215,6 +215,9 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
     if (mainserver) {
         game.setup(client, client.channels.cache.get(config.server.gamechannel));
         xp.setup(client);
+        mainserver.members.cache.forEach(user => {
+            xp.ranks.evaluate(user.id);
+        });
         if (config.server.game) {
             game.selGame();
         }
@@ -222,7 +225,6 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
     else {
         console.log("Server not found");
     }
-    xp.ranks.evaluate('316243027423395841');
 }));
 client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* () {
     var _e, _f;
@@ -558,6 +560,25 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         }
         if (checkOwner(interaction)) {
             switch (interaction.commandName) {
+                case 'rank': {
+                    switch (interaction.options.getSubcommand()) {
+                        case 'list':
+                            {
+                                xp.ranks.list(interaction);
+                            }
+                            break;
+                        case 'add':
+                            {
+                                xp.ranks.add(interaction);
+                            }
+                            break;
+                        case 'remove':
+                            {
+                                xp.ranks.remove(interaction);
+                            }
+                            break;
+                    }
+                }
                 case 'function':
                     {
                         let func = (_r = interaction.options.get('user')) === null || _r === void 0 ? void 0 : _r.value;

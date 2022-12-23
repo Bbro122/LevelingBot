@@ -42,7 +42,7 @@ export type XpManager = {
         list: (interaction: CommandInteraction) => void
     }
 }
-type RankData = { persistent: { level: string | number | boolean | undefined, id: string | number | boolean | undefined, persistent: string | number | boolean | undefined }[], rankups: { level: number, id: string, persistent: false }[] }
+type RankData = { persistent: { level: number, id: string, persistent: boolean }[], rankups: { level: number, id: string, persistent: boolean }[] }
 let timeouts: timeout[] = []
 let fs = require('fs')
 let client: Client
@@ -82,9 +82,13 @@ exports.ranks.remove = function (interaction: CommandInteraction) {
 }
 exports.ranks.add = function (interaction: CommandInteraction) {
     let ranks: RankData = getRanks()
-    let role = { persistent: interaction.options.get('persist')?.value, level: interaction.options.get('level')?.value, id: interaction.options.get('role')?.role?.id }
+    let role = { persistent: interaction.options.get('persist')?.value as boolean, level: interaction.options.get('level')?.value as number, id: interaction.options.get('role')?.role?.id as string }
     if (!(ranks.persistent.find(rank => rank.id == role.id) || ranks.rankups.find(rank => rank.id == role.id)) && typeof role.persistent == 'boolean' && typeof role.level == 'number' && typeof role.id == 'string') {
-        ranks.persistent.push(role)
+        if (role.persistent) {
+            ranks.persistent.push(role)
+        } else {
+            ranks.rankups.push(role)
+        }
         fs.writeFileSync('./levelData/ranks.json', JSON.stringify(ranks))
         interaction.reply('That role will now automatically be applied.')
     } else {

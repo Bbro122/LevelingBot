@@ -32,28 +32,78 @@ function rankOf(level) {
 exports.ranks.remove = function (interaction) {
     var _a;
     let ranks = getRanks();
-    let level = (_a = interaction.options.get('level')) === null || _a === void 0 ? void 0 : _a.value;
-    let rank = ranks.persistent.find((rank) => rank.level == level);
+    let role = (_a = interaction.options.get('role')) === null || _a === void 0 ? void 0 : _a.role;
+    let rank = ranks.persistent.find((rank) => rank.id == (role === null || role === void 0 ? void 0 : role.id));
     if (rank && rank.persistent) {
         ranks.persistent.splice(ranks.persistent.indexOf(rank), 1);
     }
     else {
-        rank = ranks.rankups.find((rank) => rank.level == level);
+        rank = ranks.rankups.find((rank) => rank.id == (role === null || role === void 0 ? void 0 : role.id));
         if (rank) {
             ranks.rankups.splice(ranks.rankups.indexOf(rank), 1);
         }
         else {
             interaction.reply('Existential Dread: operation failed');
+            return;
         }
     }
+    fs.writeFileSync('./levelData/ranks.json', JSON.stringify(ranks));
     interaction.reply('That role will no longer automatically be applied.');
 };
 exports.ranks.add = function (interaction) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     let ranks = getRanks();
-    let role = { persistent: (_a = interaction.options.get('level')) === null || _a === void 0 ? void 0 : _a.value, level: (_b = interaction.options.get('level')) === null || _b === void 0 ? void 0 : _b.value, id: (_c = interaction.options.get('id')) === null || _c === void 0 ? void 0 : _c.value };
-    if (typeof role.persistent == 'boolean' && typeof role.level == 'number' && typeof role.id == 'string') {
-        ranks.persistent.push(role);
+    let role = { persistent: (_a = interaction.options.get('persist')) === null || _a === void 0 ? void 0 : _a.value, level: (_b = interaction.options.get('level')) === null || _b === void 0 ? void 0 : _b.value, id: (_d = (_c = interaction.options.get('role')) === null || _c === void 0 ? void 0 : _c.role) === null || _d === void 0 ? void 0 : _d.id };
+    if (!(ranks.persistent.find(rank => rank.id == role.id) || ranks.rankups.find(rank => rank.id == role.id)) && typeof role.persistent == 'boolean' && typeof role.level == 'number' && typeof role.id == 'string') {
+        if (role.persistent) {
+            ranks.persistent.push(role);
+        }
+        else {
+            ranks.rankups.push(role);
+        }
+        fs.writeFileSync('./levelData/ranks.json', JSON.stringify(ranks));
+        interaction.reply('That role will now automatically be applied.');
+    }
+    else {
+        interaction.reply('That role is already used in the ranking system.');
+    }
+};
+exports.ranks.list = function (interaction) {
+    let ranks = getRanks();
+    let guild = client.guilds.cache.get('632995494305464331');
+    if (guild instanceof discord_js_1.Guild) {
+        let fields = [];
+        ranks.persistent.forEach(rank => {
+            var _a;
+            let role = (_a = guild.roles.cache.get(rank.id)) === null || _a === void 0 ? void 0 : _a.name;
+            role = role ? role : rank.id;
+            fields.push({
+                value: rank.level.toString(), name: role,
+                inline: true
+            });
+        });
+        let persistEmbed = new discord_js_1.EmbedBuilder()
+            .setColor('Aqua')
+            .setTitle('Persistent Ranks')
+            .setDescription('Heres a list of the persistent ranks')
+            .addFields(fields);
+        fields = [];
+        ranks.rankups.sort((a, b) => a.level - b.level);
+        ranks.rankups.forEach(rank => {
+            var _a;
+            let role = (_a = guild.roles.cache.get(rank.id)) === null || _a === void 0 ? void 0 : _a.name;
+            role = role ? role : rank.id;
+            fields.push({
+                value: rank.level.toString(), name: role,
+                inline: true
+            });
+        });
+        let rankupEmbed = new discord_js_1.EmbedBuilder()
+            .setColor('Orange')
+            .setTitle('Heirarchy Ranks')
+            .setDescription('Heres a list of the heirarchy ranks')
+            .addFields(fields);
+        interaction.reply({ embeds: [persistEmbed, rankupEmbed] });
     }
 };
 exports.ranks.evaluate = function (userID) {
