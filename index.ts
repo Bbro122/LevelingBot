@@ -511,7 +511,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             xp.ranks.remove(interaction)
                         } break
                     }
-                }
+                } break
                 case 'function': {
                     let func = interaction.options.get('user')?.value
                     if (typeof func == 'string') {

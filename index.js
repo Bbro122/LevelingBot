@@ -560,25 +560,27 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         }
         if (checkOwner(interaction)) {
             switch (interaction.commandName) {
-                case 'rank': {
-                    switch (interaction.options.getSubcommand()) {
-                        case 'list':
-                            {
-                                xp.ranks.list(interaction);
-                            }
-                            break;
-                        case 'add':
-                            {
-                                xp.ranks.add(interaction);
-                            }
-                            break;
-                        case 'remove':
-                            {
-                                xp.ranks.remove(interaction);
-                            }
-                            break;
+                case 'rank':
+                    {
+                        switch (interaction.options.getSubcommand()) {
+                            case 'list':
+                                {
+                                    xp.ranks.list(interaction);
+                                }
+                                break;
+                            case 'add':
+                                {
+                                    xp.ranks.add(interaction);
+                                }
+                                break;
+                            case 'remove':
+                                {
+                                    xp.ranks.remove(interaction);
+                                }
+                                break;
+                        }
                     }
-                }
+                    break;
                 case 'function':
                     {
                         let func = (_r = interaction.options.get('user')) === null || _r === void 0 ? void 0 : _r.value;
