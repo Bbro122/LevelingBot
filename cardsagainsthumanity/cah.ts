@@ -1,4 +1,5 @@
 import { EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic, APIEmbedField } from "discord.js";
+import { isThisTypeNode } from "typescript";
 import { UserProfile } from "../xpmanager";
 const cards = require('./cards.json')
 let games: Game[] = []
