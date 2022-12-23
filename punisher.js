@@ -28,8 +28,6 @@ exports.get = function read() {
 };
 exports.punish = function punish(interaction) {
     var _a, _b, _c;
-    //data.warnings.push({"pid":data.warnings.length,"id":options.get('user')?.user?.id,"epoch":date.getTime(),"reason":interaction.options.get('reason')?.value})
-    //exports.write(data)
     let mod = interaction.member;
     let user = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.member;
     if (user instanceof discord_js_1.GuildMember && mod instanceof discord_js_1.GuildMember) {

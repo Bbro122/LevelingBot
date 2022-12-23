@@ -49,12 +49,13 @@ class Player {
   id: string;
   prompt: string[];
   response: string[];
-  constructor(public id: string, public game: Game) {
+  constructor(public identification: string, public game: Game) {
     let response = []
     for (let i = 0; i < 7; i++) {
       const element = game.responseDeck.pop()
       response.push(element ? element : '')
     }
+    this.id = identification
     this.prompt = []
     this.response = response
   }
@@ -80,29 +81,36 @@ exports.createGame = async function (interaction: CommandInteraction) {
         game.players.push(new Player(game.host, game))
         games.push(game)
       }
-      if (i.customId == 'join') {
-        console.log(game.players)
-        console.log(i.user.id)
-        if (game.players.find(plr => plr.id === i.user.id)) {
-          await i.reply({ content: 'You are already in this match.', ephemeral: true })
-        } else if (i.member instanceof GuildMember) {
-          game.players.push(new Player(i.user.id, game))
-          let user = require('../userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
-          embed?.addFields({ name: i.member?.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false })
-          embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
-          await i.update({ embeds: [embed] })
-        }
-      } else if (i.user?.id == game.host) {
-        if (i.customId == 'cancel') {
+      switch (i.customId) {
+        case 'join':
+          if (game.players.find(plr => plr.id === i.user.id)) {
+            await i.reply({ content: 'You are already in this match.', ephemeral: true })
+          } else if (i.member instanceof GuildMember) {
+            game.players.push(new Player(i.user.id, game))
+            let user = require('../userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
+            embed?.addFields({ name: i.member?.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false })
+            embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
+            await i.update({ embeds: [embed] })
+          }
+          break
+        case 'cancel':
+          collector.stop()
           if (i.user.id == interaction.user.id) {
             if (game) {
+              collector.stop()
               games.splice(games.indexOf(game), 1)
+              let cancel = new EmbedBuilder()
+                .setTitle(`Match Cancelled`)
+                .setDescription(`Match was cancelled by the host.`)
+                .setColor('Red')
+              await i.update({ embeds: [cancel], components: undefined })
             } else {
               await i.reply({ content: "Only the host can perform this action", ephemeral: true })
             }
           }
-        } else if (i.customId == 'start') {
-          if (game.players.length > 1) {
+          break
+        case 'start':
+          if (game.players.length > 1&&i.user.id == interaction.user.id) {
             collector.stop()
             for (let i = 0; i < game.players.length; i++) {
               const element = game.players[i];
@@ -112,21 +120,15 @@ exports.createGame = async function (interaction: CommandInteraction) {
                   array.splice(array.indexOf(card), 1)
                 }
               })
-              element.response = array
+              element.response = array as string[]
             }
             startTurn(i, game)
           } else {
             await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
           }
-          cahChan.delete('Game cancelled')
-          games.splice(games.indexOf(game), 1)
-        } else {
-          await i.reply({ content: "Only the host can perform this action", ephemeral: true })
-        }
-      } else {
-        await i.reply({ content: 'Command is only available to host', ephemeral: true })
+          break
       }
-      })
+    })
   } else {
     interaction.reply('Could not find cah forum.')
   }
@@ -168,14 +170,32 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
           let card = cards.find(card => card.name == interaction.values[0])
           if (card?.value && interaction.customId == 'playcard') {
             plays.push({ id: interaction.user.id, response: card.value })
-            interaction.message.edit({ components: undefined, embeds: [], content: 'Successfully played card.' })
+            interaction.update({ components: undefined, embeds: [], content: 'Successfully played card.' })
           }
         })
       }
     })
     collector?.on('end', reason => {
+      console.log('End')
       //while (plays.length<game.players.length-1) {}
-      //interaction.message.edit({content:"all replies received"})
+      let  menuCards = []
+      let cards: { name: string; value: string; }[] = []
+      for (let i = 0; i < plays.length; i++) {
+        const card = plays[i].response
+        cards.push({ name: i.toString(), value: card })
+        menuCards.push({ label: card.slice(0, 100), value: i.toString() })
+      }
+      let embed = new EmbedBuilder()
+      .setTitle(`All replies Received, Cardmaster picks their favorite, pick yours while waiting.`)
+      .setDescription(prompt)
+      .setColor('Gold')
+      .addFields(cards)
+      let row = new ActionRowBuilder<SelectMenuBuilder>()
+      .addComponents(new SelectMenuBuilder()
+        .setCustomId('playcard')
+        .addOptions(menuCards)
+      )
+      interaction.update({embeds:[embed],components: [row]})
     })
   }
 }

@@ -31,7 +31,8 @@ function checkOwner(interaction: CommandInteraction) {
 client.on('ready', async () => {
     try { client.application?.commands.set(require('./commands.json')) } catch (err) { console.log(err) }
 })
-client.on('interactionCreate', async (interaction: CommandInteraction) => {
+client.on('interactionCreate', async (interaction: Interaction) => {
+    if (interaction instanceof CommandInteraction) {
     if (interaction.commandName == 'start' && checkOwner(interaction)) {
         if (server == undefined || server.killed) {
             await interaction.reply('Operator has started the development bot.')
@@ -42,7 +43,7 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
 
             server.on('error', async function (error) {
                 console.log('Operator instance crashed with ' + error.message);
-                if (code != null) {
+                if (error != null) {
                     await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${error.message}`)
                 }
             });
@@ -65,11 +66,12 @@ client.on('interactionCreate', async (interaction: CommandInteraction) => {
         });
 
         server.on('error', async function (code) {
-            console.log('Operator instance crashed with ' + error.message);
+            console.log('Operator instance crashed with ' + code.message);
             if (code != null) {
-                await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${error.message}`)
+                await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code.message}`)
             }
         });
     }
+}
 })
 client.login(require('./token.json').token);

@@ -82,39 +82,45 @@ exports.createGame = function (interaction) {
             interaction.reply(`[InDev] Cards Against Humanity starting in <#${cahChan.id}>`);
             const collector = cahChan === null || cahChan === void 0 ? void 0 : cahChan.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button });
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
-                var _b, _c;
+                var _b;
                 console.log('received');
                 if (!game) {
                     game = new Game(interaction, i.message);
-                    game.players.push(new Player(i.user.id, game));
+                    game.players.push(new Player(game.host, game));
                     games.push(game);
                 }
-                if (i.customId == 'join') {
-                    console.log(game.players);
-                    if (game.players.find(plr => plr.id == i.user.id)) {
-                        yield i.reply({ content: 'You are already in this match.', ephemeral: true });
-                    }
-                    else if (i.member instanceof discord_js_1.GuildMember) {
-                        game.players.push(new Player(i.user.id, game));
-                        let user = require('../userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
-                        embed === null || embed === void 0 ? void 0 : embed.addFields({ name: (_b = i.member) === null || _b === void 0 ? void 0 : _b.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false });
-                        embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`);
-                        yield i.update({ embeds: [embed] });
-                    }
-                }
-                else if (((_c = i.user) === null || _c === void 0 ? void 0 : _c.id) == game.host) {
-                    if (i.customId == 'cancel') {
+                switch (i.customId) {
+                    case 'join':
+                        if (game.players.find(plr => plr.id === i.user.id)) {
+                            yield i.reply({ content: 'You are already in this match.', ephemeral: true });
+                        }
+                        else if (i.member instanceof discord_js_1.GuildMember) {
+                            game.players.push(new Player(i.user.id, game));
+                            let user = require('../userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
+                            embed === null || embed === void 0 ? void 0 : embed.addFields({ name: (_b = i.member) === null || _b === void 0 ? void 0 : _b.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false });
+                            embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`);
+                            yield i.update({ embeds: [embed] });
+                        }
+                        break;
+                    case 'cancel':
+                        collector.stop();
                         if (i.user.id == interaction.user.id) {
                             if (game) {
+                                collector.stop();
                                 games.splice(games.indexOf(game), 1);
+                                let cancel = new discord_js_1.EmbedBuilder()
+                                    .setTitle(`Match Cancelled`)
+                                    .setDescription(`Match was cancelled by the host.`)
+                                    .setColor('Red');
+                                yield i.update({ embeds: [cancel], components: undefined });
                             }
                             else {
                                 yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
                             }
                         }
-                    }
-                    else if (i.customId == 'start') {
-                        if (game.players.length > 1) {
+                        break;
+                    case 'start':
+                        if (game.players.length > 1 && i.user.id == interaction.user.id) {
                             collector.stop();
                             for (let i = 0; i < game.players.length; i++) {
                                 const element = game.players[i];
@@ -131,24 +137,7 @@ exports.createGame = function (interaction) {
                         else {
                             yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
                         }
-                        cahChan.delete('Game cancelled');
-                        games.splice(games.indexOf(game), 1);
-                    }
-                    else {
-                        yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
-                    }
-                }
-                else if (i.customId == 'start') {
-                    if (game.players.length > 1) {
-                        collector.stop();
-                        startTurn(i, game);
-                    }
-                    else {
-                        yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
-                    }
-                }
-                else {
-                    yield i.reply({ content: 'Command is only available to host', ephemeral: true });
+                        break;
                 }
             }));
         }
@@ -196,14 +185,31 @@ function startTurn(interaction, game) {
                         let card = cards.find(card => card.name == interaction.values[0]);
                         if ((card === null || card === void 0 ? void 0 : card.value) && interaction.customId == 'playcard') {
                             plays.push({ id: interaction.user.id, response: card.value });
-                            interaction.message.edit({ components: undefined, embeds: [], content: 'Successfully played card.' });
+                            interaction.update({ components: undefined, embeds: [], content: 'Successfully played card.' });
                         }
                     }));
                 }
             }));
             collector === null || collector === void 0 ? void 0 : collector.on('end', reason => {
+                console.log('End');
                 //while (plays.length<game.players.length-1) {}
-                //interaction.message.edit({content:"all replies received"})
+                let menuCards = [];
+                let cards = [];
+                for (let i = 0; i < plays.length; i++) {
+                    const card = plays[i].response;
+                    cards.push({ name: i.toString(), value: card });
+                    menuCards.push({ label: card.slice(0, 100), value: i.toString() });
+                }
+                let embed = new discord_js_1.EmbedBuilder()
+                    .setTitle(`All replies Received, Cardmaster picks their favorite, pick yours while waiting.`)
+                    .setDescription(prompt)
+                    .setColor('Gold')
+                    .addFields(cards);
+                let row = new discord_js_1.ActionRowBuilder()
+                    .addComponents(new discord_js_1.SelectMenuBuilder()
+                    .setCustomId('playcard')
+                    .addOptions(menuCards));
+                interaction.update({ embeds: [embed], components: [row] });
             });
         }
     });

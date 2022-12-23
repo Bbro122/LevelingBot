@@ -15,6 +15,55 @@
     "description": "Create a new Uno Match (InDev)"
   },
   {
+    "name": "rank",
+    "description": "general rank manager",
+    "options": [
+      {
+        "type": 1,
+        "name": "add",
+        "description": "add a new rank",
+        "options": [
+          {
+            "type": 8,
+            "name": "role",
+            "description": "The role added to the ranks",
+            "required": true
+          },
+          {
+            "type": 10,
+            "name": "level",
+            "description": "the level requirement",
+            "required": true
+          },
+          {
+            "type": 5,
+            "name": "persist",
+            "description": "Whether or not the role remains when another rank is reached",
+            "required": true
+          }
+        ]
+      },
+      {
+        "type": 1,
+        "name": "remove",
+        "description": "remove a existing rank",
+        "options": [
+          {
+            "type": 8,
+            "name": "role",
+            "description": "the role to remove",
+            "required": true
+          }
+        ]
+      },
+      {
+        "type": 1,
+        "name": "list",
+        "description": "list the current ranks"
+      }
+    ]
+  },
+  {
     "name": "roleselect",
     "description": "Role select manager",
     "options": [
