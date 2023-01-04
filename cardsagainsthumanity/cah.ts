@@ -109,7 +109,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
                         array.splice(array.indexOf(card), 1)
                       }
                     })
-                    element.response = array
+                    element.response = array as string[]
                   }
                   startTurn(i, game)
                 } else {

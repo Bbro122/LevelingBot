@@ -58,13 +58,15 @@ function strCheck(str: any) {
         return '';
     }
 }
-function checkOwner(interaction: CommandInteraction) {
+function checkOwner(interaction: CommandInteraction, reply?: string) {
     let permissions = interaction.member?.permissions
     if (permissions && typeof permissions != 'string') {
         if (permissions.has(PermissionFlagsBits.Administrator)) {
             return true
         } else {
-            interaction.reply("This command is reserved for Ministry usage only.")
+            if (reply) {
+                interaction.reply("This command is reserved for Ministry usage only.")
+            }
             return false
         }
     }
@@ -614,7 +616,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     break
             }
         }
-    } else if (interaction.isSelectMenu()) {
+    } else if (interaction.isStringSelectMenu()) {
         if (interaction.customId == 'shop') {
             let args = interaction.values[0].split('_')
             let data = xp.get()

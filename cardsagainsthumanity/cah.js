@@ -90,7 +90,7 @@ exports.createGame = function (interaction) {
                     games.push(game);
                 }
                 switch (i.customId) {
-                    case 'join':
+                    case 'join': {
                         if (game.players.find(plr => plr.id === i.user.id)) {
                             yield i.reply({ content: 'You are already in this match.', ephemeral: true });
                         }
@@ -101,33 +101,28 @@ exports.createGame = function (interaction) {
                             embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`);
                             yield i.update({ embeds: [embed] });
                         }
-                        break;
-                    case 'cancel':
-                        collector.stop();
-                        if (i.user.id == interaction.user.id) {
-                            if (game) {
-                                collector.stop();
-                                games.splice(games.indexOf(game), 1);
-                                let cancel = new discord_js_1.EmbedBuilder()
-                                    .setTitle(`Match Cancelled`)
-                                    .setDescription(`Match was cancelled by the host.`)
-                                    .setColor('Red');
-                                yield i.update({ embeds: [cancel], components: undefined });
-                            }
-                            else {
-                                yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
-                            }
-                        }
-                        break;
+                    }
                     case 'start':
-                        if (game.players.length > 1 && i.user.id == interaction.user.id) {
-                            collector.stop();
-                            for (let i = 0; i < game.players.length; i++) {
-                                const element = game.players[i];
-                                let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()];
-                                array.forEach(card => {
-                                    if (typeof card == 'undefined') {
-                                        array.splice(array.indexOf(card), 1);
+                    case 'cancel': {
+                        if (i.user.id == interaction.user.id) {
+                            switch (i.customId) {
+                                case 'start':
+                                    if (game.players.length > 1) {
+                                        collector.stop();
+                                        for (let i = 0; i < game.players.length; i++) {
+                                            const element = game.players[i];
+                                            let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()];
+                                            array.forEach(card => {
+                                                if (typeof card == 'undefined') {
+                                                    array.splice(array.indexOf(card), 1);
+                                                }
+                                            });
+                                            element.response = array;
+                                        }
+                                        startTurn(i, game);
+                                    }
+                                    else {
+                                        yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
                                     }
                                     break;
                                 case 'cancel':
@@ -139,7 +134,10 @@ exports.createGame = function (interaction) {
                         else {
                             i.reply({ ephemeral: true, content: 'You dont control this game.' });
                         }
-                        break;
+                    }
+                    default: {
+                        i.reply({ ephemeral: true, content: 'Invalid Command' });
+                    }
                 }
             }));
         }
@@ -187,31 +185,14 @@ function startTurn(interaction, game) {
                         let card = cards.find(card => card.name == interaction.values[0]);
                         if ((card === null || card === void 0 ? void 0 : card.value) && interaction.customId == 'playcard') {
                             plays.push({ id: interaction.user.id, response: card.value });
-                            interaction.update({ components: undefined, embeds: [], content: 'Successfully played card.' });
+                            interaction.message.edit({ components: undefined, embeds: [], content: 'Successfully played card.' });
                         }
                     }));
                 }
             }));
             collector === null || collector === void 0 ? void 0 : collector.on('end', reason => {
-                console.log('End');
                 //while (plays.length<game.players.length-1) {}
-                let menuCards = [];
-                let cards = [];
-                for (let i = 0; i < plays.length; i++) {
-                    const card = plays[i].response;
-                    cards.push({ name: i.toString(), value: card });
-                    menuCards.push({ label: card.slice(0, 100), value: i.toString() });
-                }
-                let embed = new discord_js_1.EmbedBuilder()
-                    .setTitle(`All replies Received, Cardmaster picks their favorite, pick yours while waiting.`)
-                    .setDescription(prompt)
-                    .setColor('Gold')
-                    .addFields(cards);
-                let row = new discord_js_1.ActionRowBuilder()
-                    .addComponents(new discord_js_1.SelectMenuBuilder()
-                    .setCustomId('playcard')
-                    .addOptions(menuCards));
-                interaction.update({ embeds: [embed], components: [row] });
+                //interaction.message.edit({content:"all replies received"})
             });
         }
     });
