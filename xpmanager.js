@@ -1,10 +1,167 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 let timeouts = [];
 let fs = require('fs');
 let client;
 let multiplier = 1;
+exports.ranks = {};
+function getRanks() {
+    return require('./levelData/ranks.json');
+}
+function rankOf(level) {
+    let ranks = getRanks();
+    let crank = { level: 0, id: undefined };
+    for (let i = 0; i < ranks.rankups.length; i++) {
+        const rank = ranks.rankups[i];
+        if (rank.level <= level && rank.level > crank.level) {
+            crank = rank;
+        }
+    }
+    return crank;
+}
+exports.ranks.remove = function (interaction) {
+    var _a;
+    let ranks = getRanks();
+    let role = (_a = interaction.options.get('role')) === null || _a === void 0 ? void 0 : _a.role;
+    let rank = ranks.persistent.find((rank) => rank.id == (role === null || role === void 0 ? void 0 : role.id));
+    if (rank && rank.persistent) {
+        ranks.persistent.splice(ranks.persistent.indexOf(rank), 1);
+    }
+    else {
+        rank = ranks.rankups.find((rank) => rank.id == (role === null || role === void 0 ? void 0 : role.id));
+        if (rank) {
+            ranks.rankups.splice(ranks.rankups.indexOf(rank), 1);
+        }
+        else {
+            interaction.reply('Existential Dread: operation failed');
+            return;
+        }
+    }
+    fs.writeFileSync('./levelData/ranks.json', JSON.stringify(ranks));
+    interaction.reply('That role will no longer automatically be applied.');
+};
+exports.ranks.add = function (interaction) {
+    var _a, _b, _c, _d;
+    let ranks = getRanks();
+    let role = { persistent: (_a = interaction.options.get('persist')) === null || _a === void 0 ? void 0 : _a.value, level: (_b = interaction.options.get('level')) === null || _b === void 0 ? void 0 : _b.value, id: (_d = (_c = interaction.options.get('role')) === null || _c === void 0 ? void 0 : _c.role) === null || _d === void 0 ? void 0 : _d.id };
+    if (!(ranks.persistent.find(rank => rank.id == role.id) || ranks.rankups.find(rank => rank.id == role.id)) && typeof role.persistent == 'boolean' && typeof role.level == 'number' && typeof role.id == 'string') {
+        if (role.persistent) {
+            ranks.persistent.push(role);
+        }
+        else {
+            ranks.rankups.push(role);
+        }
+        fs.writeFileSync('./levelData/ranks.json', JSON.stringify(ranks));
+        interaction.reply('That role will now automatically be applied.');
+    }
+    else {
+        interaction.reply('That role is already used in the ranking system.');
+    }
+};
+exports.ranks.list = function (interaction) {
+    let ranks = getRanks();
+    let guild = client.guilds.cache.get('632995494305464331');
+    if (guild instanceof discord_js_1.Guild) {
+        let fields = [];
+        ranks.persistent.forEach(rank => {
+            var _a;
+            let role = (_a = guild.roles.cache.get(rank.id)) === null || _a === void 0 ? void 0 : _a.name;
+            role = role ? role : rank.id;
+            fields.push({
+                value: rank.level.toString(), name: role,
+                inline: true
+            });
+        });
+        let persistEmbed = new discord_js_1.EmbedBuilder()
+            .setColor('Aqua')
+            .setTitle('Persistent Ranks')
+            .setDescription('Heres a list of the persistent ranks')
+            .addFields(fields);
+        fields = [];
+        ranks.rankups.sort((a, b) => a.level - b.level);
+        ranks.rankups.forEach(rank => {
+            var _a;
+            let role = (_a = guild.roles.cache.get(rank.id)) === null || _a === void 0 ? void 0 : _a.name;
+            role = role ? role : rank.id;
+            fields.push({
+                value: rank.level.toString(), name: role,
+                inline: true
+            });
+        });
+        let rankupEmbed = new discord_js_1.EmbedBuilder()
+            .setColor('Orange')
+            .setTitle('Heirarchy Ranks')
+            .setDescription('Heres a list of the heirarchy ranks')
+            .addFields(fields);
+        interaction.reply({ embeds: [persistEmbed, rankupEmbed] });
+    }
+};
+exports.ranks.evaluate = function (userID) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let ranks = getRanks();
+        let guild = client.guilds.cache.get('632995494305464331');
+        let data = exports.get();
+        let userData = data.users.find(user => user.id == userID);
+        if (guild && userData) {
+            yield guild.members.fetch();
+            let user = guild.members.cache.get(userID);
+            if (user) {
+                let actualRank = rankOf(userData === null || userData === void 0 ? void 0 : userData.level);
+                let roles = user.roles.cache;
+                for (let i = 0; i < roles.size; i++) {
+                    const element = roles.at(i);
+                    if (element) {
+                        let rank = ranks.persistent.find(rank => rank.id == (element === null || element === void 0 ? void 0 : element.id));
+                        if (rank && element) {
+                            ranks.persistent.splice(i, 1);
+                            if (userData.level < (typeof rank.level == 'number' ? rank.level : 0)) {
+                                try {
+                                    user.roles.remove(element);
+                                }
+                                catch (err) {
+                                    console.log(err);
+                                }
+                            }
+                        }
+                        rank = ranks.rankups.find(rank => rank.id == (element === null || element === void 0 ? void 0 : element.id));
+                        if (rank && element) {
+                            ranks.rankups.splice(i, 1);
+                            if (element.id != actualRank.id) {
+                                try {
+                                    user.roles.remove(element);
+                                }
+                                catch (err) {
+                                    console.log(err);
+                                }
+                            }
+                        }
+                    }
+                }
+                if (typeof actualRank.id == 'string' && !roles.find(role => role.id == actualRank.id)) {
+                    let actualRole = guild.roles.cache.get(actualRank.id);
+                    if (actualRole) {
+                        try {
+                            user.roles.add(actualRole);
+                        }
+                        catch (err) {
+                            console.log(err);
+                        }
+                    }
+                }
+            }
+        }
+    });
+};
 exports.timeouts = function getTimeouts() {
     return timeouts;
 };
@@ -28,6 +185,7 @@ exports.give = function giveXP(msg, amount, check) {
                     user.gems = user.gems + Math.round(10 * 1.05 ** (i + 1));
                 }
                 if (user.level < level) {
+                    exports.ranks.evaluate(user.id);
                     if (msg.channel.id == require('./config.json').server.countchannel) {
                         let gamechannel = client.channels.cache.get(require('./config.json').server.gamechannel);
                         if (gamechannel instanceof discord_js_1.TextChannel) {

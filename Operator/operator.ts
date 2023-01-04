@@ -33,33 +33,9 @@ client.on('ready', async () => {
 })
 client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction instanceof CommandInteraction) {
-        if (interaction.commandName == 'start' && checkOwner(interaction)) {
-            if (server == undefined || server.killed) {
-                await interaction.reply('Operator has started the development bot.')
-                server = fork('./index.js');
-                server.on('message', function (data: Buffer) {
-                    console.log(data.toString());
-                });
-
-                server.on('error', async function (error) {
-                    console.log('Operator instance crashed with ' + error.message);
-                    if (error != null) {
-                        await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${error.message}`)
-                    }
-                });
-            }
-        } else if (interaction.commandName == 'stop' && checkOwner(interaction) && server) {
-            if (!server.killed) {
-                await interaction.reply('Closing current operator instance.')
-                if (server.kill()) {
-                    await interaction.followUp('Operator has closed the bot successfully.')
-                } else {
-                    await interaction.followUp('Operator was unable to properly close the current instance.')
-                }
-            }
-        } else if (interaction.commandName == 'restart' && checkOwner(interaction) && server && !server.killed) {
-            await interaction.reply('Operator has restarted the development bot.')
-            server.kill()
+    if (interaction.commandName == 'start' && checkOwner(interaction)) {
+        if (server == undefined || server.killed) {
+            await interaction.reply('Operator has started the development bot.')
             server = fork('./index.js');
             server.on('message', function (data: Buffer) {
                 console.log(data.toString());
@@ -72,6 +48,30 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 }
             });
         }
+    } else if (interaction.commandName == 'stop' && checkOwner(interaction) && server) {
+        if (!server.killed) {
+            await interaction.reply('Closing current operator instance.')
+            if (server.kill()) {
+                await interaction.followUp('Operator has closed the bot successfully.')
+            } else {
+                await interaction.followUp('Operator was unable to properly close the current instance.')
+            }
+        }
+    } else if (interaction.commandName == 'restart' && checkOwner(interaction) && server && !server.killed) {
+        await interaction.reply('Operator has restarted the development bot.')
+        server.kill()
+        server = fork('./index.js');
+        server.on('message', function (data: Buffer) {
+            console.log(data.toString());
+        });
+
+        server.on('error', async function (code) {
+            console.log('Operator instance crashed with ' + code.message);
+            if (code != null) {
+                await interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code.message}`)
+            }
+        });
     }
+}
 })
 client.login(require('./token.json').token);

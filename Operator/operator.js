@@ -49,51 +49,49 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    if (interaction instanceof discord_js_1.CommandInteraction) {
-        if (interaction.commandName == 'start' && checkOwner(interaction)) {
-            if (server == undefined || server.killed) {
-                yield interaction.reply('Operator has started the development bot.');
-                server = (0, child_process_1.fork)('./index.js');
-                server.on('message', function (data) {
-                    console.log(data.toString());
-                });
-                server.on('error', function (error) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        console.log('Operator instance crashed with ' + error.message);
-                        if (error != null) {
-                            yield interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${error.message}`);
-                        }
-                    });
-                });
-            }
-        }
-        else if (interaction.commandName == 'stop' && checkOwner(interaction) && server) {
-            if (!server.killed) {
-                yield interaction.reply('Closing current operator instance.');
-                if (server.kill()) {
-                    yield interaction.followUp('Operator has closed the bot successfully.');
-                }
-                else {
-                    yield interaction.followUp('Operator was unable to properly close the current instance.');
-                }
-            }
-        }
-        else if (interaction.commandName == 'restart' && checkOwner(interaction) && server && !server.killed) {
-            yield interaction.reply('Operator has restarted the development bot.');
-            server.kill();
+    if (interaction.commandName == 'start' && checkOwner(interaction)) {
+        if (server == undefined || server.killed) {
+            yield interaction.reply('Operator has started the development bot.');
             server = (0, child_process_1.fork)('./index.js');
             server.on('message', function (data) {
                 console.log(data.toString());
             });
-            server.on('error', function (error) {
+            server.on('close', function (code) {
                 return __awaiter(this, void 0, void 0, function* () {
-                    console.log('Operator instance crashed with ' + error.message);
-                    if (error != null) {
-                        yield interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${error.message}`);
+                    console.log('Operator instance crashed with ' + code);
+                    if (code != null) {
+                        yield interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`);
                     }
                 });
             });
         }
+    }
+    else if (interaction.commandName == 'stop' && checkOwner(interaction) && server) {
+        if (!server.killed) {
+            yield interaction.reply('Closing current operator instance.');
+            if (server.kill()) {
+                yield interaction.followUp('Operator has closed the bot successfully.');
+            }
+            else {
+                yield interaction.followUp('Operator was unable to properly close the current instance.');
+            }
+        }
+    }
+    else if (interaction.commandName == 'restart' && checkOwner(interaction) && server && !server.killed) {
+        yield interaction.reply('Operator has restarted the development bot.');
+        server.kill();
+        server = (0, child_process_1.fork)('./index.js');
+        server.on('message', function (data) {
+            console.log(data.toString());
+        });
+        server.on('close', function (code) {
+            return __awaiter(this, void 0, void 0, function* () {
+                console.log('Operator instance crashed with ' + code);
+                if (code != null) {
+                    yield interaction.followUp(`Operator detected a bot crash.\n**Error Code:** ${code}`);
+                }
+            });
+        });
     }
 }));
 client.login(require('./token.json').token);
