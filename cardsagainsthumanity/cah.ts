@@ -82,53 +82,55 @@ exports.createGame = async function (interaction: CommandInteraction) {
         game.players.push(new Player(game.host, game))
         games.push(game)
       }
-      if (i.customId == 'join') {
-        console.log(game.players)
-        console.log(i.user.id)
-        if (game.players.find(plr => plr.id === i.user.id)) {
-          await i.reply({ content: 'You are already in this match.', ephemeral: true })
-        } else if (i.member instanceof GuildMember) {
-          game.players.push(new Player(i.user.id, game))
-          let user = require('../userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
-          embed?.addFields({ name: i.member?.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false })
-          embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
-          await i.update({ embeds: [embed] })
+      switch (i.customId) {
+        case 'join': {
+          if (game.players.find(plr => plr.id === i.user.id)) {
+            await i.reply({ content: 'You are already in this match.', ephemeral: true })
+          } else if (i.member instanceof GuildMember) {
+            game.players.push(new Player(i.user.id, game))
+            let user = require('../userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
+            embed?.addFields({ name: i.member?.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false })
+            embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
+            await i.update({ embeds: [embed] })
+          }
         }
-      } else if (i.user?.id == game.host) {
-        if (i.customId == 'cancel') {
+        case 'start':
+        case 'cancel': {
           if (i.user.id == interaction.user.id) {
-            if (game) {
-              games.splice(games.indexOf(game), 1)
-            } else {
-              await i.reply({ content: "Only the host can perform this action", ephemeral: true })
-            }
-          }
-        } else if (i.customId == 'start') {
-          if (game.players.length > 1) {
-            collector.stop()
-            for (let i = 0; i < game.players.length; i++) {
-              const element = game.players[i];
-              let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
-              array.forEach(card => {
-                if (typeof card == 'undefined') {
-                  array.splice(array.indexOf(card), 1)
+            switch (i.customId) {
+              case 'start':
+                if (game.players.length > 1) {
+                  collector.stop()
+                  for (let i = 0; i < game.players.length; i++) {
+                    const element = game.players[i];
+                    let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
+                    array.forEach(card => {
+                      if (typeof card == 'undefined') {
+                        array.splice(array.indexOf(card), 1)
+                      }
+                    })
+                    element.response = array
+                  }
+                  startTurn(i, game)
+                } else {
+                  await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
                 }
-              })
-              element.response = array
+                break;
+            
+              case 'cancel':
+                cahChan.delete('Game cancelled')
+                games.splice(games.indexOf(game), 1)
+                break;
             }
-            startTurn(i, game)
           } else {
-            await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
+            i.reply({ ephemeral: true, content: 'You dont control this game.' })
           }
-          cahChan.delete('Game cancelled')
-          games.splice(games.indexOf(game), 1)
-        } else {
-          await i.reply({ content: "Only the host can perform this action", ephemeral: true })
         }
-      } else {
-        await i.reply({ content: 'Command is only available to host', ephemeral: true })
+        default: {
+          i.reply({ ephemeral: true, content: 'Invalid Command' })
+        }
       }
-      })
+    })
   } else {
     interaction.reply('Could not find cah forum.')
   }

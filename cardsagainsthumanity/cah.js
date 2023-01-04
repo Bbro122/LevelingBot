@@ -52,15 +52,15 @@ class Game {
     }
 }
 class Player {
-    constructor(identification, game) {
-        this.identification = identification;
+    constructor(identifier, game) {
+        this.identifier = identifier;
         this.game = game;
         let response = [];
         for (let i = 0; i < 7; i++) {
             const element = game.responseDeck.pop();
             response.push(element ? element : '');
         }
-        this.id = identification;
+        this.id = identifier;
         this.prompt = [];
         this.response = response;
     }
@@ -82,73 +82,62 @@ exports.createGame = function (interaction) {
             interaction.reply(`[InDev] Cards Against Humanity starting in <#${cahChan.id}>`);
             const collector = cahChan === null || cahChan === void 0 ? void 0 : cahChan.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button });
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
-                var _b, _c;
+                var _b;
                 console.log('received');
                 if (!game) {
                     game = new Game(interaction, i.message);
-                    game.players.push(new Player(i.user.id, game));
+                    game.players.push(new Player(game.host, game));
                     games.push(game);
                 }
-                if (i.customId == 'join') {
-                    console.log(game.players);
-                    if (game.players.find(plr => plr.id == i.user.id)) {
-                        yield i.reply({ content: 'You are already in this match.', ephemeral: true });
-                    }
-                    else if (i.member instanceof discord_js_1.GuildMember) {
-                        game.players.push(new Player(i.user.id, game));
-                        let user = require('../userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
-                        embed === null || embed === void 0 ? void 0 : embed.addFields({ name: (_b = i.member) === null || _b === void 0 ? void 0 : _b.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false });
-                        embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`);
-                        yield i.update({ embeds: [embed] });
-                    }
-                }
-                else if (((_c = i.user) === null || _c === void 0 ? void 0 : _c.id) == game.host) {
-                    if (i.customId == 'cancel') {
-                        if (i.user.id == interaction.user.id) {
-                            if (game) {
-                                games.splice(games.indexOf(game), 1);
-                            }
-                            else {
-                                yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
-                            }
+                switch (i.customId) {
+                    case 'join': {
+                        if (game.players.find(plr => plr.id === i.user.id)) {
+                            yield i.reply({ content: 'You are already in this match.', ephemeral: true });
+                        }
+                        else if (i.member instanceof discord_js_1.GuildMember) {
+                            game.players.push(new Player(i.user.id, game));
+                            let user = require('../userdata.json').users.find((user) => { var _a; return user.id == ((_a = i.user) === null || _a === void 0 ? void 0 : _a.id); });
+                            embed === null || embed === void 0 ? void 0 : embed.addFields({ name: (_b = i.member) === null || _b === void 0 ? void 0 : _b.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false });
+                            embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`);
+                            yield i.update({ embeds: [embed] });
                         }
                     }
-                    else if (i.customId == 'start') {
-                        if (game.players.length > 1) {
-                            collector.stop();
-                            for (let i = 0; i < game.players.length; i++) {
-                                const element = game.players[i];
-                                let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()];
-                                array.forEach(card => {
-                                    if (typeof card == 'undefined') {
-                                        array.splice(array.indexOf(card), 1);
+                    case 'start':
+                    case 'cancel': {
+                        if (i.user.id == interaction.user.id) {
+                            switch (i.customId) {
+                                case 'start':
+                                    if (game.players.length > 1) {
+                                        collector.stop();
+                                        for (let i = 0; i < game.players.length; i++) {
+                                            const element = game.players[i];
+                                            let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()];
+                                            array.forEach(card => {
+                                                if (typeof card == 'undefined') {
+                                                    array.splice(array.indexOf(card), 1);
+                                                }
+                                            });
+                                            element.response = array;
+                                        }
+                                        startTurn(i, game);
                                     }
-                                });
-                                element.response = array;
+                                    else {
+                                        yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
+                                    }
+                                    break;
+                                case 'cancel':
+                                    cahChan.delete('Game cancelled');
+                                    games.splice(games.indexOf(game), 1);
+                                    break;
                             }
-                            startTurn(i, game);
                         }
                         else {
-                            yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
+                            i.reply({ ephemeral: true, content: 'You dont control this game.' });
                         }
-                        cahChan.delete('Game cancelled');
-                        games.splice(games.indexOf(game), 1);
                     }
-                    else {
-                        yield i.reply({ content: "Only the host can perform this action", ephemeral: true });
+                    default: {
+                        i.reply({ ephemeral: true, content: 'Invalid Command' });
                     }
-                }
-                else if (i.customId == 'start') {
-                    if (game.players.length > 1) {
-                        collector.stop();
-                        startTurn(i, game);
-                    }
-                    else {
-                        yield i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true });
-                    }
-                }
-                else {
-                    yield i.reply({ content: 'Command is only available to host', ephemeral: true });
                 }
             }));
         }
