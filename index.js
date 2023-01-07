@@ -346,7 +346,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         let embed = new discord_js_1.EmbedBuilder()
                             .setTitle('XP Leaderboard')
                             .addFields(fields);
-                        reply.embed(interaction, embed);
+                        interaction.reply({ embeds: [embed] });
                     }
                     else {
                         let data = xp.get().users.sort((a, b) => { return b.gems - a.gems; });
@@ -362,7 +362,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         let embed = new discord_js_1.EmbedBuilder()
                             .setTitle('Gem Leaderboard')
                             .addFields(fields);
-                        reply.embed(interaction, embed);
+                        interaction.reply({ embeds: [embed] });
                     }
                 }
                 break;
@@ -714,7 +714,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             }
         }
     }
-    else if (interaction.isStringSelectMenu()) {
+    else if (interaction.isSelectMenu()) {
         if (interaction.customId == 'shop') {
             let args = interaction.values[0].split('_');
             let data = xp.get();
