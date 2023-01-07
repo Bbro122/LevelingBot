@@ -113,10 +113,6 @@ function dispBoard(hands, game, hidden) {
         return canvas.toBuffer();
     });
 }
-function newGame(msg, host) {
-    var _a;
-    return { id: ((_a = msg.thread) === null || _a === void 0 ? void 0 : _a.id) ? msg.thread.id : '', msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host };
-}
 function newPlayer(plr) {
     return { "id": plr, "hand": [] };
 }
@@ -280,6 +276,7 @@ function startTurn(interaction, game) {
                 let collector = (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, max: 1 });
                 collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
                     var _h, _j, _k, _l, _m;
+                    let embed;
                     if (interaction.values[0] !== 'draw') {
                         game.forceColor = undefined;
                         player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
@@ -289,13 +286,21 @@ function startTurn(interaction, game) {
                                 .setTitle(`Game Over`)
                                 .setDescription(`${interaction.user.username} has won the game.`);
                             yield ((_h = game.msg) === null || _h === void 0 ? void 0 : _h.channel.send({ embeds: [embed] }));
+                            games.splice(games.findIndex(gam => gam == game), 1);
                         }
-                        games.splice(games.findIndex(gam => gam == game), 1);
+                        embed = new discord_js_2.EmbedBuilder()
+                            .setColor('Green')
+                            .setTitle(`Round ${game.round + 1}`)
+                            .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
+                            .setThumbnail(`attachment://board.png`);
                     }
-                    let embed = new discord_js_2.EmbedBuilder()
-                        .setTitle(`Round ${game.round + 1}`)
-                        .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
-                        .setThumbnail(`attachment://board.png`);
+                    else {
+                        embed = new discord_js_2.EmbedBuilder()
+                            .setColor('Red')
+                            .setTitle(`Round ${game.round + 1}`)
+                            .setDescription(`${interaction.user.username} Drew a card`)
+                            .setThumbnail(`attachment://board.png`);
+                    }
                     if (interaction.values[0].startsWith('w')) {
                         let row = new discord_js_1.ActionRowBuilder()
                             .addComponents(new discord_js_1.ButtonBuilder()

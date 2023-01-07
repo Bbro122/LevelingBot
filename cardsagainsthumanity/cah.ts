@@ -50,13 +50,13 @@ class Player {
   id: string;
   prompt: string[];
   response: string[];
-  constructor(public identification: string, public game: Game) {
+  constructor(public identifier: string, public game: Game) {
     let response = []
     for (let i = 0; i < 7; i++) {
       const element = game.responseDeck.pop()
       response.push(element ? element : '')
     }
-    this.id = identification
+    this.id = identifier
     this.prompt = []
     this.response = response
   }
@@ -83,7 +83,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
         games.push(game)
       }
       switch (i.customId) {
-        case 'join':
+        case 'join': {
           if (game.players.find(plr => plr.id === i.user.id)) {
             await i.reply({ content: 'You are already in this match.', ephemeral: true })
           } else if (i.member instanceof GuildMember) {
@@ -93,41 +93,42 @@ exports.createGame = async function (interaction: CommandInteraction) {
             embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
             await i.update({ embeds: [embed] })
           }
-          break
-        case 'cancel':
-          collector.stop()
-          if (i.user.id == interaction.user.id) {
-            if (game) {
-              collector.stop()
-              games.splice(games.indexOf(game), 1)
-              let cancel = new EmbedBuilder()
-                .setTitle(`Match Cancelled`)
-                .setDescription(`Match was cancelled by the host.`)
-                .setColor('Red')
-              await i.update({ embeds: [cancel], components: undefined })
-            } else {
-              await i.reply({ content: "Only the host can perform this action", ephemeral: true })
-            }
-          }
-          break
+        }
         case 'start':
-          if (game.players.length > 1&&i.user.id == interaction.user.id) {
-            collector.stop()
-            for (let i = 0; i < game.players.length; i++) {
-              const element = game.players[i];
-              let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
-              array.forEach(card => {
-                if (typeof card == 'undefined') {
-                  array.splice(array.indexOf(card), 1)
+        case 'cancel': {
+          if (i.user.id == interaction.user.id) {
+            switch (i.customId) {
+              case 'start':
+                if (game.players.length > 1) {
+                  collector.stop()
+                  for (let i = 0; i < game.players.length; i++) {
+                    const element = game.players[i];
+                    let array = [game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop(), game.responseDeck.pop()]
+                    array.forEach(card => {
+                      if (typeof card == 'undefined') {
+                        array.splice(array.indexOf(card), 1)
+                      }
+                    })
+                    element.response = array as string[]
+                  }
+                  startTurn(i, game)
+                } else {
+                  await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
                 }
-              })
-              element.response = array as string[]
+                break;
+            
+              case 'cancel':
+                cahChan.delete('Game cancelled')
+                games.splice(games.indexOf(game), 1)
+                break;
             }
-            startTurn(i, game)
           } else {
-            await i.reply({ content: "There must be more than 1 player for the game to start", ephemeral: true })
+            i.reply({ ephemeral: true, content: 'You dont control this game.' })
           }
-          break
+        }
+        default: {
+          i.reply({ ephemeral: true, content: 'Invalid Command' })
+        }
       }
     })
   } else {
@@ -171,32 +172,14 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
           let card = cards.find(card => card.name == interaction.values[0])
           if (card?.value && interaction.customId == 'playcard') {
             plays.push({ id: interaction.user.id, response: card.value })
-            interaction.update({ components: undefined, embeds: [], content: 'Successfully played card.' })
+            interaction.message.edit({ components: undefined, embeds: [], content: 'Successfully played card.' })
           }
         })
       }
     })
     collector?.on('end', reason => {
-      console.log('End')
       //while (plays.length<game.players.length-1) {}
-      let  menuCards = []
-      let cards: { name: string; value: string; }[] = []
-      for (let i = 0; i < plays.length; i++) {
-        const card = plays[i].response
-        cards.push({ name: i.toString(), value: card })
-        menuCards.push({ label: card.slice(0, 100), value: i.toString() })
-      }
-      let embed = new EmbedBuilder()
-      .setTitle(`All replies Received, Cardmaster picks their favorite, pick yours while waiting.`)
-      .setDescription(prompt)
-      .setColor('Gold')
-      .addFields(cards)
-      let row = new ActionRowBuilder<SelectMenuBuilder>()
-      .addComponents(new SelectMenuBuilder()
-        .setCustomId('playcard')
-        .addOptions(menuCards)
-      )
-      interaction.update({embeds:[embed],components: [row]})
+      //interaction.message.edit({content:"all replies received"})
     })
   }
 }

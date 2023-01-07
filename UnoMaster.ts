@@ -101,11 +101,6 @@ async function dispBoard(hands: (string | undefined)[][], game: Game, hidden: bo
   }
   return canvas.toBuffer()
 }
-
-function newGame(msg: Message, host: string) {
-  return { id: msg.thread?.id ? msg.thread.id : '', msg: msg, deck: newDeck, players: [newPlayer(host)], round: 0, inLobby: true, timeouts: [], host: host }
-}
-
 function newPlayer(plr: string) {
   return { "id": plr, "hand": [] }
 }
@@ -259,6 +254,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
       })
       let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, max: 1 })
       collector?.on('collect', async interaction => {
+        let embed:EmbedBuilder
         if (interaction.values[0] !== 'draw') {
           game.forceColor = undefined
           player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1)
@@ -268,13 +264,20 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
               .setTitle(`Game Over`)
               .setDescription(`${interaction.user.username} has won the game.`)
             await game.msg?.channel.send({ embeds: [embed] })
+            games.splice(games.findIndex(gam => gam == game), 1)
           }
-          games.splice(games.findIndex(gam => gam == game), 1)
-        }
-        let embed = new EmbedBuilder()
+          embed = new EmbedBuilder()
+          .setColor('Green')
           .setTitle(`Round ${game.round + 1}`)
           .setDescription(`${interaction.user.username} Played a ${getLabel(interaction.values[0])}`)
           .setThumbnail(`attachment://board.png`)
+        } else {
+          embed = new EmbedBuilder()
+          .setColor('Red')
+          .setTitle(`Round ${game.round + 1}`)
+          .setDescription(`${interaction.user.username} Drew a card`)
+          .setThumbnail(`attachment://board.png`)
+        }
         if (interaction.values[0].startsWith('w')) {
           let row = new ActionRowBuilder<ButtonBuilder>()
             .addComponents(
