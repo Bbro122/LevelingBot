@@ -113,7 +113,25 @@
   },
   {
     "name": "leaderboard",
-    "description": "display the top 10 users"
+    "description": "display the top 10 users",
+    "options": [
+      {
+        "type": 3,
+        "name": "type",
+        "description": "Choose which leaderboard to display",
+        "choices": [
+          {
+            "name": "Gems",
+            "value": "gems"
+          },
+          {
+            "name": "Xp",
+            "value": "xp"
+          }
+        ],
+        "required": true
+      }
+    ]
   },
   {
     "name": "publicshop",

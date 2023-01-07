@@ -184,6 +184,9 @@ exports.setup = function Client(client1: Client) {
 exports.give = function giveXP(msg: { author: User, channel: TextChannel }, amount: number, check: boolean) {
     function give() {
         if (client instanceof Client) {
+            if (msg.channel.guild.members.cache.get(msg.author.id)?.roles.cache.has('1059615940129595416')) {
+                amount = amount * 2
+            }
             let data: UserData = exports.get()
             let user = data.users.find(user => user.id == msg.author.id)
             if (user) {

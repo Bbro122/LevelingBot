@@ -288,10 +288,10 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 break;
             case 'create': {
                 require('./UnoMaster.js').startNewGame(interaction)
-            }
-                break
+            } break
             case 'leaderboard': {
                 await interaction.guild?.members.fetch()
+                if (interaction.options.get('type')?.value=='xp') {
                 let data = xp.get().users.sort((a, b) => { return b.xp - a.xp })
                 let fields: APIEmbedField[] = []
                 for (let i = 0; i <= 9; i++) {
@@ -304,7 +304,24 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 let embed = new EmbedBuilder()
                     .setTitle('XP Leaderboard')
                     .addFields(fields)
+
                 reply.embed(interaction, embed)
+            } else {
+                let data = xp.get().users.sort((a, b) => { return b.gems - a.gems })
+                let fields: APIEmbedField[] = []
+                for (let i = 0; i <= 9; i++) {
+                    if (interaction.guild?.members.cache.get(data[i].id)) {
+                        fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${interaction.guild.members.cache.get(data[i].id)?.displayName} (${data[i].level})`, "value": `Gems: ${data[i].gems}`, "inline": false })
+                    } else {
+                        fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Gems: ${data[i].gems}`, "inline": false })
+                    }
+                }
+                let embed = new EmbedBuilder()
+                    .setTitle('Gem Leaderboard')
+                    .addFields(fields)
+
+                reply.embed(interaction, embed)
+            }
             }
                 break
             case 'daily': {

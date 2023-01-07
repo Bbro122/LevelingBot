@@ -172,7 +172,11 @@ exports.setup = function Client(client1) {
 };
 exports.give = function giveXP(msg, amount, check) {
     function give() {
+        var _a;
         if (client instanceof discord_js_1.Client) {
+            if ((_a = msg.channel.guild.members.cache.get(msg.author.id)) === null || _a === void 0 ? void 0 : _a.roles.cache.has('1059615940129595416')) {
+                amount = amount * 2;
+            }
             let data = exports.get();
             let user = data.users.find(user => user.id == msg.author.id);
             if (user) {

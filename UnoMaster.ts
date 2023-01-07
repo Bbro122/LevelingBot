@@ -151,7 +151,7 @@ exports.startNewGame = async function startNewGame(interaction: CommandInteracti
       .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/4 players have joined`)
       .setColor('Gold')
       .setThumbnail(`https://cdn.discordapp.com/attachments/758884272572071944/971648962505351198/logo.png`)
-      .addFields([{ name: member.displayName, value: `Level ${require('./userdata.json').users.find((user: UserProfile) => user.id = interaction.user.id).level}` }])
+      .addFields([{ name: member.displayName, value: `Level ${require('./userdata.json').users.find((user: UserProfile) => user.id == interaction.user.id).level}` }])
     let gameChan = await unochan.threads.create({ name: `${interaction.user.username}s-uno-match`, message: { embeds: [embed], components: [createButtons([{ string: "🎮 Join Match", id: "join", style: ButtonStyle.Success }, { string: "Start Match", id: "start", style: ButtonStyle.Success, emoji: "814199679704891423" }, { string: "Cancel Match", id: "cancel", style: ButtonStyle.Danger, emoji: "814199666778308638" }])] } })
     interaction.reply(`[InDev] Game starting in <#${gameChan.id}>`)
     const collector = gameChan?.createMessageComponentCollector({ componentType: ComponentType.Button })
