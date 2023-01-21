@@ -23,7 +23,7 @@ exports.selGame = function selectGame() {
     }
 }
 exports.math = function math() {
-    miniTimer = setTimeout(() => exports.selGame(), 7200000)
+    miniTimer = setTimeout(() => exports.selGame(), 3600000)
     let time = new Date().getHours()
     if (time >= 7 && time <= 22) {
         let termCount = randomize(2, require('./config.json').server.maxTerms)
@@ -49,7 +49,7 @@ exports.math = function math() {
     }
 }
 exports.trivia = async function trivia() {
-    miniTimer = setTimeout(() => {exports.selGame()}, 7200000)
+    miniTimer = setTimeout(() => {exports.selGame()}, 3600000)
     let time = new Date().getHours()
     if (time >= 7 && time <= 22) {
         let question = (await axios.get('https://the-trivia-api.com/api/questions?limit=1&difficulty=easy')).data[0]
@@ -78,9 +78,9 @@ exports.trivia = async function trivia() {
         )
         if (channel) {
             channel.send({embeds: [embed],components: [row] }).then(msg => {
-                setTimeout(() => {msg.edit({components:undefined})}, 7200000)
+                setTimeout(() => {msg.edit({components:undefined})}, 3600000)
             })
-            let collector = channel.createMessageComponentCollector({time:7200000})
+            let collector = channel.createMessageComponentCollector({time:3600000})
             let users:string[] = []
             collector.on('collect', interaction => {
                 if (users.includes(interaction.user.id)) {
@@ -101,7 +101,7 @@ exports.trivia = async function trivia() {
     }
 }
 exports.scramble = function scramble() {
-    miniTimer = setTimeout(() => exports.selGame(), 7200000)
+    miniTimer = setTimeout(() => exports.selGame(), 3600000)
     let time = new Date().getHours()
     if (time >= 7 && time <= 22) {
         let words: string[] = require('./scramble.json')
