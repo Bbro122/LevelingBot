@@ -196,6 +196,7 @@ client.on('guildMemberUpdate', (oldMember, newMember) => {
 });
 client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
+    require('./poll.js').setup(client);
     client.guilds.cache.forEach((guild) => __awaiter(void 0, void 0, void 0, function* () {
         var _d;
         yield guild.members.fetch();
@@ -265,6 +266,11 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
     var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
+            case 'createpoll':
+                {
+                    require('./poll.js').createPoll(interaction);
+                }
+                break;
             case 'overwatch':
                 {
                     interaction.deferReply();
@@ -764,6 +770,9 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 reply.error(interaction, 'A booster is already active.');
             }
         }
+    }
+    else if (interaction.isButton()) {
+        require('./poll').vote(interaction);
     }
 }));
 client.login(config.server.token);

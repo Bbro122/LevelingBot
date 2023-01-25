@@ -175,6 +175,7 @@ client.on('guildMemberUpdate', (oldMember, newMember) => {
     }
 })
 client.on('ready', async () => {
+    require('./poll.js').setup(client)
     client.guilds.cache.forEach(async guild => {
         await guild.members.fetch()
         let members = 0
@@ -235,6 +236,9 @@ client.on('messageCreate', async (msg: Message) => {
 client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
+            case 'createpoll': {
+                require('./poll.js').createPoll(interaction)
+            } break
             case 'overwatch': {
                 interaction.deferReply()
                 let data = await axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today')
@@ -677,6 +681,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 reply.error(interaction, 'A booster is already active.')
             }
         }
+    } else if (interaction.isButton()) {
+        require('./poll').vote(interaction)
     }
 })
 client.login(config.server.token);

@@ -11,6 +11,36 @@
     ]
   },
   {
+    "name": "createpoll",
+    "description": "Create a new poll",
+    "options": [
+      {
+        "type": 7,
+        "name": "channel",
+        "description": "the poll channel",
+        "required": true
+      },
+      {
+        "type": 3,
+        "name": "time",
+        "description": "Ex- \"1d\" \"1s\" \"1m\"",
+        "required": true
+      },
+      {
+        "type": 3,
+        "name": "title",
+        "description": "poll title",
+        "required": true
+      },
+      {
+        "type": 3,
+        "name": "description",
+        "description": "options for the poll",
+        "required": true
+      }
+    ]
+  },
+  {
     "name": "create",
     "description": "Create a new Uno Match (InDev)"
   },
