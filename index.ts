@@ -236,9 +236,6 @@ client.on('messageCreate', async (msg: Message) => {
 client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
-            case 'createpoll': {
-                require('./poll.js').createPoll(interaction)
-            } break
             case 'overwatch': {
                 interaction.deferReply()
                 let data = await axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today')
@@ -522,6 +519,9 @@ client.on('interactionCreate', async (interaction: Interaction) => {
         }
         if (checkOwner(interaction)) {
             switch (interaction.commandName) {
+                case 'createpoll': {
+                    require('./poll.js').createPoll(interaction)
+                } break
                 case 'rank': {
                     switch (interaction.options.getSubcommand()) {
                         case 'list': {

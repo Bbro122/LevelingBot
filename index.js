@@ -266,11 +266,6 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
     var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
-            case 'createpoll':
-                {
-                    require('./poll.js').createPoll(interaction);
-                }
-                break;
             case 'overwatch':
                 {
                     interaction.deferReply();
@@ -586,6 +581,11 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         }
         if (checkOwner(interaction)) {
             switch (interaction.commandName) {
+                case 'createpoll':
+                    {
+                        require('./poll.js').createPoll(interaction);
+                    }
+                    break;
                 case 'rank':
                     {
                         switch (interaction.options.getSubcommand()) {
