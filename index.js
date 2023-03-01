@@ -263,28 +263,41 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
+    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3;
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
-            case 'overwatch':
+            case 'addbounty':
                 {
-                    interaction.deferReply();
-                    let data = yield axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today');
-                    let modes = data.data.data.modes;
-                    let fields = [];
-                    modes.forEach((mode) => {
-                        fields.push({ name: mode.name, value: mode.description });
-                    });
-                    let embed = new discord_js_1.EmbedBuilder()
-                        .addFields(fields)
-                        .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
-                        .setTitle('Overwatch Arcade Today');
-                    interaction.editReply({ embeds: [embed] });
+                    console.log("1");
+                    let username = (_g = interaction.options.get('username')) === null || _g === void 0 ? void 0 : _g.value;
+                    if (typeof username == 'string' && username.length >= 3) {
+                        console.log("2");
+                        let uuid;
+                        try {
+                            console.log("3");
+                            uuid = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+                            uuid = uuid.data.id;
+                        }
+                        catch (error) {
+                            interaction.reply('**Error**: Username not found or API is down.');
+                            return;
+                        }
+                        if (uuid) {
+                            console.log("4");
+                            yield interaction.reply(uuid);
+                            let hypixelresponse = yield axios.get(`https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=${uuid}`);
+                            yield interaction.followUp(hypixelresponse.data.player.lastLogin.toString());
+                        }
+                        else {
+                            interaction.reply(`Failure\n${uuid}`);
+                        }
+                    }
                 }
+                //https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=2cbf357d50384115a868e4dfd6c7538b
                 break;
             case 'boostingsince':
                 {
-                    let member = (_g = interaction.options.get('user')) === null || _g === void 0 ? void 0 : _g.member;
+                    let member = (_h = interaction.options.get('user')) === null || _h === void 0 ? void 0 : _h.member;
                     if (member instanceof discord_js_1.GuildMember) {
                         interaction.reply(member.premiumSinceTimestamp ? member.premiumSinceTimestamp.toString() : '0');
                     }
@@ -299,7 +312,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     yield interaction.deferReply();
                     let data = xp.get();
                     let user;
-                    let member = (_h = interaction.options.get('user')) === null || _h === void 0 ? void 0 : _h.member;
+                    let member = (_j = interaction.options.get('user')) === null || _j === void 0 ? void 0 : _j.member;
                     if (member instanceof discord_js_1.GuildMember) {
                         user = data.users.find(user => { var _a; return user.id == ((_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.value); });
                     }
@@ -332,13 +345,13 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 break;
             case 'leaderboard':
                 {
-                    yield ((_j = interaction.guild) === null || _j === void 0 ? void 0 : _j.members.fetch());
-                    if (((_k = interaction.options.get('type')) === null || _k === void 0 ? void 0 : _k.value) == 'xp') {
+                    yield ((_k = interaction.guild) === null || _k === void 0 ? void 0 : _k.members.fetch());
+                    if (((_l = interaction.options.get('type')) === null || _l === void 0 ? void 0 : _l.value) == 'xp') {
                         let data = xp.get().users.sort((a, b) => { return b.xp - a.xp; });
                         let fields = [];
                         for (let i = 0; i <= 9; i++) {
-                            if ((_l = interaction.guild) === null || _l === void 0 ? void 0 : _l.members.cache.get(data[i].id)) {
-                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_m = interaction.guild.members.cache.get(data[i].id)) === null || _m === void 0 ? void 0 : _m.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false });
+                            if ((_m = interaction.guild) === null || _m === void 0 ? void 0 : _m.members.cache.get(data[i].id)) {
+                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_o = interaction.guild.members.cache.get(data[i].id)) === null || _o === void 0 ? void 0 : _o.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false });
                             }
                             else {
                                 fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Xp: ${data[i].xp}`, "inline": false });
@@ -353,8 +366,8 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         let data = xp.get().users.sort((a, b) => { return b.gems - a.gems; });
                         let fields = [];
                         for (let i = 0; i <= 9; i++) {
-                            if ((_o = interaction.guild) === null || _o === void 0 ? void 0 : _o.members.cache.get(data[i].id)) {
-                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_p = interaction.guild.members.cache.get(data[i].id)) === null || _p === void 0 ? void 0 : _p.displayName} (${data[i].level})`, "value": `Gems: ${data[i].gems}`, "inline": false });
+                            if ((_p = interaction.guild) === null || _p === void 0 ? void 0 : _p.members.cache.get(data[i].id)) {
+                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_q = interaction.guild.members.cache.get(data[i].id)) === null || _q === void 0 ? void 0 : _q.displayName} (${data[i].level})`, "value": `Gems: ${data[i].gems}`, "inline": false });
                             }
                             else {
                                 fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Gems: ${data[i].gems}`, "inline": false });
@@ -398,7 +411,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 break;
             case 'flip':
                 {
-                    let bet = (_q = interaction.options.get('amount')) === null || _q === void 0 ? void 0 : _q.value;
+                    let bet = (_r = interaction.options.get('amount')) === null || _r === void 0 ? void 0 : _r.value;
                     let data = xp.get();
                     let user = data.users.find(prof => prof.id == interaction.user.id);
                     let timeout = xp.timeouts().find(timeout => timeout.id == interaction.user.id && timeout.type == 'flipCD');
@@ -432,7 +445,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 {
                     let data = xp.get();
                     let user;
-                    if ((_r = interaction.options.get('user')) === null || _r === void 0 ? void 0 : _r.user) {
+                    if ((_s = interaction.options.get('user')) === null || _s === void 0 ? void 0 : _s.user) {
                         user = data.users.find(user => { var _a, _b; return user.id == ((_b = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id); });
                         if (user) {
                             interaction.reply(`<a:showoff:1004215186439274516> They have ${user.gems} gems.`);
@@ -490,9 +503,9 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         // )
                         embed.setFields(fields);
                         interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-                        let collector = (_s = interaction.channel) === null || _s === void 0 ? void 0 : _s.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
+                        let collector = (_t = interaction.channel) === null || _t === void 0 ? void 0 : _t.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
                         collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(void 0, void 0, void 0, function* () {
-                            var _3;
+                            var _4;
                             if (i.customId == 'namecard') {
                                 let embed = new discord_js_1.EmbedBuilder()
                                     .setTitle('Namecard Inventory')
@@ -502,7 +515,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                     .setCustomId('usenamecard')
                                     .addOptions(nameoptions));
                                 i.reply({ embeds: [embed], components: [row], ephemeral: true });
-                                let collect = (_3 = i.channel) === null || _3 === void 0 ? void 0 : _3.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
+                                let collect = (_4 = i.channel) === null || _4 === void 0 ? void 0 : _4.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
                                 if (collect) {
                                     collect.on('collect', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
                                         let data = xp.get();
@@ -540,7 +553,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 break;
             case 'rule':
                 {
-                    let rule = strCheck((_t = interaction.options.get('rule')) === null || _t === void 0 ? void 0 : _t.value);
+                    let rule = strCheck((_u = interaction.options.get('rule')) === null || _u === void 0 ? void 0 : _u.value);
                     let embed = new discord_js_1.EmbedBuilder()
                         .setTitle(interaction.options.getSubcommand())
                         .setDescription(rule);
@@ -550,7 +563,14 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             case 'cat':
                 {
                     yield interaction.deferReply();
-                    let cat = yield axios.get('https://api.thecatapi.com/v1/images/search');
+                    let cat;
+                    try {
+                        cat = yield axios.get('https://api.thecatapi.com/v1/images/search');
+                    }
+                    catch (error) {
+                        interaction.editReply({ content: "Could not find any cats to show." });
+                        return;
+                    }
                     let url = cat.data[0].url;
                     const attachment = new discord_js_1.AttachmentBuilder(url);
                     interaction.editReply({ files: [attachment] });
@@ -559,7 +579,14 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             case 'dog':
                 {
                     yield interaction.deferReply();
-                    let cat = yield axios.get('https://dog.ceo/api/breeds/image/random');
+                    let cat;
+                    try {
+                        cat = yield axios.get('https://dog.ceo/api/breeds/image/random');
+                    }
+                    catch (error) {
+                        interaction.editReply({ content: "Could not find any dogs to show." });
+                        return;
+                    }
                     let url = cat.data.message;
                     const attachment = new discord_js_1.AttachmentBuilder(url);
                     interaction.editReply({ files: [attachment] });
@@ -568,8 +595,15 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             case 'joke':
                 {
                     yield interaction.deferReply();
-                    let jokes = yield axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt');
-                    let joke = jokes.data;
+                    let cat;
+                    try {
+                        cat = yield axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt');
+                    }
+                    catch (error) {
+                        interaction.editReply({ content: "Could not find any jokes to show." });
+                        return;
+                    }
+                    let joke = cat.data;
                     interaction.editReply({ content: joke });
                 }
                 break;
@@ -609,7 +643,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     break;
                 case 'function':
                     {
-                        let func = (_u = interaction.options.get('user')) === null || _u === void 0 ? void 0 : _u.value;
+                        let func = (_v = interaction.options.get('user')) === null || _v === void 0 ? void 0 : _v.value;
                         if (typeof func == 'string') {
                             eval(func);
                         }
@@ -617,15 +651,15 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     break;
                 case 'game':
                     {
-                        if (((_v = interaction.options.get('type')) === null || _v === void 0 ? void 0 : _v.value) == 'scramble') {
+                        if (((_w = interaction.options.get('type')) === null || _w === void 0 ? void 0 : _w.value) == 'scramble') {
                             game.scramble();
                             interaction.reply('Starting a new unscramble.');
                         }
-                        else if (((_w = interaction.options.get('type')) === null || _w === void 0 ? void 0 : _w.value) == 'math') {
+                        else if (((_x = interaction.options.get('type')) === null || _x === void 0 ? void 0 : _x.value) == 'math') {
                             game.math();
                             interaction.reply('Creating a new math problem.');
                         }
-                        else if (((_x = interaction.options.get('type')) === null || _x === void 0 ? void 0 : _x.value) == 'trivia') {
+                        else if (((_y = interaction.options.get('type')) === null || _y === void 0 ? void 0 : _y.value) == 'trivia') {
                             game.trivia();
                             interaction.reply('Creating a new trivia problem.');
                         }
@@ -633,16 +667,16 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     break;
                 case 'give':
                     {
-                        let user = (_y = interaction.options.get('user')) === null || _y === void 0 ? void 0 : _y.user;
-                        let amount = (_z = interaction.options.get('amount')) === null || _z === void 0 ? void 0 : _z.value;
+                        let user = (_z = interaction.options.get('user')) === null || _z === void 0 ? void 0 : _z.user;
+                        let amount = (_0 = interaction.options.get('amount')) === null || _0 === void 0 ? void 0 : _0.value;
                         if (user && typeof amount == 'number') {
-                            if (((_0 = interaction.options.get('type')) === null || _0 === void 0 ? void 0 : _0.value) == 'xp') {
+                            if (((_1 = interaction.options.get('type')) === null || _1 === void 0 ? void 0 : _1.value) == 'xp') {
                                 if (interaction.channel) {
                                     xp.give({ author: user, channel: interaction.channel }, amount, false);
                                     interaction.reply(`Giving ${amount} xp to ${user}`);
                                 }
                             }
-                            else if (((_1 = interaction.options.get('type')) === null || _1 === void 0 ? void 0 : _1.value) == 'gems') {
+                            else if (((_2 = interaction.options.get('type')) === null || _2 === void 0 ? void 0 : _2.value) == 'gems') {
                                 xp.giveGems(user.id, amount);
                                 interaction.reply(`Giving ${amount} gems to ${user}`);
                             }
@@ -715,7 +749,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     require('./punisher.js').punish(interaction);
                     break;
                 case 'punishments':
-                    require('./punisher.js').getpunishments((_2 = interaction.options.get('user')) === null || _2 === void 0 ? void 0 : _2.user, interaction);
+                    require('./punisher.js').getpunishments((_3 = interaction.options.get('user')) === null || _3 === void 0 ? void 0 : _3.user, interaction);
                     break;
             }
         }

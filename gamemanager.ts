@@ -49,10 +49,17 @@ exports.math = function math() {
     }
 }
 exports.trivia = async function trivia() {
+    let trivia
+    try {
+        trivia = await axios.get('https://the-trivia-api.com/api/questions?limit=1&difficulty=easy')
+    } catch (error) {
+        exports.math()
+        return
+    }
     miniTimer = setTimeout(() => {exports.selGame()}, 3600000)
     let time = new Date().getHours()
     if (time >= 7 && time <= 22) {
-        let question = (await axios.get('https://the-trivia-api.com/api/questions?limit=1&difficulty=easy')).data[0]
+        let question = trivia.data[0]
         let answers = [question.correctAnswer].concat(question.incorrectAnswers)
         function Randomize() {
             for (let i = answers.length - 1; i > 0; i--) {

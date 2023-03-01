@@ -236,21 +236,32 @@ client.on('messageCreate', async (msg: Message) => {
 client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
-            case 'overwatch': {
-                interaction.deferReply()
-                let data = await axios.get('https://api.overwatcharcade.today/api/v1/overwatch/today')
-                let modes = data.data.data.modes
-                let fields: APIEmbedField[] = []
-                modes.forEach((mode: { "name": string, "description": string }) => {
-                    fields.push({ name: mode.name, value: mode.description })
-                });
-                let embed = new EmbedBuilder()
-                    .addFields(fields)
-                    .setDescription('These are all the arcade games today.\nChanges at 7pm CST')
-                    .setTitle('Overwatch Arcade Today')
-                interaction.editReply({ embeds: [embed] })
+            case 'addbounty': {
+                console.log("1")
+                let username = interaction.options.get('username')?.value
+                if (typeof username == 'string'&&(username as string).length >= 3) {
+                    console.log("2")
+                    let uuid
+                    try {
+                        console.log("3")
+                        uuid = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`)
+                        uuid = uuid.data.id
+                    } catch (error) {
+                        interaction.reply('**Error**: Username not found or API is down.')
+                        return
+                    }
+                        if (uuid) { 
+                        console.log("4")
+                        await interaction.reply(uuid)
+                        let hypixelresponse = await axios.get(`https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=${uuid}`)
+                        await interaction.followUp(hypixelresponse.data.player.lastLogin.toString())
+                        } else {
+                            interaction.reply(`Failure\n${uuid}`)
+                        }
+                }
             }
-                break;
+            //https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=2cbf357d50384115a868e4dfd6c7538b
+            break;
             case 'boostingsince': {
                 let member = interaction.options.get('user')?.member
                 if (member instanceof GuildMember) {
@@ -495,22 +506,40 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             } break
             case 'cat': {
                 await interaction.deferReply()
-                let cat = await axios.get('https://api.thecatapi.com/v1/images/search')
+                let cat
+                try {
+                    cat = await axios.get('https://api.thecatapi.com/v1/images/search')
+                } catch (error) {
+                    interaction.editReply({ content:"Could not find any cats to show." })
+                    return
+                }
                 let url = cat.data[0].url
                 const attachment = new AttachmentBuilder(url)
                 interaction.editReply({ files: [attachment] })
             } break
             case 'dog': {
                 await interaction.deferReply()
-                let cat = await axios.get('https://dog.ceo/api/breeds/image/random')
+                let cat
+                try {
+                    cat = await axios.get('https://dog.ceo/api/breeds/image/random')
+                } catch (error) {
+                    interaction.editReply({ content:"Could not find any dogs to show." })
+                    return
+                }
                 let url = cat.data.message
                 const attachment = new AttachmentBuilder(url)
                 interaction.editReply({ files: [attachment] })
             } break
             case 'joke': {
                 await interaction.deferReply()
-                let jokes = await axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt')
-                let joke = jokes.data
+                let cat
+                try {
+                    cat = await axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt')
+                } catch (error) {
+                    interaction.editReply({ content:"Could not find any jokes to show." })
+                    return
+                }
+                let joke = cat.data
                 interaction.editReply({ content: joke })
             } break
             case 'cah': {

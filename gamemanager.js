@@ -64,10 +64,18 @@ exports.math = function math() {
 };
 exports.trivia = function trivia() {
     return __awaiter(this, void 0, void 0, function* () {
+        let trivia;
+        try {
+            trivia = yield axios.get('https://the-trivia-api.com/api/questions?limit=1&difficulty=easy');
+        }
+        catch (error) {
+            exports.math();
+            return;
+        }
         miniTimer = setTimeout(() => { exports.selGame(); }, 3600000);
         let time = new Date().getHours();
         if (time >= 7 && time <= 22) {
-            let question = (yield axios.get('https://the-trivia-api.com/api/questions?limit=1&difficulty=easy')).data[0];
+            let question = trivia.data[0];
             let answers = [question.correctAnswer].concat(question.incorrectAnswers);
             function Randomize() {
                 for (let i = answers.length - 1; i > 0; i--) {
