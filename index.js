@@ -285,10 +285,9 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                             return;
                         }
                         if (uuid) {
-                            yield interaction.reply(uuid);
                             let hypixelresponse = yield axios.get(`https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=${uuid}`);
                             //await interaction.followUp(hypixelresponse.data.player.lastLogin.toString())
-                            let data = require('./bountydata,json');
+                            let data = require('./bountydata.json');
                             if (data.users.find(user => user.uuid == uuid)) {
                                 let user = data.users.find(user => user.uuid == uuid);
                                 if (user === null || user === void 0 ? void 0 : user.trackers.includes(interaction.user.id)) {
@@ -297,13 +296,14 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                 else {
                                     user === null || user === void 0 ? void 0 : user.trackers.push(interaction.user.id);
                                     fs.writeFileSync('./bountydata.json', data);
-                                    interaction.reply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`);
+                                    interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`);
                                 }
                             }
                             else {
                                 let bounty = { trackers: [interaction.user.id], uuid: uuid, lastLogin: hypixelresponse.data.player.lastLogin };
                                 data.users.push(bounty);
-                                interaction.reply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`);
+                                fs.writeFileSync('./bountydata.json', data);
+                                interaction.editReply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`);
                             }
                         }
                         else {
