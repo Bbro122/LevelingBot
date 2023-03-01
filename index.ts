@@ -5,9 +5,10 @@
 //  ____| |___   |   |___| |    |
 //______________________________/
 import { APIEmbed, APIEmbedField, APIInteractionDataResolvedGuildMember } from "discord-api-types";
-import { AttachmentBuilder, Client, ActionRowBuilder, CommandInteraction, GuildMember, Interaction, Message, Embed, TextChannel, SelectMenuInteraction, SelectMenuBuilder, EmbedField, SelectMenuOptionBuilder, User, GuildMemberRoleManager, ButtonBuilder, ButtonInteraction, Partials, GatewayIntentBits, AnyAPIActionRowComponent, AnyComponentBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, ButtonStyle, ComponentType } from "discord.js";
+import { AttachmentBuilder, Client, ActionRowBuilder, CommandInteraction, GuildMember, Interaction, Message, Embed, TextChannel, SelectMenuInteraction, SelectMenuBuilder, EmbedField, SelectMenuOptionBuilder, User, GuildMemberRoleManager, ButtonBuilder, ButtonInteraction, Partials, GatewayIntentBits, AnyAPIActionRowComponent, AnyComponentBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, ButtonStyle, ComponentType, StringSelectMenuInteraction, StringSelectMenuBuilder, StageChannel } from "discord.js";
 import { UserProfile, XpManager } from "./xpmanager";
 import can from 'canvas';
+let fs = require('fs')
 const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 131071 });
 let xp: XpManager = require('./xpmanager.js')
 let game = require('./gamemanager.js');
@@ -219,7 +220,7 @@ client.on('messageCreate', async (msg: Message) => {
         } else if (msg.author.id == client.user?.id && msg.channel.id == '1001697908636270602' && msg.content.startsWith('givexp')) {
             let args = msg.content.split(' ').splice(0, 1)
             let id = args[0]
-            if (id !== 'null') {
+            if (id !== 'null' && msg.channel instanceof TextChannel) {
                 if (args[1] == 'chat') {
                     xp.give({ author: msg.author, channel: msg.channel }, 0.5, false)
                     msg.channel.send('giving 0.5 xp')
@@ -228,7 +229,9 @@ client.on('messageCreate', async (msg: Message) => {
                     msg.channel.send('giving 15-25 xp')
                 }
             } else {
-                msg.channel.send('id is null')
+                if (msg.channel instanceof TextChannel) {
+                    msg.channel.send('id is null')
+                }
             }
         }
     }
@@ -237,31 +240,73 @@ client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
             case 'addbounty': {
-                console.log("1")
+                await interaction.deferReply()
                 let username = interaction.options.get('username')?.value
-                if (typeof username == 'string'&&(username as string).length >= 3) {
-                    console.log("2")
-                    let uuid
+                if (typeof username == 'string' && (username as string).length >= 3) {
+                    let uuidData:{data:{id:string,name:string}}
+                    let uuid:string
                     try {
-                        console.log("3")
-                        uuid = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`)
-                        uuid = uuid.data.id
+                        uuidData = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`)
+                        uuid = uuidData.data.id
                     } catch (error) {
-                        interaction.reply('**Error**: Username not found or API is down.')
+                        interaction.editReply('**Error**: Username not found or API is down.')
                         return
                     }
-                        if (uuid) { 
-                        console.log("4")
+                    if (uuid) {
                         await interaction.reply(uuid)
                         let hypixelresponse = await axios.get(`https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=${uuid}`)
-                        await interaction.followUp(hypixelresponse.data.player.lastLogin.toString())
+                        //await interaction.followUp(hypixelresponse.data.player.lastLogin.toString())
+                        let data:{users:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp}[]} = require('./bountydata,json')
+                        if (data.users.find(user => user.uuid == uuid)) {
+                            let user = data.users.find(user => user.uuid == uuid)
+                            if (user?.trackers.includes(interaction.user.id)) {
+                                interaction.editReply("You're already tracking this user")
+                            } else {
+                                user?.trackers.push(interaction.user.id)
+                                fs.writeFileSync('./bountydata.json',data)
+                                interaction.reply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`)
+                            }
                         } else {
-                            interaction.reply(`Failure\n${uuid}`)
+                            let bounty:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp} = {trackers:[interaction.user.id],uuid:uuid,lastLogin:hypixelresponse.data.player.lastLogin}
+                            data.users.push(bounty)
+                            interaction.reply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`)
                         }
+                    } else {
+                        interaction.editReply(`Failure\n${uuid}`)
+                    }
                 }
             }
-            //https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=2cbf357d50384115a868e4dfd6c7538b
-            break;
+                //https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=2cbf357d50384115a868e4dfd6c7538b
+                break;
+            case 'removebounty': {
+                await interaction.deferReply()
+                let username = interaction.options.get('username')?.value
+                if (typeof username == 'string' && (username as string).length >= 3) {
+                    let uuidData:{data:{id:string,name:string}}
+                    let uuid:string
+                    try {
+                        uuidData = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`)
+                        uuid = uuidData.data.id
+                    } catch (error) {
+                        interaction.editReply('**Error**: Username not found or API is down.')
+                        return
+                    }
+                    if (uuid) {
+                        let data:{users:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp}[]} = require('./bountydata.json')
+                        let user = data.users.find(user => user.uuid == uuid)
+                        if (user) {
+                            if (user?.trackers.length > 1) {
+                                user.trackers.splice(user.trackers.indexOf(interaction.user.id),1)
+                                interaction.editReply(`No longer tracking ${username}'s bounty.`)
+                            } else {
+                                data.users.splice(data.users.indexOf(user),1)
+                                interaction.editReply(`**Bounty Removed**: ${username}`)
+                            }
+                            fs.writeFileSync('./bountydata.json',data)
+                        }
+                    }
+                }  
+            }
             case 'boostingsince': {
                 let member = interaction.options.get('user')?.member
                 if (member instanceof GuildMember) {
@@ -413,7 +458,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             case 'items': {
                 let data = xp.get()
                 let user = data.users.find(user => user.id == interaction.user.id)
-                if (user && user.items.length > 0) {
+                if (user && user.items.length > 0&&interaction.channel instanceof TextChannel) {
                     let fields: EmbedField[] = []
                     let nameoptions: any[] = []
                     let boostoptions: any[] = []
@@ -457,14 +502,15 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 .setDescription('Use the selector menu below to equip a namecard.')
                             const row = new ActionRowBuilder<SelectMenuBuilder>()
                                 .addComponents(
-                                    new SelectMenuBuilder()
+                                    new StringSelectMenuBuilder()
                                         .setCustomId('usenamecard')
                                         .addOptions(nameoptions)
                                 )
                             i.reply({ embeds: [embed], components: [row], ephemeral: true })
-                            let collect = i.channel?.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 })
+                            if (i.channel instanceof StageChannel) {return}
+                            let collect = i.channel?.createMessageComponentCollector({ componentType: ComponentType.StringSelect, filter: (a:StringSelectMenuInteraction) => a.user.id == i.user.id, time: 60000, max: 1 })
                             if (collect) {
-                                collect.on('collect', async interaction => {
+                                collect.on('collect', async (interaction:StringSelectMenuInteraction) => {
                                     let data = xp.get()
                                     let user = data.users.find(user => user.id == interaction.user.id)
                                     if (user) {
@@ -487,7 +533,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 .setDescription('Use the selector menu below to use a booster.')
                             const row = new ActionRowBuilder<SelectMenuBuilder>()
                                 .addComponents(
-                                    new SelectMenuBuilder()
+                                    new StringSelectMenuBuilder()
                                         .setCustomId('use')
                                         .addOptions(boostoptions)
                                 )
@@ -510,7 +556,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 try {
                     cat = await axios.get('https://api.thecatapi.com/v1/images/search')
                 } catch (error) {
-                    interaction.editReply({ content:"Could not find any cats to show." })
+                    interaction.editReply({ content: "Could not find any cats to show." })
                     return
                 }
                 let url = cat.data[0].url
@@ -523,7 +569,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 try {
                     cat = await axios.get('https://dog.ceo/api/breeds/image/random')
                 } catch (error) {
-                    interaction.editReply({ content:"Could not find any dogs to show." })
+                    interaction.editReply({ content: "Could not find any dogs to show." })
                     return
                 }
                 let url = cat.data.message
@@ -536,7 +582,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 try {
                     cat = await axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt')
                 } catch (error) {
-                    interaction.editReply({ content:"Could not find any jokes to show." })
+                    interaction.editReply({ content: "Could not find any jokes to show." })
                     return
                 }
                 let joke = cat.data
@@ -603,7 +649,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     if (user) {
                         const row = new ActionRowBuilder<SelectMenuBuilder>()
                             .addComponents(
-                                new SelectMenuBuilder()
+                                new StringSelectMenuBuilder()
                                     .setCustomId('shop')
                                     .addOptions([
                                         {
@@ -666,7 +712,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     break
             }
         }
-    } else if (interaction.isSelectMenu()) {
+    } else if (interaction.isStringSelectMenu()) {
         if (interaction.customId == 'shop') {
             let args = interaction.values[0].split('_')
             let data = xp.get()

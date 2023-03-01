@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const canvas_1 = __importDefault(require("canvas"));
+let fs = require('fs');
 const client = new discord_js_1.Client({ partials: [discord_js_1.Partials.Message, discord_js_1.Partials.Channel, discord_js_1.Partials.Reaction, discord_js_1.Partials.GuildMember, discord_js_1.Partials.User], intents: 131071 });
 let xp = require('./xpmanager.js');
 let game = require('./gamemanager.js');
@@ -246,7 +247,7 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
         else if (msg.author.id == ((_f = client.user) === null || _f === void 0 ? void 0 : _f.id) && msg.channel.id == '1001697908636270602' && msg.content.startsWith('givexp')) {
             let args = msg.content.split(' ').splice(0, 1);
             let id = args[0];
-            if (id !== 'null') {
+            if (id !== 'null' && msg.channel instanceof discord_js_1.TextChannel) {
                 if (args[1] == 'chat') {
                     xp.give({ author: msg.author, channel: msg.channel }, 0.5, false);
                     msg.channel.send('giving 0.5 xp');
@@ -257,47 +258,95 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
                 }
             }
             else {
-                msg.channel.send('id is null');
+                if (msg.channel instanceof discord_js_1.TextChannel) {
+                    msg.channel.send('id is null');
+                }
             }
         }
     }
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3;
+    var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
             case 'addbounty':
                 {
-                    console.log("1");
+                    yield interaction.deferReply();
                     let username = (_g = interaction.options.get('username')) === null || _g === void 0 ? void 0 : _g.value;
                     if (typeof username == 'string' && username.length >= 3) {
-                        console.log("2");
+                        let uuidData;
                         let uuid;
                         try {
-                            console.log("3");
-                            uuid = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
-                            uuid = uuid.data.id;
+                            uuidData = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+                            uuid = uuidData.data.id;
                         }
                         catch (error) {
-                            interaction.reply('**Error**: Username not found or API is down.');
+                            interaction.editReply('**Error**: Username not found or API is down.');
                             return;
                         }
                         if (uuid) {
-                            console.log("4");
                             yield interaction.reply(uuid);
                             let hypixelresponse = yield axios.get(`https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=${uuid}`);
-                            yield interaction.followUp(hypixelresponse.data.player.lastLogin.toString());
+                            //await interaction.followUp(hypixelresponse.data.player.lastLogin.toString())
+                            let data = require('./bountydata,json');
+                            if (data.users.find(user => user.uuid == uuid)) {
+                                let user = data.users.find(user => user.uuid == uuid);
+                                if (user === null || user === void 0 ? void 0 : user.trackers.includes(interaction.user.id)) {
+                                    interaction.editReply("You're already tracking this user");
+                                }
+                                else {
+                                    user === null || user === void 0 ? void 0 : user.trackers.push(interaction.user.id);
+                                    fs.writeFileSync('./bountydata.json', data);
+                                    interaction.reply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`);
+                                }
+                            }
+                            else {
+                                let bounty = { trackers: [interaction.user.id], uuid: uuid, lastLogin: hypixelresponse.data.player.lastLogin };
+                                data.users.push(bounty);
+                                interaction.reply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`);
+                            }
                         }
                         else {
-                            interaction.reply(`Failure\n${uuid}`);
+                            interaction.editReply(`Failure\n${uuid}`);
                         }
                     }
                 }
                 //https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=2cbf357d50384115a868e4dfd6c7538b
                 break;
+            case 'removebounty': {
+                yield interaction.deferReply();
+                let username = (_h = interaction.options.get('username')) === null || _h === void 0 ? void 0 : _h.value;
+                if (typeof username == 'string' && username.length >= 3) {
+                    let uuidData;
+                    let uuid;
+                    try {
+                        uuidData = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+                        uuid = uuidData.data.id;
+                    }
+                    catch (error) {
+                        interaction.editReply('**Error**: Username not found or API is down.');
+                        return;
+                    }
+                    if (uuid) {
+                        let data = require('./bountydata.json');
+                        let user = data.users.find(user => user.uuid == uuid);
+                        if (user) {
+                            if ((user === null || user === void 0 ? void 0 : user.trackers.length) > 1) {
+                                user.trackers.splice(user.trackers.indexOf(interaction.user.id), 1);
+                                interaction.editReply(`No longer tracking ${username}'s bounty.`);
+                            }
+                            else {
+                                data.users.splice(data.users.indexOf(user), 1);
+                                interaction.editReply(`**Bounty Removed**: ${username}`);
+                            }
+                            fs.writeFileSync('./bountydata.json', data);
+                        }
+                    }
+                }
+            }
             case 'boostingsince':
                 {
-                    let member = (_h = interaction.options.get('user')) === null || _h === void 0 ? void 0 : _h.member;
+                    let member = (_j = interaction.options.get('user')) === null || _j === void 0 ? void 0 : _j.member;
                     if (member instanceof discord_js_1.GuildMember) {
                         interaction.reply(member.premiumSinceTimestamp ? member.premiumSinceTimestamp.toString() : '0');
                     }
@@ -312,7 +361,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     yield interaction.deferReply();
                     let data = xp.get();
                     let user;
-                    let member = (_j = interaction.options.get('user')) === null || _j === void 0 ? void 0 : _j.member;
+                    let member = (_k = interaction.options.get('user')) === null || _k === void 0 ? void 0 : _k.member;
                     if (member instanceof discord_js_1.GuildMember) {
                         user = data.users.find(user => { var _a; return user.id == ((_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.value); });
                     }
@@ -345,13 +394,13 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 break;
             case 'leaderboard':
                 {
-                    yield ((_k = interaction.guild) === null || _k === void 0 ? void 0 : _k.members.fetch());
-                    if (((_l = interaction.options.get('type')) === null || _l === void 0 ? void 0 : _l.value) == 'xp') {
+                    yield ((_l = interaction.guild) === null || _l === void 0 ? void 0 : _l.members.fetch());
+                    if (((_m = interaction.options.get('type')) === null || _m === void 0 ? void 0 : _m.value) == 'xp') {
                         let data = xp.get().users.sort((a, b) => { return b.xp - a.xp; });
                         let fields = [];
                         for (let i = 0; i <= 9; i++) {
-                            if ((_m = interaction.guild) === null || _m === void 0 ? void 0 : _m.members.cache.get(data[i].id)) {
-                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_o = interaction.guild.members.cache.get(data[i].id)) === null || _o === void 0 ? void 0 : _o.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false });
+                            if ((_o = interaction.guild) === null || _o === void 0 ? void 0 : _o.members.cache.get(data[i].id)) {
+                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_p = interaction.guild.members.cache.get(data[i].id)) === null || _p === void 0 ? void 0 : _p.displayName} (${data[i].level})`, "value": `Xp: ${data[i].xp}`, "inline": false });
                             }
                             else {
                                 fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Xp: ${data[i].xp}`, "inline": false });
@@ -366,8 +415,8 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         let data = xp.get().users.sort((a, b) => { return b.gems - a.gems; });
                         let fields = [];
                         for (let i = 0; i <= 9; i++) {
-                            if ((_p = interaction.guild) === null || _p === void 0 ? void 0 : _p.members.cache.get(data[i].id)) {
-                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_q = interaction.guild.members.cache.get(data[i].id)) === null || _q === void 0 ? void 0 : _q.displayName} (${data[i].level})`, "value": `Gems: ${data[i].gems}`, "inline": false });
+                            if ((_q = interaction.guild) === null || _q === void 0 ? void 0 : _q.members.cache.get(data[i].id)) {
+                                fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | ${(_r = interaction.guild.members.cache.get(data[i].id)) === null || _r === void 0 ? void 0 : _r.displayName} (${data[i].level})`, "value": `Gems: ${data[i].gems}`, "inline": false });
                             }
                             else {
                                 fields.push({ "name": `${medals[i] ? medals[i] : (i + 1)} | <@${data[i].id}>`, "value": `Gems: ${data[i].gems}`, "inline": false });
@@ -411,7 +460,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 break;
             case 'flip':
                 {
-                    let bet = (_r = interaction.options.get('amount')) === null || _r === void 0 ? void 0 : _r.value;
+                    let bet = (_s = interaction.options.get('amount')) === null || _s === void 0 ? void 0 : _s.value;
                     let data = xp.get();
                     let user = data.users.find(prof => prof.id == interaction.user.id);
                     let timeout = xp.timeouts().find(timeout => timeout.id == interaction.user.id && timeout.type == 'flipCD');
@@ -445,7 +494,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 {
                     let data = xp.get();
                     let user;
-                    if ((_s = interaction.options.get('user')) === null || _s === void 0 ? void 0 : _s.user) {
+                    if ((_t = interaction.options.get('user')) === null || _t === void 0 ? void 0 : _t.user) {
                         user = data.users.find(user => { var _a, _b; return user.id == ((_b = (_a = interaction.options.get('user')) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id); });
                         if (user) {
                             interaction.reply(`<a:showoff:1004215186439274516> They have ${user.gems} gems.`);
@@ -469,7 +518,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 {
                     let data = xp.get();
                     let user = data.users.find(user => user.id == interaction.user.id);
-                    if (user && user.items.length > 0) {
+                    if (user && user.items.length > 0 && interaction.channel instanceof discord_js_1.TextChannel) {
                         let fields = [];
                         let nameoptions = [];
                         let boostoptions = [];
@@ -503,19 +552,22 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         // )
                         embed.setFields(fields);
                         interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-                        let collector = (_t = interaction.channel) === null || _t === void 0 ? void 0 : _t.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
+                        let collector = (_u = interaction.channel) === null || _u === void 0 ? void 0 : _u.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == interaction.user.id, time: 60000, max: 1 });
                         collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(void 0, void 0, void 0, function* () {
-                            var _4;
+                            var _5;
                             if (i.customId == 'namecard') {
                                 let embed = new discord_js_1.EmbedBuilder()
                                     .setTitle('Namecard Inventory')
                                     .setDescription('Use the selector menu below to equip a namecard.');
                                 const row = new discord_js_1.ActionRowBuilder()
-                                    .addComponents(new discord_js_1.SelectMenuBuilder()
+                                    .addComponents(new discord_js_1.StringSelectMenuBuilder()
                                     .setCustomId('usenamecard')
                                     .addOptions(nameoptions));
                                 i.reply({ embeds: [embed], components: [row], ephemeral: true });
-                                let collect = (_4 = i.channel) === null || _4 === void 0 ? void 0 : _4.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, filter: a => a.user.id == i.user.id, time: 60000, max: 1 });
+                                if (i.channel instanceof discord_js_1.StageChannel) {
+                                    return;
+                                }
+                                let collect = (_5 = i.channel) === null || _5 === void 0 ? void 0 : _5.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, filter: (a) => a.user.id == i.user.id, time: 60000, max: 1 });
                                 if (collect) {
                                     collect.on('collect', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
                                         let data = xp.get();
@@ -542,7 +594,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                     .setTitle('Booster Inventory')
                                     .setDescription('Use the selector menu below to use a booster.');
                                 const row = new discord_js_1.ActionRowBuilder()
-                                    .addComponents(new discord_js_1.SelectMenuBuilder()
+                                    .addComponents(new discord_js_1.StringSelectMenuBuilder()
                                     .setCustomId('use')
                                     .addOptions(boostoptions));
                                 i.reply({ embeds: [embed], components: [row], ephemeral: true });
@@ -553,7 +605,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 break;
             case 'rule':
                 {
-                    let rule = strCheck((_u = interaction.options.get('rule')) === null || _u === void 0 ? void 0 : _u.value);
+                    let rule = strCheck((_v = interaction.options.get('rule')) === null || _v === void 0 ? void 0 : _v.value);
                     let embed = new discord_js_1.EmbedBuilder()
                         .setTitle(interaction.options.getSubcommand())
                         .setDescription(rule);
@@ -643,7 +695,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     break;
                 case 'function':
                     {
-                        let func = (_v = interaction.options.get('user')) === null || _v === void 0 ? void 0 : _v.value;
+                        let func = (_w = interaction.options.get('user')) === null || _w === void 0 ? void 0 : _w.value;
                         if (typeof func == 'string') {
                             eval(func);
                         }
@@ -651,15 +703,15 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     break;
                 case 'game':
                     {
-                        if (((_w = interaction.options.get('type')) === null || _w === void 0 ? void 0 : _w.value) == 'scramble') {
+                        if (((_x = interaction.options.get('type')) === null || _x === void 0 ? void 0 : _x.value) == 'scramble') {
                             game.scramble();
                             interaction.reply('Starting a new unscramble.');
                         }
-                        else if (((_x = interaction.options.get('type')) === null || _x === void 0 ? void 0 : _x.value) == 'math') {
+                        else if (((_y = interaction.options.get('type')) === null || _y === void 0 ? void 0 : _y.value) == 'math') {
                             game.math();
                             interaction.reply('Creating a new math problem.');
                         }
-                        else if (((_y = interaction.options.get('type')) === null || _y === void 0 ? void 0 : _y.value) == 'trivia') {
+                        else if (((_z = interaction.options.get('type')) === null || _z === void 0 ? void 0 : _z.value) == 'trivia') {
                             game.trivia();
                             interaction.reply('Creating a new trivia problem.');
                         }
@@ -667,16 +719,16 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     break;
                 case 'give':
                     {
-                        let user = (_z = interaction.options.get('user')) === null || _z === void 0 ? void 0 : _z.user;
-                        let amount = (_0 = interaction.options.get('amount')) === null || _0 === void 0 ? void 0 : _0.value;
+                        let user = (_0 = interaction.options.get('user')) === null || _0 === void 0 ? void 0 : _0.user;
+                        let amount = (_1 = interaction.options.get('amount')) === null || _1 === void 0 ? void 0 : _1.value;
                         if (user && typeof amount == 'number') {
-                            if (((_1 = interaction.options.get('type')) === null || _1 === void 0 ? void 0 : _1.value) == 'xp') {
+                            if (((_2 = interaction.options.get('type')) === null || _2 === void 0 ? void 0 : _2.value) == 'xp') {
                                 if (interaction.channel) {
                                     xp.give({ author: user, channel: interaction.channel }, amount, false);
                                     interaction.reply(`Giving ${amount} xp to ${user}`);
                                 }
                             }
-                            else if (((_2 = interaction.options.get('type')) === null || _2 === void 0 ? void 0 : _2.value) == 'gems') {
+                            else if (((_3 = interaction.options.get('type')) === null || _3 === void 0 ? void 0 : _3.value) == 'gems') {
                                 xp.giveGems(user.id, amount);
                                 interaction.reply(`Giving ${amount} gems to ${user}`);
                             }
@@ -689,7 +741,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         let user = data.users.find(user => user.id == interaction.user.id);
                         if (user) {
                             const row = new discord_js_1.ActionRowBuilder()
-                                .addComponents(new discord_js_1.SelectMenuBuilder()
+                                .addComponents(new discord_js_1.StringSelectMenuBuilder()
                                 .setCustomId('shop')
                                 .addOptions([
                                 {
@@ -749,12 +801,12 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     require('./punisher.js').punish(interaction);
                     break;
                 case 'punishments':
-                    require('./punisher.js').getpunishments((_3 = interaction.options.get('user')) === null || _3 === void 0 ? void 0 : _3.user, interaction);
+                    require('./punisher.js').getpunishments((_4 = interaction.options.get('user')) === null || _4 === void 0 ? void 0 : _4.user, interaction);
                     break;
             }
         }
     }
-    else if (interaction.isSelectMenu()) {
+    else if (interaction.isStringSelectMenu()) {
         if (interaction.customId == 'shop') {
             let args = interaction.values[0].split('_');
             let data = xp.get();
