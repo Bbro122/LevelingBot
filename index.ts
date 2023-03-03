@@ -192,9 +192,10 @@ client.on('ready', async () => {
         }
     })
     let mainserver = client.guilds.cache.get(config.server.mainserver)
+    let gamechannel = client.channels.cache.get(config.server.gamechannel)
     client.application?.commands.set(require('./commands.json'))
-    if (mainserver) {
-        game.setup(client, client.channels.cache.get(config.server.gamechannel))
+    if (mainserver&&gamechannel) {
+        game.setup(client, gamechannel)
         xp.setup(client)
         mainserver.members.cache.forEach(user => {
             xp.ranks.evaluate(user.id)
@@ -202,8 +203,11 @@ client.on('ready', async () => {
         if (config.server.game) {
             game.selGame()
         }
+        if (config.bounties) {
+            
+        }
     } else {
-        console.log("Server not found")
+        console.log("Game and Xp initialization failed.")
     }
 })
 client.on('messageCreate', async (msg: Message) => {
@@ -259,20 +263,20 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                         if (data.users.find(user => user.uuid == uuid)) {
                             let user = data.users.find(user => user.uuid == uuid)
                             if (user?.trackers.includes(interaction.user.id)) {
-                                interaction.editReply("You're already tracking this user")
+                                await interaction.editReply("You're already tracking this user")
                             } else {
                                 user?.trackers.push(interaction.user.id)
-                                fs.writeFileSync('./bountydata.json',data)
-                                interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`)
+                                fs.writeFileSync('./bountydata.json',JSON.stringify(data))
+                                await interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`)
                             }
                         } else {
                             let bounty:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp} = {trackers:[interaction.user.id],uuid:uuid,lastLogin:hypixelresponse.data.player.lastLogin}
                             data.users.push(bounty)
-                            fs.writeFileSync('./bountydata.json',data)
-                            interaction.editReply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`)
+                            fs.writeFileSync('./bountydata.json',JSON.stringify(data))
+                            await interaction.editReply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`)
                         }
                     } else {
-                        interaction.editReply(`Failure\n${uuid}`)
+                        await interaction.editReply(`Failure\n${uuid}`)
                     }
                 }
             }
@@ -294,7 +298,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     if (uuid) {
                         let data:{users:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp}[]} = require('./bountydata.json')
                         let user = data.users.find(user => user.uuid == uuid)
-                        if (user) {
+                        if (user&&user.trackers.includes(interaction.user.id)) {
                             if (user?.trackers.length > 1) {
                                 user.trackers.splice(user.trackers.indexOf(interaction.user.id),1)
                                 interaction.editReply(`No longer tracking ${username}'s bounty.`)
@@ -302,7 +306,9 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 data.users.splice(data.users.indexOf(user),1)
                                 interaction.editReply(`**Bounty Removed**: ${username}`)
                             }
-                            fs.writeFileSync('./bountydata.json',data)
+                            fs.writeFileSync('./bountydata.json',JSON.stringify(data))
+                        } else {
+                            interaction.editReply("Could not find the requested bounty, or you are not tracking that bounty.")
                         }
                     }
                 }  
