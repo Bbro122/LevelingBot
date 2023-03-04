@@ -1,4 +1,4 @@
-import { ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic, StageChannel } from "discord.js";
 import { UserProfile } from "./xpmanager";
 const { get } = require('./xpmanager')
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
@@ -220,8 +220,9 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
       embeds: [{ "title": `${member instanceof GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [createButtons([{ string: "Begin Turn", id: "turn", style: ButtonStyle.Primary }])],
       files: [attachment]
     })
+    if (interaction.channel instanceof StageChannel) {return}
     let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: i => i.user.id == player.id, max: 1 })
-    collector?.on('collect', async i => {
+    collector?.on('collect', async (i:ButtonInteraction) => {
       await i.deferReply({ ephemeral: true })
       const attachment = new AttachmentBuilder(await dispBoard(hands, game, false));
       await game.msg?.edit({ content: '<a:loading:1011794755203645460>', embeds: [], components: [] })
@@ -252,6 +253,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
             .setThumbnail(`attachment://board.png`)
         ]
       })
+      if (interaction.channel instanceof StageChannel) {return}
       let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, max: 1 })
       collector?.on('collect', async interaction => {
         let embed:EmbedBuilder
@@ -259,7 +261,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
           game.forceColor = undefined
           player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1)
           game.deck.splice(0, 0, interaction.values[0])
-          if (player.hand.length == 0) {
+          if (player.hand.length == 0&&!(game.msg?.channel instanceof StageChannel)) {
             let embed = new EmbedBuilder()
               .setTitle(`Game Over`)
               .setDescription(`${interaction.user.username} has won the game.`)
@@ -303,6 +305,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
             .setTitle(`Round ${game.round + 1}`)
             .setDescription(`Choose a color to switch to.`)
             .setThumbnail(`attachment://board.png`)
+          if (interaction.channel instanceof StageChannel) {return}
           let message = await interaction.channel?.send({ components: [row], embeds: [embed1] })
           let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: i => i.user.id == player.id && ['green', 'red', 'blue', 'yellow'].includes(i.customId), max: 1 })
           collector?.on('collect', async i => {
@@ -321,6 +324,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
               embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`);
             }
             await game.msg?.edit({ embeds: [embed], components: [] })
+            if (interaction.channel instanceof StageChannel) {return}
             let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
             if (msg instanceof Message) {
               game.msg = msg
@@ -344,6 +348,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
             game.players[game.round % game.players.length].hand.push(game.deck.pop())
           }
           await game.msg?.edit({ embeds: [embed], components: [] })
+          if (interaction.channel instanceof StageChannel) {return}
           let msg = await interaction.channel?.send('<a:loading:1011794755203645460>')
           if (msg instanceof Message) {
             game.msg = msg
@@ -356,6 +361,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
       })
     })
   } else {
+    if (interaction.channel instanceof StageChannel) {return}
     interaction.channel?.send('Fuck.')
   }
 }

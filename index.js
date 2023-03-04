@@ -267,7 +267,7 @@ client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* 
 }));
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
     var _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
-    if (interaction.isChatInputCommand()) {
+    if (interaction.isCommand()) {
         switch (interaction.commandName) {
             case 'addbounty':
                 {
@@ -295,14 +295,14 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                 }
                                 else {
                                     user === null || user === void 0 ? void 0 : user.trackers.push(interaction.user.id);
-                                    fs.writeFileSync('./bountydata.json', data);
+                                    fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                                     interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`);
                                 }
                             }
                             else {
                                 let bounty = { trackers: [interaction.user.id], uuid: uuid, lastLogin: hypixelresponse.data.player.lastLogin };
                                 data.users.push(bounty);
-                                fs.writeFileSync('./bountydata.json', data);
+                                fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                                 interaction.editReply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`);
                             }
                         }
@@ -313,37 +313,39 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                 }
                 //https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=2cbf357d50384115a868e4dfd6c7538b
                 break;
-            case 'removebounty': {
-                yield interaction.deferReply();
-                let username = (_h = interaction.options.get('username')) === null || _h === void 0 ? void 0 : _h.value;
-                if (typeof username == 'string' && username.length >= 3) {
-                    let uuidData;
-                    let uuid;
-                    try {
-                        uuidData = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
-                        uuid = uuidData.data.id;
-                    }
-                    catch (error) {
-                        interaction.editReply('**Error**: Username not found or API is down.');
-                        return;
-                    }
-                    if (uuid) {
-                        let data = require('./bountydata.json');
-                        let user = data.users.find(user => user.uuid == uuid);
-                        if (user) {
-                            if ((user === null || user === void 0 ? void 0 : user.trackers.length) > 1) {
-                                user.trackers.splice(user.trackers.indexOf(interaction.user.id), 1);
-                                interaction.editReply(`No longer tracking ${username}'s bounty.`);
+            case 'removebounty':
+                {
+                    yield interaction.deferReply();
+                    let username = (_h = interaction.options.get('username')) === null || _h === void 0 ? void 0 : _h.value;
+                    if (typeof username == 'string' && username.length >= 3) {
+                        let uuidData;
+                        let uuid;
+                        try {
+                            uuidData = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+                            uuid = uuidData.data.id;
+                        }
+                        catch (error) {
+                            interaction.editReply('**Error**: Username not found or API is down.');
+                            return;
+                        }
+                        if (uuid) {
+                            let data = require('./bountydata.json');
+                            let user = data.users.find(user => user.uuid == uuid);
+                            if (user) {
+                                if ((user === null || user === void 0 ? void 0 : user.trackers.length) > 1) {
+                                    user.trackers.splice(user.trackers.indexOf(interaction.user.id), 1);
+                                    interaction.editReply(`No longer tracking ${username}'s bounty.`);
+                                }
+                                else {
+                                    data.users.splice(data.users.indexOf(user), 1);
+                                    interaction.editReply(`**Bounty Removed**: ${username}`);
+                                }
+                                fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                             }
-                            else {
-                                data.users.splice(data.users.indexOf(user), 1);
-                                interaction.editReply(`**Bounty Removed**: ${username}`);
-                            }
-                            fs.writeFileSync('./bountydata.json', data);
                         }
                     }
                 }
-            }
+                break;
             case 'boostingsince':
                 {
                     let member = (_j = interaction.options.get('user')) === null || _j === void 0 ? void 0 : _j.member;

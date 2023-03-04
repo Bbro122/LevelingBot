@@ -1,4 +1,4 @@
-import { EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic, APIEmbedField } from "discord.js";
+import { EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic, APIEmbedField, StageChannel } from "discord.js";
 import { isThisTypeNode } from "typescript";
 import { UserProfile } from "../xpmanager";
 const cards = require('./cards.json')
@@ -144,6 +144,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
       content: null,
       embeds: [{ "title": `${member instanceof GuildMember ? member.displayName : '<DATA ERROR>'} is the Card Master (${game.round + 1})`, "description": `Everyone must play a card\nClick the button below to play a card.\n${prompt}`, "color": 0xed0606 }], components: [createButtons([{ string: "Play Card", id: "card", style: ButtonStyle.Primary }])],
     })
+    if (interaction.channel instanceof StageChannel) {return}
     let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: i => i.user.id != cardMaster.id, maxUsers: game.players.length - 1 })
     let plays: { id: string, response: string }[] = []
     collector?.on('collect', async i => {
@@ -167,6 +168,7 @@ async function startTurn(interaction: MessageComponentInteraction, game: Game) {
             .addOptions(menuCards)
           )
         i.reply({ ephemeral: true, embeds: [embed], components: [row] })
+        if (interaction.channel instanceof StageChannel) {return}
         let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, filter: interaction => interaction.user.id == i.user.id, max: 1 })
         collector?.on('collect', async interaction => {
           let card = cards.find(card => card.name == interaction.values[0])

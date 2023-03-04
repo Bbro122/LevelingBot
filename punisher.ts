@@ -1,5 +1,5 @@
 import { Embed } from "@discordjs/builders";
-import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, CommandInteraction, ComponentType, GuildMember, Interaction, User } from "discord.js"
+import { ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, CommandInteraction, ComponentType, GuildMember, Interaction, StageChannel, User } from "discord.js"
 const { ActionRowBuilder, MessageButton, EmbedBuilder } = require('discord.js');
 const fs = require('fs')
 type Warning = {
@@ -59,6 +59,7 @@ exports.punish = function punish(interaction: ChatInputCommandInteraction) {
             ],
             ephemeral: true
         })
+        if (interaction.channel instanceof StageChannel) {return}
         let collector = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.Button, filter: (i => i.customId == 'punish'),time:600000})
         collector?.on('collect', i => {
             let data = exports.get()

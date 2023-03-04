@@ -237,7 +237,7 @@ client.on('messageCreate', async (msg: Message) => {
     }
 })
 client.on('interactionCreate', async (interaction: Interaction) => {
-    if (interaction.isChatInputCommand()) {
+    if (interaction.isCommand()) {
         switch (interaction.commandName) {
             case 'addbounty': {
                 await interaction.deferReply()
@@ -262,13 +262,13 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 interaction.editReply("You're already tracking this user")
                             } else {
                                 user?.trackers.push(interaction.user.id)
-                                fs.writeFileSync('./bountydata.json',data)
+                                fs.writeFileSync('./bountydata.json',JSON.stringify(data))
                                 interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`)
                             }
                         } else {
                             let bounty:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp} = {trackers:[interaction.user.id],uuid:uuid,lastLogin:hypixelresponse.data.player.lastLogin}
                             data.users.push(bounty)
-                            fs.writeFileSync('./bountydata.json',data)
+                            fs.writeFileSync('./bountydata.json',JSON.stringify(data))
                             interaction.editReply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`)
                         }
                     } else {
@@ -302,11 +302,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 data.users.splice(data.users.indexOf(user),1)
                                 interaction.editReply(`**Bounty Removed**: ${username}`)
                             }
-                            fs.writeFileSync('./bountydata.json',data)
+                            fs.writeFileSync('./bountydata.json',JSON.stringify(data))
                         }
                     }
                 }  
             }
+            break;
             case 'boostingsince': {
                 let member = interaction.options.get('user')?.member
                 if (member instanceof GuildMember) {
