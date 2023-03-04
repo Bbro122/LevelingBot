@@ -48,6 +48,9 @@ exports.punish = function punish(interaction) {
             ],
             ephemeral: true
         });
+        if (interaction.channel instanceof discord_js_1.StageChannel) {
+            return;
+        }
         let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: (i => i.customId == 'punish'), time: 600000 });
         collector === null || collector === void 0 ? void 0 : collector.on('collect', i => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j;

@@ -1,5 +1,5 @@
 import { Embed } from "@discordjs/builders"
-import { ActionRowBuilder, Channel, Client, CommandInteraction, EmbedBuilder, Message, SelectMenuBuilder, TextChannel } from "discord.js"
+import { ActionRowBuilder, Channel, Client, CommandInteraction, EmbedBuilder, Message, SelectMenuBuilder, StageChannel, TextChannel } from "discord.js"
 let axios = require('axios')
 let client: Client
 let channel: TextChannel
@@ -137,7 +137,7 @@ exports.scramble = function scramble() {
     }
 }
 exports.checkWord = function (msg: Message) {
-    if (currentWord&&msg.content.toLowerCase() == currentWord.toLowerCase()) {
+    if (currentWord&&msg.content.toLowerCase() == currentWord.toLowerCase()&&!(msg.channel instanceof StageChannel)) {
         msg.channel.send(`<@${msg.author.id}> solved the problem.`)
         require('./xpmanager.js').give(msg, 50, false, client)
         currentWord = ''

@@ -194,7 +194,7 @@ client.on('ready', async () => {
     let mainserver = client.guilds.cache.get(config.server.mainserver)
     let gamechannel = client.channels.cache.get(config.server.gamechannel)
     client.application?.commands.set(require('./commands.json'))
-    if (mainserver&&gamechannel) {
+    if (mainserver && gamechannel) {
         game.setup(client, gamechannel)
         xp.setup(client)
         mainserver.members.cache.forEach(user => {
@@ -203,8 +203,14 @@ client.on('ready', async () => {
         if (config.server.game) {
             game.selGame()
         }
-        if (config.bounties) {
-            
+        if (config.server.bounties) {
+            console.log("test")
+            let bountychan = client.channels.cache.get('1081435587422203904')
+            if (bountychan) {
+                require('./bountycheck.js').sync(bountychan)
+            } else {
+                require('./bountycheck.js').sync(gamechannel)
+            }
         }
     } else {
         console.log("Game and Xp initialization failed.")
@@ -241,14 +247,14 @@ client.on('messageCreate', async (msg: Message) => {
     }
 })
 client.on('interactionCreate', async (interaction: Interaction) => {
-    if (interaction.isCommand()) {
+    if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
             case 'addbounty': {
                 await interaction.deferReply()
                 let username = interaction.options.get('username')?.value
                 if (typeof username == 'string' && (username as string).length >= 3) {
-                    let uuidData:{data:{id:string,name:string}}
-                    let uuid:string
+                    let uuidData: { data: { id: string, name: string } }
+                    let uuid: string
                     try {
                         uuidData = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`)
                         uuid = uuidData.data.id
@@ -259,20 +265,20 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     if (uuid) {
                         let hypixelresponse = await axios.get(`https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=${uuid}`)
                         //await interaction.followUp(hypixelresponse.data.player.lastLogin.toString())
-                        let data:{users:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp}[]} = require('./bountydata.json')
+                        let data: { users: { trackers: string[], uuid: string, lastLogin: EpochTimeStamp }[] } = require('./bountydata.json')
                         if (data.users.find(user => user.uuid == uuid)) {
                             let user = data.users.find(user => user.uuid == uuid)
                             if (user?.trackers.includes(interaction.user.id)) {
                                 await interaction.editReply("You're already tracking this user")
                             } else {
                                 user?.trackers.push(interaction.user.id)
-                                fs.writeFileSync('./bountydata.json',data)
+                                fs.writeFileSync('./bountydata.json', data)
                                 interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`)
                             }
                         } else {
-                            let bounty:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp} = {trackers:[interaction.user.id],uuid:uuid,lastLogin:hypixelresponse.data.player.lastLogin}
+                            let bounty: { trackers: string[], uuid: string, lastLogin: EpochTimeStamp } = { trackers: [interaction.user.id], uuid: uuid, lastLogin: hypixelresponse.data.player.lastLogin }
                             data.users.push(bounty)
-                            fs.writeFileSync('./bountydata.json',data)
+                            fs.writeFileSync('./bountydata.json', data)
                             interaction.editReply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`)
                         }
                     } else {
@@ -286,8 +292,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 await interaction.deferReply()
                 let username = interaction.options.get('username')?.value
                 if (typeof username == 'string' && (username as string).length >= 3) {
-                    let uuidData:{data:{id:string,name:string}}
-                    let uuid:string
+                    let uuidData: { data: { id: string, name: string } }
+                    let uuid: string
                     try {
                         uuidData = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`)
                         uuid = uuidData.data.id
@@ -296,24 +302,24 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                         return
                     }
                     if (uuid) {
-                        let data:{users:{trackers:string[],uuid:string,lastLogin:EpochTimeStamp}[]} = require('./bountydata.json')
+                        let data: { users: { trackers: string[], uuid: string, lastLogin: EpochTimeStamp }[] } = require('./bountydata.json')
                         let user = data.users.find(user => user.uuid == uuid)
-                        if (user&&user.trackers.includes(interaction.user.id)) {
+                        if (user && user.trackers.includes(interaction.user.id)) {
                             if (user?.trackers.length > 1) {
-                                user.trackers.splice(user.trackers.indexOf(interaction.user.id),1)
+                                user.trackers.splice(user.trackers.indexOf(interaction.user.id), 1)
                                 interaction.editReply(`No longer tracking ${username}'s bounty.`)
                             } else {
-                                data.users.splice(data.users.indexOf(user),1)
+                                data.users.splice(data.users.indexOf(user), 1)
                                 interaction.editReply(`**Bounty Removed**: ${username}`)
                             }
-                            fs.writeFileSync('./bountydata.json',JSON.stringify(data))
+                            fs.writeFileSync('./bountydata.json', JSON.stringify(data))
                         } else {
                             interaction.editReply("Could not find the requested bounty, or you are not tracking that bounty.")
                         }
                     }
-                }  
+                }
             }
-            break;
+                break;
             case 'boostingsince': {
                 let member = interaction.options.get('user')?.member
                 if (member instanceof GuildMember) {
@@ -465,7 +471,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
             case 'items': {
                 let data = xp.get()
                 let user = data.users.find(user => user.id == interaction.user.id)
-                if (user && user.items.length > 0&&interaction.channel instanceof TextChannel) {
+                if (user && user.items.length > 0 && interaction.channel instanceof TextChannel) {
                     let fields: EmbedField[] = []
                     let nameoptions: any[] = []
                     let boostoptions: any[] = []
@@ -514,10 +520,10 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                         .addOptions(nameoptions)
                                 )
                             i.reply({ embeds: [embed], components: [row], ephemeral: true })
-                            if (i.channel instanceof StageChannel) {return}
-                            let collect = i.channel?.createMessageComponentCollector({ componentType: ComponentType.StringSelect, filter: (a:StringSelectMenuInteraction) => a.user.id == i.user.id, time: 60000, max: 1 })
+                            if (i.channel instanceof StageChannel) { return }
+                            let collect = i.channel?.createMessageComponentCollector({ componentType: ComponentType.StringSelect, filter: (a: StringSelectMenuInteraction) => a.user.id == i.user.id, time: 60000, max: 1 })
                             if (collect) {
-                                collect.on('collect', async (interaction:StringSelectMenuInteraction) => {
+                                collect.on('collect', async (interaction: StringSelectMenuInteraction) => {
                                     let data = xp.get()
                                     let user = data.users.find(user => user.id == interaction.user.id)
                                     if (user) {

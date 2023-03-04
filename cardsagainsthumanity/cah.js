@@ -157,6 +157,9 @@ function startTurn(interaction, game) {
                 content: null,
                 embeds: [{ "title": `${member instanceof discord_js_1.GuildMember ? member.displayName : '<DATA ERROR>'} is the Card Master (${game.round + 1})`, "description": `Everyone must play a card\nClick the button below to play a card.\n${prompt}`, "color": 0xed0606 }], components: [createButtons([{ string: "Play Card", id: "card", style: discord_js_1.ButtonStyle.Primary }])],
             });
+            if (interaction.channel instanceof discord_js_1.StageChannel) {
+                return;
+            }
             let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id != cardMaster.id, maxUsers: game.players.length - 1 });
             let plays = [];
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
@@ -180,6 +183,9 @@ function startTurn(interaction, game) {
                         .setCustomId('playcard')
                         .addOptions(menuCards));
                     i.reply({ ephemeral: true, embeds: [embed], components: [row] });
+                    if (interaction.channel instanceof discord_js_1.StageChannel) {
+                        return;
+                    }
                     let collector = (_d = interaction.channel) === null || _d === void 0 ? void 0 : _d.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, filter: interaction => interaction.user.id == i.user.id, max: 1 });
                     collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
                         let card = cards.find(card => card.name == interaction.values[0]);

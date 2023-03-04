@@ -242,6 +242,9 @@ function startTurn(interaction, game) {
                 embeds: [{ "title": `${member instanceof discord_js_1.GuildMember ? member.displayName : '<DATA ERROR>'}'s turn (${game.round + 1})`, "description": `15 Seconds until turn forfeited`, "color": 0xed0606, "thumbnail": { "url": `attachment://board.png`, "height": 700, "width": 450 } }], components: [createButtons([{ string: "Begin Turn", id: "turn", style: discord_js_1.ButtonStyle.Primary }])],
                 files: [attachment]
             });
+            if (interaction.channel instanceof discord_js_1.StageChannel) {
+                return;
+            }
             let collector = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id, max: 1 });
             collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
                 var _e, _f, _g;
@@ -273,19 +276,22 @@ function startTurn(interaction, game) {
                             .setThumbnail(`attachment://board.png`)
                     ]
                 });
+                if (interaction.channel instanceof discord_js_1.StageChannel) {
+                    return;
+                }
                 let collector = (_g = interaction.channel) === null || _g === void 0 ? void 0 : _g.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.SelectMenu, max: 1 });
                 collector === null || collector === void 0 ? void 0 : collector.on('collect', (interaction) => __awaiter(this, void 0, void 0, function* () {
-                    var _h, _j, _k, _l, _m;
+                    var _h, _j, _k, _l, _m, _o;
                     let embed;
                     if (interaction.values[0] !== 'draw') {
                         game.forceColor = undefined;
                         player.hand.splice(player.hand.findIndex(card => card == interaction.values[0]), 1);
                         game.deck.splice(0, 0, interaction.values[0]);
-                        if (player.hand.length == 0) {
+                        if (player.hand.length == 0 && !(((_h = game.msg) === null || _h === void 0 ? void 0 : _h.channel) instanceof discord_js_1.StageChannel)) {
                             let embed = new discord_js_2.EmbedBuilder()
                                 .setTitle(`Game Over`)
                                 .setDescription(`${interaction.user.username} has won the game.`);
-                            yield ((_h = game.msg) === null || _h === void 0 ? void 0 : _h.channel.send({ embeds: [embed] }));
+                            yield ((_j = game.msg) === null || _j === void 0 ? void 0 : _j.channel.send({ embeds: [embed] }));
                             games.splice(games.findIndex(gam => gam == game), 1);
                         }
                         embed = new discord_js_2.EmbedBuilder()
@@ -321,10 +327,13 @@ function startTurn(interaction, game) {
                             .setTitle(`Round ${game.round + 1}`)
                             .setDescription(`Choose a color to switch to.`)
                             .setThumbnail(`attachment://board.png`);
-                        let message = yield ((_j = interaction.channel) === null || _j === void 0 ? void 0 : _j.send({ components: [row], embeds: [embed1] }));
-                        let collector = (_k = interaction.channel) === null || _k === void 0 ? void 0 : _k.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id && ['green', 'red', 'blue', 'yellow'].includes(i.customId), max: 1 });
+                        if (interaction.channel instanceof discord_js_1.StageChannel) {
+                            return;
+                        }
+                        let message = yield ((_k = interaction.channel) === null || _k === void 0 ? void 0 : _k.send({ components: [row], embeds: [embed1] }));
+                        let collector = (_l = interaction.channel) === null || _l === void 0 ? void 0 : _l.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button, filter: i => i.user.id == player.id && ['green', 'red', 'blue', 'yellow'].includes(i.customId), max: 1 });
                         collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(this, void 0, void 0, function* () {
-                            var _o, _p;
+                            var _p, _q;
                             embed1.setDescription(`The color is now ${i.customId}.`);
                             message === null || message === void 0 ? void 0 : message.edit({ embeds: [embed] });
                             game.forceColor = i.customId.charAt(0);
@@ -340,8 +349,11 @@ function startTurn(interaction, game) {
                             else {
                                 embed.setDescription(embed.data.description + ` and changed the color to ${i.customId}`);
                             }
-                            yield ((_o = game.msg) === null || _o === void 0 ? void 0 : _o.edit({ embeds: [embed], components: [] }));
-                            let msg = yield ((_p = interaction.channel) === null || _p === void 0 ? void 0 : _p.send('<a:loading:1011794755203645460>'));
+                            yield ((_p = game.msg) === null || _p === void 0 ? void 0 : _p.edit({ embeds: [embed], components: [] }));
+                            if (interaction.channel instanceof discord_js_1.StageChannel) {
+                                return;
+                            }
+                            let msg = yield ((_q = interaction.channel) === null || _q === void 0 ? void 0 : _q.send('<a:loading:1011794755203645460>'));
                             if (msg instanceof discord_js_1.Message) {
                                 game.msg = msg;
                             }
@@ -367,8 +379,11 @@ function startTurn(interaction, game) {
                         else if (interaction.values[0] == 'draw') {
                             game.players[game.round % game.players.length].hand.push(game.deck.pop());
                         }
-                        yield ((_l = game.msg) === null || _l === void 0 ? void 0 : _l.edit({ embeds: [embed], components: [] }));
-                        let msg = yield ((_m = interaction.channel) === null || _m === void 0 ? void 0 : _m.send('<a:loading:1011794755203645460>'));
+                        yield ((_m = game.msg) === null || _m === void 0 ? void 0 : _m.edit({ embeds: [embed], components: [] }));
+                        if (interaction.channel instanceof discord_js_1.StageChannel) {
+                            return;
+                        }
+                        let msg = yield ((_o = interaction.channel) === null || _o === void 0 ? void 0 : _o.send('<a:loading:1011794755203645460>'));
                         if (msg instanceof discord_js_1.Message) {
                             game.msg = msg;
                         }
@@ -381,6 +396,9 @@ function startTurn(interaction, game) {
             }));
         }
         else {
+            if (interaction.channel instanceof discord_js_1.StageChannel) {
+                return;
+            }
             (_d = interaction.channel) === null || _d === void 0 ? void 0 : _d.send('Fuck.');
         }
     });
