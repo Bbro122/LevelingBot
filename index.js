@@ -215,9 +215,10 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
         }
     }));
     let mainserver = client.guilds.cache.get(config.server.mainserver);
+    let gamechannel = client.channels.cache.get(config.server.gamechannel);
     (_c = client.application) === null || _c === void 0 ? void 0 : _c.commands.set(require('./commands.json'));
-    if (mainserver) {
-        game.setup(client, client.channels.cache.get(config.server.gamechannel));
+    if (mainserver && gamechannel) {
+        game.setup(client, gamechannel);
         xp.setup(client);
         mainserver.members.cache.forEach(user => {
             xp.ranks.evaluate(user.id);
@@ -225,9 +226,19 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
         if (config.server.game) {
             game.selGame();
         }
+        if (config.server.bounties) {
+            console.log("test");
+            let bountychan = client.channels.cache.get('1081435587422203904');
+            if (bountychan) {
+                require('./bountycheck.js').sync(bountychan);
+            }
+            else {
+                require('./bountycheck.js').sync(gamechannel);
+            }
+        }
     }
     else {
-        console.log("Server not found");
+        console.log("Game and Xp initialization failed.");
     }
 }));
 client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* () {
@@ -291,10 +302,11 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                             if (data.users.find(user => user.uuid == uuid)) {
                                 let user = data.users.find(user => user.uuid == uuid);
                                 if (user === null || user === void 0 ? void 0 : user.trackers.includes(interaction.user.id)) {
-                                    interaction.editReply("You're already tracking this user");
+                                    yield interaction.editReply("You're already tracking this user");
                                 }
                                 else {
                                     user === null || user === void 0 ? void 0 : user.trackers.push(interaction.user.id);
+                                    fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                                     fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                                     interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`);
                                 }
@@ -307,45 +319,43 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                             }
                         }
                         else {
-                            interaction.editReply(`Failure\n${uuid}`);
+                            yield interaction.editReply(`Failure\n${uuid}`);
                         }
                     }
                 }
                 //https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=2cbf357d50384115a868e4dfd6c7538b
                 break;
-            case 'removebounty':
-                {
-                    yield interaction.deferReply();
-                    let username = (_h = interaction.options.get('username')) === null || _h === void 0 ? void 0 : _h.value;
-                    if (typeof username == 'string' && username.length >= 3) {
-                        let uuidData;
-                        let uuid;
-                        try {
-                            uuidData = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
-                            uuid = uuidData.data.id;
-                        }
-                        catch (error) {
-                            interaction.editReply('**Error**: Username not found or API is down.');
-                            return;
-                        }
-                        if (uuid) {
-                            let data = require('./bountydata.json');
-                            let user = data.users.find(user => user.uuid == uuid);
-                            if (user) {
-                                if ((user === null || user === void 0 ? void 0 : user.trackers.length) > 1) {
-                                    user.trackers.splice(user.trackers.indexOf(interaction.user.id), 1);
-                                    interaction.editReply(`No longer tracking ${username}'s bounty.`);
-                                }
-                                else {
-                                    data.users.splice(data.users.indexOf(user), 1);
-                                    interaction.editReply(`**Bounty Removed**: ${username}`);
-                                }
-                                fs.writeFileSync('./bountydata.json', JSON.stringify(data));
+            case 'removebounty': {
+                yield interaction.deferReply();
+                let username = (_h = interaction.options.get('username')) === null || _h === void 0 ? void 0 : _h.value;
+                if (typeof username == 'string' && username.length >= 3) {
+                    let uuidData;
+                    let uuid;
+                    try {
+                        uuidData = yield axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+                        uuid = uuidData.data.id;
+                    }
+                    catch (error) {
+                        interaction.editReply('**Error**: Username not found or API is down.');
+                        return;
+                    }
+                    if (uuid) {
+                        let data = require('./bountydata.json');
+                        let user = data.users.find(user => user.uuid == uuid);
+                        if (user) {
+                            if ((user === null || user === void 0 ? void 0 : user.trackers.length) > 1) {
+                                user.trackers.splice(user.trackers.indexOf(interaction.user.id), 1);
+                                interaction.editReply(`No longer tracking ${username}'s bounty.`);
                             }
+                            else {
+                                data.users.splice(data.users.indexOf(user), 1);
+                                interaction.editReply(`**Bounty Removed**: ${username}`);
+                            }
+                            fs.writeFileSync('./bountydata.json', data);
                         }
                     }
                 }
-                break;
+            }
             case 'boostingsince':
                 {
                     let member = (_j = interaction.options.get('user')) === null || _j === void 0 ? void 0 : _j.member;
