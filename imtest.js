@@ -39,3 +39,37 @@ async function dispBoard(hands, game, hidden) {
   return canvas.toBuffer()
 }
 dispBoard([["r1"],["r1","r2"],["r1",]])
+
+const fs = require('fs');
+
+const GIFEncoder = require('gifencoder');
+const { createCanvas, loadImage } = require('canvas');
+
+const width = 400;
+const height = 400;
+
+async function newImage() {
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    const encoder = new GIFEncoder(width, height);
+    encoder.createReadStream().pipe(fs.createWriteStream('./result.gif'));
+    encoder.start();
+    encoder.setRepeat(0);
+    encoder.setDelay(1);
+    encoder.setQuality(10);
+    const image = await loadImage(`./ouroboros.png`);
+    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
+    let frames = 60
+    for (let i = 0; i < frames; i++) {
+        ctx.translate(width/2,height/2)
+        ctx.rotate(-(360 / frames) * Math.PI / 180)
+        ctx.translate(-width/2,-height/2)
+        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
+        encoder.addFrame(ctx)
+        if (i == frames - 1) {
+            encoder.finish()
+        }
+    }
+}
+newImage()
