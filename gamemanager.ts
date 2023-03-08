@@ -138,8 +138,12 @@ exports.scramble = function scramble() {
 }
 exports.checkWord = function (msg: Message) {
     if (currentWord&&msg.content.toLowerCase() == currentWord.toLowerCase()&&!(msg.channel instanceof StageChannel)) {
-        msg.channel.send(`<@${msg.author.id}> solved the problem.`)
-        require('./xpmanager.js').give(msg, 50, false, client)
-        currentWord = ''
+        if (msg.author.id == '795478882710716427') {
+            msg.channel.send(`<@${msg.author.id}> Your answer was denied. Please refrain from providing racist responses.`)
+        } else {
+            msg.channel.send(`<@${msg.author.id}> solved the problem.`)
+            require('./xpmanager.js').give(msg, 50, false, client)
+            currentWord = ''
+        }
     }
 }
