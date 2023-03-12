@@ -773,4 +773,4 @@ client.on('interactionCreate', async (interaction: Interaction) => {
         require('./poll').vote(interaction)
     }
 })
-client.login(config.server.token);
+    client.login(config.server.token);
