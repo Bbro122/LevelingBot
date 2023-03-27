@@ -593,12 +593,17 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 await interaction.deferReply()
                 let cat
                 try {
-                    cat = await axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt')
+                    cat = await axios.get('https://v2.jokeapi.dev/joke/Miscellaneous,Dark,Pun,Spooky?blacklistFlags=nsfw')
                 } catch (error) {
                     interaction.editReply({ content: "Could not find any jokes to show." })
                     return
                 }
-                let joke = cat.data
+                let joke:string
+                if (cat.data.type == 'single') {
+                    joke = cat.data.joke
+                } else {
+                    joke = `${cat.data.setup}\n\n||${cat.data.delivery}||`
+                }
                 interaction.editReply({ content: joke })
             } break
             case 'cah': {
@@ -718,10 +723,10 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     }
                 } break
                 case 'punish':
-                    require('./punisher.js').punish(interaction)
+                    {require('./punisher.js').punish(interaction)}
                     break
                 case 'punishments':
-                    require('./punisher.js').getpunishments(interaction.options.get('user')?.user, interaction)
+                    {require('./punisher.js').getpunishments(interaction.options.get('user')?.user, interaction)}
                     break
             }
         }
