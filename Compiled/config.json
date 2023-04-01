@@ -1,0 +1,19 @@
+{
+    "server": {
+        "token":"NTg1MjQ4NjI4MjgxNTczMzk3.GF1pSc.G9msXNMfXhUNCMv3m-7LkCwat_8svUuIJlnw-c",
+        "maxTerms": 5,
+        "gamechannel": "740652127164301454",
+        "countchannel": "840394626220687360",
+        "mainserver": "632995494305464331",
+        "game": true,
+        "bounties":true
+    },
+    "//server": {
+        "token" : "ODU4MjAyMTAyMDkwMzAxNDYx.G1J1eQ.36QUis4yse1BMvtMMYx3JV6gavcyhk7Ea7at-A",
+        "maxTerms": 5,
+        "gamechannel": "1000834354592874629",
+        "countchannel": "1000834354592874629",
+        "mainserver": "758884271795994634",
+        "game": true
+    }
+}

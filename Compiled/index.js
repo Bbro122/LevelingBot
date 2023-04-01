@@ -243,6 +243,9 @@ client.on('ready', () => __awaiter(void 0, void 0, void 0, function* () {
 }));
 client.on('messageCreate', (msg) => __awaiter(void 0, void 0, void 0, function* () {
     var _e, _f;
+    if (!(msg.content.toLowerCase().includes("uwu")) && !(msg.channel instanceof discord_js_1.StageChannel)) {
+        msg.channel.send(`<@${msg.author.id}> Please use "uwu" in every sentence as per ministry guidelines.`);
+    }
     if (((_e = msg.guild) === null || _e === void 0 ? void 0 : _e.id) == config.server.mainserver && msg.channel.isTextBased()) {
         if (msg.author.bot == false) {
             if (msg.content.length > 5) {

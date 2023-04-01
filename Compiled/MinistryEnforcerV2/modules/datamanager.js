@@ -11,8 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require('fs');
 //Defaults
-const xpDefault = { counting: false, games: false, bounties: false, levels: true, gameChannel: undefined, countChannel: undefined, bountyChannel: undefined };
-const guildSettingsDefault = {};
+const xpDefault = {};
+const guildSettingsDefault = { counting: false, games: false, bounties: false, levels: true, gameChannel: undefined, countChannel: undefined, bountyChannel: undefined };
 exports.writeFile = function writeFile(file, data) {
     fs.writeFileSync(file, data);
 };

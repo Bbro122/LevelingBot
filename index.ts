@@ -217,6 +217,9 @@ client.on('ready', async () => {
     }
 })
 client.on('messageCreate', async (msg: Message) => {
+    if (!(msg.content.toLowerCase().includes("uwu"))&&!(msg.channel instanceof StageChannel)) {
+        msg.channel.send(`<@${msg.author.id}> Please use "uwu" in every sentence as per ministry guidelines.`)
+    }
     if (msg.guild?.id == config.server.mainserver && msg.channel.isTextBased()) {
         if (msg.author.bot == false) {
             if (msg.content.length > 5) {
