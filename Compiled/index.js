@@ -668,13 +668,19 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     yield interaction.deferReply();
                     let cat;
                     try {
-                        cat = yield axios.get('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw&format=txt');
+                        cat = yield axios.get('https://v2.jokeapi.dev/joke/Miscellaneous,Dark,Pun,Spooky?blacklistFlags=nsfw');
                     }
                     catch (error) {
                         interaction.editReply({ content: "Could not find any jokes to show." });
                         return;
                     }
-                    let joke = cat.data;
+                    let joke;
+                    if (cat.data.type == 'single') {
+                        joke = cat.data.joke;
+                    }
+                    else {
+                        joke = `${cat.data.setup}\n\n||${cat.data.delivery}||`;
+                    }
                     interaction.editReply({ content: joke });
                 }
                 break;
@@ -817,10 +823,14 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     }
                     break;
                 case 'punish':
-                    require('./punisher.js').punish(interaction);
+                    {
+                        require('./punisher.js').punish(interaction);
+                    }
                     break;
                 case 'punishments':
-                    require('./punisher.js').getpunishments((_4 = interaction.options.get('user')) === null || _4 === void 0 ? void 0 : _4.user, interaction);
+                    {
+                        require('./punisher.js').getpunishments((_4 = interaction.options.get('user')) === null || _4 === void 0 ? void 0 : _4.user, interaction);
+                    }
                     break;
             }
         }
