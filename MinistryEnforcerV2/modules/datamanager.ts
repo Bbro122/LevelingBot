@@ -1,9 +1,27 @@
 import { Client } from "discord.js"
-
-const fs = require('fs')
+import fs = require('fs')
+import { UserData } from "./types"
 //Defaults
-const xpDefault = {}
-const guildSettingsDefault = { counting: false, games: false, bounties: false, levels: true, gameChannel: undefined, countChannel: undefined, bountyChannel: undefined }
+const xpDefaultValues: UserData =
+{
+    users: [],
+    file: "xpData",
+    multipliers: []
+}
+const guildSettingsDefaultValues =
+{
+    counting: false,
+    games: false,
+    bounties: false,
+    levels: true,
+    gameChannel: undefined,
+    countChannel: undefined,
+    bountyChannel: undefined
+}
+// Data Formatting
+const guildSettingsDefault = JSON.stringify(guildSettingsDefaultValues)
+const xpDefault = JSON.stringify(xpDefaultValues)
+// Functions
 exports.writeFile = function writeFile(file: string, data: string) {
     fs.writeFileSync(file, data)
 }
@@ -29,6 +47,14 @@ exports.getXPData = function (serverId: string) {
         return false
     }
 }
+exports.getGlobalXPData = function () {
+    let path = `../data/userData.json`
+    if (fs.existsSync(path)) {
+        return require(`../data/userData.json`)
+    } else {
+        return false
+    }
+}
 // Guild Settings Collection
 exports.getSettings = function (serverId: string) {
     let path = `../data/serverdata/${serverId}/guildSettings.json`
@@ -38,4 +64,3 @@ exports.getSettings = function (serverId: string) {
         return false
     }
 }
-//

@@ -156,25 +156,6 @@ client.on('guildMemberAdd', async (member: GuildMember) => {
         guild.channels.cache.find(chan => chan.name.startsWith('User-Count'))?.setName(`User-Count-${members}`)
     }
 })
-client.on('userUpdate', async (oldUser, newUser) => {
-    let member = client.guilds.cache.get(config.server.mainserver)?.members.cache.get(newUser.id)
-    if (member && member.manageable && !member.nickname && checkMap(member.displayName.charAt(0))) {
-        //member.setNickname(`[p] ${member.displayName}`)
-        //member.createDM().then(async channel => {
-        //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
-        //catch (err) { console.log(err) }
-        //})
-    }
-})
-client.on('guildMemberUpdate', (oldMember, newMember) => {
-    if (newMember && newMember.manageable && checkMap(newMember.displayName.charAt(0))) {
-        //newMember.setNickname(`[p] ${newMember.displayName}`)
-        //newMember.createDM().then(async channel => {
-        //try { await channel.send('Your nickname or username change was unpingable, and a pingable nickname was automatically given in the Wolf-Co Server.') }
-        //catch (err) { console.log(err) }
-        //})
-    }
-})
 client.on('ready', async () => {
     require('./poll.js').setup(client)
     client.guilds.cache.forEach(async guild => {
@@ -326,7 +307,6 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     interaction.reply(member.premiumSinceTimestamp ? member.premiumSinceTimestamp.toString() : '0')
                 } else {
                     interaction.reply('No')
-                    console.log(member)
                 }
             }
                 break;
