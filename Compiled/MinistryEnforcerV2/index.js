@@ -112,6 +112,34 @@ client.on('interactionCreate', (interaction) => {
                 {
                 }
                 break;
+            case 'setup': {
+                const modal = new discord_js_1.ModalBuilder()
+                    .setCustomId('setup')
+                    .setTitle('Nothing entered will disable feature.');
+                const row = new discord_js_1.ActionRowBuilder();
+                const gameChannel = new discord_js_1.TextInputBuilder()
+                    .setCustomId('gameChannel')
+                    .setLabel('ID of Game Channel')
+                    .setStyle(discord_js_1.TextInputStyle.Short);
+                const countChannel = new discord_js_1.TextInputBuilder()
+                    .setCustomId('countChannel')
+                    .setLabel('ID of Count Channel')
+                    .setStyle(discord_js_1.TextInputStyle.Short);
+                const unoChannel = new discord_js_1.TextInputBuilder()
+                    .setCustomId('unoChannel')
+                    .setLabel('ID of Uno Thread')
+                    .setStyle(discord_js_1.TextInputStyle.Short);
+                const cahChannel = new discord_js_1.TextInputBuilder()
+                    .setCustomId('cahChannel')
+                    .setLabel('ID of Cah Thread')
+                    .setStyle(discord_js_1.TextInputStyle.Short);
+                modal.setComponents([row.setComponents([gameChannel, countChannel, unoChannel, cahChannel])]);
+                interaction.showModal(modal);
+            }
+        }
+    }
+    else if (interaction.isModalSubmit()) {
+        if (interaction.customId == 'setup') {
         }
     }
 });

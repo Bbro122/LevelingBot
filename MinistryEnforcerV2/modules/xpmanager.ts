@@ -1,4 +1,5 @@
-import {DataManager} from './types'
+import { TextChannel } from 'discord.js'
+import {DataManager,User} from './types'
 const dataManager:DataManager = require('./datamanager')
 let globalMultiplier = 1
 exports.addMultiplier = function (multiplier:number,serverID?:string,time?:number,) {
