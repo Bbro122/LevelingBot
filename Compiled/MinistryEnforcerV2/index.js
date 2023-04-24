@@ -15,7 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 //import { UserProfile, XpManager } from "./xpmanager";
 const canvas_1 = __importDefault(require("canvas"));
-let xpmanager = require('./modules/xpmanager');
+let gameManager = require('./modules/gamemanager');
+let xpManager = require('./modules/xpmanager');
 let dataManager = require('./modules/datamanager');
 let fs = require('fs');
 const client = new discord_js_1.Client({ partials: [discord_js_1.Partials.Message, discord_js_1.Partials.Channel, discord_js_1.Partials.Reaction, discord_js_1.Partials.GuildMember, discord_js_1.Partials.User], intents: 131071 });
@@ -100,6 +101,7 @@ function getWelcomeBanner(imagelink) {
 // }
 client.on('ready', () => {
     dataManager.onStart(client);
+    gameManager.setup(client);
 });
 client.on('interactionCreate', (interaction) => {
     var _a, _b, _c, _d;
@@ -112,8 +114,8 @@ client.on('interactionCreate', (interaction) => {
                     if (!user) {
                         user = interaction.user;
                     }
-                    let xp = xpmanager.getXP(((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.id) ? interaction.guild.id : '', user.id);
-                    interaction.reply(xpmanager.getLevel(xp).toString());
+                    let xp = xpManager.getXP(((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.id) ? interaction.guild.id : '', user.id);
+                    interaction.reply(xpManager.getLevel(xp).toString());
                 }
                 break;
             case 'addbounty':
@@ -162,19 +164,19 @@ client.on('interactionCreate', (interaction) => {
                                     switch (type) {
                                         case 'set':
                                             {
-                                                xpmanager.setXP(interaction.guild.id, user, amount);
+                                                xpManager.setXP(interaction.guild.id, user, amount);
                                                 interaction.reply(`Set <@${user}>'s xp to ${amount}`);
                                             }
                                             break;
                                         case 'remove':
                                             {
-                                                xpmanager.addXP(interaction.guild.id, user, -amount);
+                                                xpManager.addXP(interaction.guild.id, user, -amount);
                                                 interaction.reply(`Removing ${amount} xp from <@${user}>`);
                                             }
                                             break;
                                         case 'give':
                                             {
-                                                xpmanager.addXP(interaction.guild.id, user, amount);
+                                                xpManager.addXP(interaction.guild.id, user, amount);
                                                 interaction.reply(`Giving ${amount} xp to <@${user}>`);
                                             }
                                             break;

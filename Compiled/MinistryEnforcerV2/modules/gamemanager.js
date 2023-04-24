@@ -1,4 +1,6 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = require("discord.js");
 let axios = require('axios');
 let dataManager = require('./datamanager');
 const easyVM = { "*": .1, "-": .3, "+": 0.3 };
@@ -6,6 +8,16 @@ const medVM = { "*": .3, "-": .3, "+": 0.3 };
 const hardVM = { "*": .5, "-": .3, "+": 0.3 };
 let valueMap = { "+": 10, "-": 20, "*": 30, "/": 40 };
 const chanceMap = { "*": .2, "-": .3, "+": 0.3 };
+let currentValues = [];
+let client;
+exports.setup = function (bot) {
+    client = bot;
+    client.guilds.fetch().then(guilds => {
+        client.guilds.cache.forEach(guild => {
+            startGame(guild.id, true);
+        });
+    });
+};
 function generateEquation(vm) {
     let termCount = random(3, 6);
     let terms = [];
@@ -87,30 +99,99 @@ function multiples(num) {
 function random(min, max) {
     return Math.round(Math.random() * (max - min)) + min;
 }
+function randomizeWord(word) {
+    while (true) {
+        let array = word.split('');
+        let b = '';
+        for (let i = 0; i < array.length; i++) {
+            const element = array[random(0, array.length - 1)];
+            console.log(element);
+            array.splice(array.indexOf(element), 1);
+            b = b + element;
+            i--;
+        }
+        if (b != word) {
+            return b;
+        }
+    }
+}
 function isSqrt(value) {
     return ((value ** 0.5) == Math.floor(value ** 0.5) ? true : false);
 }
 function startGame(serverID, repeat) {
-    let equation = generateEquation(hardVM);
+    let guild = client.guilds.cache.get(serverID);
     let enabled = dataManager.getSetting(serverID, '.games.enabled');
     let channelID = dataManager.getSetting(serverID, '.games.channel');
-    if (enabled && channelID) {
-        let game = random(1, 3);
-        switch (game) {
-            case 1:
-                {
-                }
-                break;
-            case 2:
-                {
-                }
-                break;
-            case 3:
-                {
-                }
-                break;
-            default:
-                break;
+    if (enabled && channelID && serverID) {
+        let channel = guild === null || guild === void 0 ? void 0 : guild.channels.cache.get(channelID);
+        if (channel && channel instanceof discord_js_1.TextChannel) {
+            let game = random(1, 3);
+            switch (game) {
+                case 1:
+                    {
+                        let equation;
+                        switch (random(1, 3)) {
+                            case 1:
+                                equation = generateEquation(easyVM);
+                                break;
+                            case 2:
+                                equation = generateEquation(medVM);
+                                break;
+                            case 3:
+                                equation = generateEquation(hardVM);
+                                break;
+                            default:
+                                equation = generateEquation(hardVM);
+                                break;
+                        }
+                        let value = currentValues.find(guild => guild.guildId == serverID);
+                        if (value) {
+                            value.currentValue = eval(equation[0].replace('^', '**')).toString();
+                            value.reward = equation[1];
+                        }
+                        else {
+                            currentValues.push({ guildId: serverID, currentValue: eval(equation[0].replace('^', '**')), reward: equation[1] });
+                        }
+                    }
+                    break;
+                case 2:
+                    {
+                        let words = require('./scramble.json');
+                        let word = words[random(0, words.length - 1)];
+                        let value = currentValues.find(guild => guild.guildId == serverID);
+                        if (value) {
+                            value.currentValue = word;
+                            value.reward = 50 + (word.length - 4) * 10;
+                        }
+                        else {
+                            currentValues.push({ guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10 });
+                            value = { guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10 };
+                        }
+                        let color = 'Green';
+                        if (word.length > 7) {
+                            color = 'Red';
+                        }
+                        else if (word.length > 5) {
+                            color = 'Yellow';
+                        }
+                        else {
+                            color = 'Green';
+                        }
+                        let embed = new discord_js_1.EmbedBuilder()
+                            .setTitle('Unscramble the Word')
+                            .setDescription(randomizeWord(word))
+                            .setColor(color)
+                            .setFooter({ text: `Solve for ${value.reward} xp || Ends in 2 hours` });
+                        channel.send({ embeds: [embed] });
+                    }
+                    break;
+                case 3:
+                    {
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

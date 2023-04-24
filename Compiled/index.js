@@ -88,7 +88,7 @@ function getWelcomeBanner(imagelink) {
         let canvas = canvas_1.default.createCanvas(1200, 300);
         let context = canvas.getContext('2d');
         context.drawImage(yield canvas_1.default.loadImage(imagelink), 478, 51, 203, 203);
-        context.drawImage(yield canvas_1.default.loadImage('../welcome.png'), 0, 0, 1200, 300);
+        context.drawImage(yield canvas_1.default.loadImage('./welcome.png'), 0, 0, 1200, 300);
         return canvas.toBuffer('image/png');
     });
 }
@@ -108,14 +108,14 @@ function getImage(exp, requirement, username, number, level, imagelink, rank, mi
         //else { context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300) }
         console.log(namecard);
         if (namecard) {
-            context.drawImage(yield canvas_1.default.loadImage((namecard && typeof namecard == 'string') ? namecard : '../namecards/ministry.png'), 0, 0, 1200, 300);
+            context.drawImage(yield canvas_1.default.loadImage((namecard && typeof namecard == 'string') ? namecard : './namecards/ministry.png'), 0, 0, 1200, 300);
         }
         else {
             if (ministry) {
-                context.drawImage(yield canvas_1.default.loadImage('../namecards/ministry.png'), 0, 0, 1200, 300);
+                context.drawImage(yield canvas_1.default.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300);
             }
             else {
-                context.drawImage(yield canvas_1.default.loadImage('../namecards/default.png'), 0, 0, 1200, 300);
+                context.drawImage(yield canvas_1.default.loadImage('./namecards/default.png'), 0, 0, 1200, 300);
             }
         }
         context.fillStyle = '#ffffff';
@@ -281,7 +281,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         if (uuid) {
                             let hypixelresponse = yield axios.get(`https://api.hypixel.net/player?key=0980e33a-8052-4c48-aca7-2117c200ba09&uuid=${uuid}`);
                             //await interaction.followUp(hypixelresponse.data.player.lastLogin.toString())
-                            let data = require('../bountydata.json');
+                            let data = require('./bountydata.json');
                             if (data.users.find(user => user.uuid == uuid)) {
                                 let user = data.users.find(user => user.uuid == uuid);
                                 if (user === null || user === void 0 ? void 0 : user.trackers.includes(interaction.user.id)) {
@@ -289,14 +289,14 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                 }
                                 else {
                                     user === null || user === void 0 ? void 0 : user.trackers.push(interaction.user.id);
-                                    fs.writeFileSync('../bountydata.json', JSON.stringify(data));
+                                    fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                                     interaction.editReply(`You're now tracking ${hypixelresponse.data.player.displayname}'s bounty.\nYou'll be pinged up to 5 minutes after they log on`);
                                 }
                             }
                             else {
                                 let bounty = { trackers: [interaction.user.id], uuid: uuid, lastLogin: hypixelresponse.data.player.lastLogin };
                                 data.users.push(bounty);
-                                fs.writeFileSync('../bountydata.json', JSON.stringify(data));
+                                fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                                 interaction.editReply(`**Bounty Posted:** ${hypixelresponse.data.player.displayname}\nYou'll be pinged up to 5 minutes after they log on`);
                             }
                         }
@@ -323,7 +323,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                             return;
                         }
                         if (uuid) {
-                            let data = require('../bountydata.json');
+                            let data = require('./bountydata.json');
                             let user = data.users.find(user => user.uuid == uuid);
                             if (user && user.trackers.includes(interaction.user.id)) {
                                 if ((user === null || user === void 0 ? void 0 : user.trackers.length) > 1) {
@@ -334,7 +334,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                     data.users.splice(data.users.indexOf(user), 1);
                                     interaction.editReply(`**Bounty Removed**: ${username}`);
                                 }
-                                fs.writeFileSync('../bountydata.json', JSON.stringify(data));
+                                fs.writeFileSync('./bountydata.json', JSON.stringify(data));
                             }
                             else {
                                 interaction.editReply("Could not find the requested bounty, or you are not tracking that bounty.");
@@ -865,7 +865,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
             }
         }
     }
-    else if (interaction.isButton()&&(interaction.customId=='y'||interaction.customId=='n')) {
+    else if (interaction.isButton()) {
         require('./poll').vote(interaction);
     }
 }));
