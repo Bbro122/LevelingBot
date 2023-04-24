@@ -9,10 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs = require('fs');
+const fs = require("fs");
+const types_1 = require("./types");
 //Defaults
-const xpDefault = {};
-const guildSettingsDefault = { counting: false, games: false, bounties: false, levels: true, gameChannel: undefined, countChannel: undefined, bountyChannel: undefined };
+const guildSettingsDefaultValues = {
+    counting: false,
+    games: false,
+    bounties: false,
+    levels: true,
+    gameChannel: undefined,
+    countChannel: undefined,
+    bountyChannel: undefined
+};
+// Data Formatting
+const guildSettingsDefault = JSON.stringify(guildSettingsDefaultValues);
+// Functions
 exports.writeFile = function writeFile(file, data) {
     fs.writeFileSync(file, data);
 };
@@ -23,19 +34,40 @@ exports.onStart = function (client) {
     return __awaiter(this, void 0, void 0, function* () {
         yield client.guilds.fetch();
         client.guilds.cache.forEach(guild => {
-            if (!fs.existsSync(`../data/serverdata/${guild.id}`)) {
-                fs.mkdirSync(`../data/serverdata/${guild.id}`);
-                fs.writeFileSync(`../data/serverdata/${guild.id}/userData.json`, xpDefault);
-                fs.writeFileSync(`../data/serverdata/${guild.id}/guildSettings.json`, guildSettingsDefault);
+            console.log(fs.existsSync('./modules'));
+            if (!fs.existsSync(`./data/serverdata/${guild.id}`)) {
+                exports.registerServer(guild.id);
             }
+            guild.commands.set(require('../commands.json'));
         });
     });
+};
+exports.write = function (data) {
+    switch (true) {
+        case data.fileCode.startsWith("userData"):
+            {
+                const serverID = data.fileCode.slice(8, data.fileCode.length - 1);
+                fs.writeFileSync(`../data/serverdata/${serverID}/userdata.json`, JSON.stringify(data));
+            }
+            break;
+        default:
+            break;
+    }
 };
 // XP Data Collection
 exports.getXPData = function (serverId) {
     let path = `../data/serverdata/${serverId}/userData.json`;
     if (fs.existsSync(path)) {
         return require(`../data/serverdata/${serverId}/userData.json`);
+    }
+    else {
+        return false;
+    }
+};
+exports.getGlobalXPData = function () {
+    let path = `../data/userData.json`;
+    if (fs.existsSync(path)) {
+        return require(`../data/userData.json`);
     }
     else {
         return false;
@@ -51,4 +83,22 @@ exports.getSettings = function (serverId) {
         return false;
     }
 };
-//
+exports.getSetting = function (serverID, setting) {
+    let settings = exports.getSettings(serverID);
+    if (settings) {
+        return eval(`settings.${setting}`);
+    }
+    else {
+        return false;
+    }
+};
+exports.listServers = function () {
+    console.log(fs.readdirSync('../data/serverdata'));
+};
+exports.registerServer = function (guildID) {
+    if (!fs.existsSync(`../data/serverdata/${guildID}`)) {
+        fs.mkdirSync(`../data/serverdata/${guildID}`);
+        fs.writeFileSync(`../data/serverdata/${guildID}/userData.json`, JSON.stringify(new types_1.UserData(guildID)));
+        fs.writeFileSync(`../data/serverdata/${guildID}/guildSettings.json`, JSON.stringify(new types_1.GuildSettings(guildID)));
+    }
+};

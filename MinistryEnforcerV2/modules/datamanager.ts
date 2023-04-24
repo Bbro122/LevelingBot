@@ -1,13 +1,7 @@
 import { Client } from "discord.js"
 import fs = require('fs')
-import { UserData } from "./types"
+import { GuildSettings, UserData } from "./types"
 //Defaults
-const xpDefaultValues: UserData =
-{
-    users: [],
-    file: "xpData",
-    multipliers: []
-}
 const guildSettingsDefaultValues =
 {
     counting: false,
@@ -20,7 +14,6 @@ const guildSettingsDefaultValues =
 }
 // Data Formatting
 const guildSettingsDefault = JSON.stringify(guildSettingsDefaultValues)
-const xpDefault = JSON.stringify(xpDefaultValues)
 // Functions
 exports.writeFile = function writeFile(file: string, data: string) {
     fs.writeFileSync(file, data)
@@ -31,12 +24,25 @@ exports.readFile = function readFile(file: string) {
 exports.onStart = async function (client: Client) {
     await client.guilds.fetch()
     client.guilds.cache.forEach(guild => {
-        if (!fs.existsSync(`../data/serverdata/${guild.id}`)) {
-            fs.mkdirSync(`../data/serverdata/${guild.id}`)
-            fs.writeFileSync(`../data/serverdata/${guild.id}/userData.json`, xpDefault);
-            fs.writeFileSync(`../data/serverdata/${guild.id}/guildSettings.json`, guildSettingsDefault);
+        console.log(fs.existsSync('./modules'))
+        if (!fs.existsSync(`./data/serverdata/${guild.id}`)) {
+            exports.registerServer(guild.id)
         }
+        guild.commands.set(require('../commands.json'))
     })
+}
+exports.write = function (data:UserData) {
+    switch (true) {
+        case data.fileCode.startsWith("userData"):
+            {
+                const serverID = data.fileCode.slice(8,data.fileCode.length-1)
+                fs.writeFileSync(`../data/serverdata/${serverID}/userdata.json`,JSON.stringify(data))
+            }
+            break;
+    
+        default:
+            break;
+    }
 }
 // XP Data Collection
 exports.getXPData = function (serverId: string) {
@@ -62,5 +68,23 @@ exports.getSettings = function (serverId: string) {
         return require(`../data/serverdata/${serverId}/guildSettings.json`)
     } else {
         return false
+    }
+}
+exports.getSetting = function (serverID:string,setting:string) {
+    let settings = exports.getSettings(serverID)
+    if (settings) {
+        return eval(`settings.${setting}`)
+    } else {
+        return false
+    }
+}
+exports.listServers = function () {
+    console.log(fs.readdirSync('../data/serverdata'))
+}
+exports.registerServer = function (guildID:string) {
+    if (!fs.existsSync(`../data/serverdata/${guildID}`)) {
+        fs.mkdirSync(`../data/serverdata/${guildID}`)
+        fs.writeFileSync(`../data/serverdata/${guildID}/userData.json`, JSON.stringify(new UserData(guildID)));
+        fs.writeFileSync(`../data/serverdata/${guildID}/guildSettings.json`, JSON.stringify(new GuildSettings(guildID)));
     }
 }

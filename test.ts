@@ -33,8 +33,9 @@ async function getImage(xp:number,requirement:number,namecard:string,level:numbe
     fs.writeFileSync('./image.png', buffer)
 }
 //getImage(59,100,'default',1)
-let array = [1,20,123,543]
-let test = 546
-array.push(test)
-array.sort((a, b) => b - a)
-console.log(array.indexOf(test)+1)
+// let array = [1,20,123,543]
+// let test = 546
+// array.push(test)
+// array.sort((a, b) => b - a)
+// console.log(array.indexOf(test)+1)
+require('fs').mkdirSync('./test')
