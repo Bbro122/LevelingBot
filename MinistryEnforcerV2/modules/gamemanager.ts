@@ -1,6 +1,17 @@
 import { Embed } from "@discordjs/builders"
-import { Client, ColorResolvable, EmbedBuilder, TextChannel } from "discord.js"
-
+import { ActionRowBuilder, Client, ColorResolvable, EmbedBuilder, SelectMenuOptionBuilder, StringSelectMenuBuilder, TextChannel } from "discord.js"
+type triviaData = {
+    data: {
+        category: string
+        id: string
+        correctAnswer: string
+        incorrectAnswers: string[]
+        question: string
+        tags: string[]
+        type: string
+        difficulty: string
+    }[]
+}
 let axios = require('axios')
 let dataManager = require('./datamanager')
 const easyVM = { "*": .1, "-": .3, "+": 0.3 }
@@ -8,7 +19,7 @@ const medVM = { "*": .3, "-": .3, "+": 0.3 }
 const hardVM = { "*": .5, "-": .3, "+": 0.3 }
 let valueMap = { "+": 10, "-": 20, "*": 30, "/": 40 }
 const chanceMap = { "*": .2, "-": .3, "+": 0.3 }
-let currentValues: { guildId: string, currentValue: string, reward: number }[] = []
+let currentValues: { guildId: string, currentValue: string, reward: number, type: number }[] = []
 let client: Client
 exports.setup = function (bot: Client) {
     client = bot
@@ -114,7 +125,7 @@ function randomizeWord(word: string) {
 function isSqrt(value: number) {
     return ((value ** 0.5) == Math.floor(value ** 0.5) ? true : false)
 }
-function startGame(serverID: string, repeat: boolean) {
+async function startGame(serverID: string, repeat: boolean) {
     let guild = client.guilds.cache.get(serverID)
     let enabled = dataManager.getSetting(serverID, '.games.enabled')
     let channelID = dataManager.getSetting(serverID, '.games.channel')
@@ -137,14 +148,15 @@ function startGame(serverID: string, repeat: boolean) {
                             break;
                         default:
                             equation = generateEquation(hardVM)
-                        break
+                            break
                     }
                     let value = currentValues.find(guild => guild.guildId == serverID)
                     if (value) {
                         value.currentValue = (eval((equation[0] as string).replace('^', '**')) as number).toString()
                         value.reward = equation[1] as number
+                        value.type = 1
                     } else {
-                        currentValues.push({ guildId: serverID, currentValue: eval((equation[0] as string).replace('^', '**')), reward: equation[1] as number })
+                        currentValues.push({ guildId: serverID, currentValue: eval((equation[0] as string).replace('^', '**')), reward: equation[1] as number, type: 1 })
                     }
                 }
                     break;
@@ -156,8 +168,8 @@ function startGame(serverID: string, repeat: boolean) {
                         value.currentValue = word
                         value.reward = 50 + (word.length - 4) * 10
                     } else {
-                        currentValues.push({ guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10 })
-                        value = { guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10 }
+                        currentValues.push({ guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10, type: 2 })
+                        value = { guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10, type: 2 }
                     }
                     let color: ColorResolvable = 'Green'
                     if (word.length > 7) {
@@ -172,11 +184,82 @@ function startGame(serverID: string, repeat: boolean) {
                         .setDescription(randomizeWord(word))
                         .setColor(color)
                         .setFooter({ text: `Solve for ${value.reward} xp || Ends in 2 hours` })
-                    channel.send({ embeds: [embed] })
+                    await channel.send({ embeds: [embed] })
                 }
                     break;
                 case 3: {
-
+                    let difficulty
+                    let value = 0
+                    let color: ColorResolvable = 'Green'
+                    switch (random(1, 3)) {
+                        case 1:
+                            difficulty = 'hard'
+                            color = 'Red'
+                            value = 150
+                            break;
+                        case 2:
+                            difficulty = 'medium'
+                            color = 'Yellow'
+                            value = 100
+                            break;
+                        case 3:
+                            difficulty = 'easy'
+                            color = 'Green'
+                            value = 50
+                            break;
+                    }
+                    let trivia: triviaData["data"][0]
+                    try {
+                        trivia = (await axios.get(`https://the-trivia-api.com/api/questions?limit=1&difficulty=${difficulty}`)).data[0]
+                    } catch (error) {
+                        return console.log(error)
+                    }
+                    let array = trivia.incorrectAnswers
+                    array.push(trivia.correctAnswer)
+                    let answers: string[] = []
+                    for (let i = 0; i < array.length; i++) {
+                        const element = array[random(0, array.length - 1)];
+                        console.log(element)
+                        array.splice(array.indexOf(element), 1)
+                        answers.push(element)
+                        i--
+                    }
+                    let embed = new EmbedBuilder()
+                        .setColor('LuminousVividPink')
+                        .setTitle(trivia.category)
+                        .setDescription(trivia.question)
+                        .addFields([{ value: answers[0], name: 'A.' }, { value: answers[1], name: 'B.' }, { value: answers[2], name: 'C.' }, { value: answers[3], name: 'D.' }])
+                        .setFooter({ text: `Choose the correct answer for ${value}` });
+                    let row = new ActionRowBuilder<StringSelectMenuBuilder>()
+                        .addComponents(new StringSelectMenuBuilder()
+                            .setOptions(
+                                new SelectMenuOptionBuilder()
+                                    .setLabel(answers[0])
+                                    .setDescription('0')
+                                    .setValue('0'),
+                                new SelectMenuOptionBuilder()
+                                    .setLabel(answers[1])
+                                    .setDescription('1')
+                                    .setValue('1'),
+                                new SelectMenuOptionBuilder()
+                                    .setLabel(answers[2])
+                                    .setDescription('2')
+                                    .setValue('2'),
+                                new SelectMenuOptionBuilder()
+                                    .setLabel(answers[3])
+                                    .setDescription('3')
+                                    .setValue('3')
+                            )
+                        )
+                    await channel.send({ embeds: [embed], components: [row] })
+                    let answer = currentValues.find(guild => guild.guildId == serverID)
+                    if (answer) {
+                        answer.currentValue = answers.indexOf(trivia.correctAnswer).toString()
+                        answer.reward = value
+                        answer.type = 3
+                    } else {
+                        currentValues.push({ guildId: serverID, currentValue: answers.indexOf(trivia.correctAnswer).toString(), reward: value, type: 3 })
+                    }
                 }
                     break;
                 default:
@@ -184,6 +267,9 @@ function startGame(serverID: string, repeat: boolean) {
             }
         }
     }
+}
+exports.getAnswer = function (guildId:string) {
+    return currentValues.find(value => value.guildId = guildId)
 }
 //startGame('0000000',false)
 console.log(dataManager.getSetting('758884271795994634', 'games.enabled'))
