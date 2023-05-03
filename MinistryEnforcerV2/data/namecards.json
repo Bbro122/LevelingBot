@@ -1,0 +1,16 @@
+{
+    "level": {
+        "default": {
+            "path": "./namecards/default.png",
+            "style": {
+                "primaryColor": "#00dbff",
+                "secondaryColor": "#ffffff"
+            }
+        }
+    },
+    "welcome": {
+        "default": {
+
+        }
+    }
+}

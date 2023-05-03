@@ -1,6 +1,5 @@
-import { Embed } from "@discordjs/builders"
-import { ActionRowBuilder, Client, ColorResolvable, EmbedBuilder, SelectMenuOptionBuilder, StringSelectMenuBuilder, TextChannel } from "discord.js"
-type triviaData = {
+import { ActionRowBuilder, Client, ColorResolvable, ComponentType, EmbedBuilder, SelectMenuOptionBuilder, StringSelectMenuBuilder, StringSelectMenuComponent, TextChannel } from "discord.js"
+interface triviaData {
     data: {
         category: string
         id: string
@@ -13,22 +12,37 @@ type triviaData = {
     }[]
 }
 let axios = require('axios')
-let dataManager = require('./datamanager')
+import dataManager = require('./datamanager')
 const easyVM = { "*": .1, "-": .3, "+": 0.3 }
 const medVM = { "*": .3, "-": .3, "+": 0.3 }
 const hardVM = { "*": .5, "-": .3, "+": 0.3 }
 let valueMap = { "+": 10, "-": 20, "*": 30, "/": 40 }
 const chanceMap = { "*": .2, "-": .3, "+": 0.3 }
-let currentValues: { guildId: string, currentValue: string, reward: number, type: number }[] = []
+export type GameValues = { guildId: string, currentValue: string, reward: number, type: number }
+let currentValues:GameValues[]
 let client: Client
-exports.setup = function (bot: Client) {
-    client = bot
-    client.guilds.fetch().then(guilds => {
-        client.guilds.cache.forEach(guild => {
-            startGame(guild.id, true)
+const _ = {
+    setup(bot: Client) {
+        client = bot
+        client.guilds.fetch().then(() => {
+            client.guilds.cache.forEach(guild => {
+                startGame(guild.id, true)
+            })
         })
-    })
+    },
+    getAnswer(guildId:string) {
+        return currentValues.find(value => value.guildId = guildId)
+    },
+    answer(guildId:string) {
+        let value = currentValues.find(value=>value.guildId==guildId)
+        if (value) {
+            value.reward = 0
+            return true
+        }
+        return false
+    }
 }
+export default _
 function generateEquation(vm: any) {
     let termCount = random(3, 6)
     let terms: any[] = []
@@ -126,9 +140,10 @@ function isSqrt(value: number) {
     return ((value ** 0.5) == Math.floor(value ** 0.5) ? true : false)
 }
 async function startGame(serverID: string, repeat: boolean) {
+    let manager = new dataManager.ServerDataManager(serverID)
     let guild = client.guilds.cache.get(serverID)
-    let enabled = dataManager.getSetting(serverID, '.games.enabled')
-    let channelID = dataManager.getSetting(serverID, '.games.channel')
+    let enabled = manager.getSetting('games.enabled')
+    let channelID = manager.getSetting('games.channel')
     if (enabled && channelID && serverID) {
         let channel = guild?.channels.cache.get(channelID)
         if (channel && channel instanceof TextChannel) {
@@ -232,6 +247,7 @@ async function startGame(serverID: string, repeat: boolean) {
                         .setFooter({ text: `Choose the correct answer for ${value}` });
                     let row = new ActionRowBuilder<StringSelectMenuBuilder>()
                         .addComponents(new StringSelectMenuBuilder()
+                            .setCustomId('trivia')
                             .setOptions(
                                 new SelectMenuOptionBuilder()
                                     .setLabel(answers[0])
@@ -260,16 +276,10 @@ async function startGame(serverID: string, repeat: boolean) {
                     } else {
                         currentValues.push({ guildId: serverID, currentValue: answers.indexOf(trivia.correctAnswer).toString(), reward: value, type: 3 })
                     }
+                    channel.createMessageComponentCollector({componentType:ComponentType.StringSelect,})
                 }
-                    break;
-                default:
                     break;
             }
         }
     }
 }
-exports.getAnswer = function (guildId:string) {
-    return currentValues.find(value => value.guildId = guildId)
-}
-//startGame('0000000',false)
-console.log(dataManager.getSetting('758884271795994634', 'games.enabled'))

@@ -1,4 +1,5 @@
 "use strict";
+// Imports
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -13,15 +14,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
-//import { UserProfile, XpManager } from "./xpmanager";
 const canvas_1 = __importDefault(require("canvas"));
-let gameManager = require('./modules/gamemanager');
-let xpManager = require('./modules/xpmanager');
-let dataManager = require('./modules/datamanager');
-let fs = require('fs');
+const gamemanager_1 = __importDefault(require("./modules/gamemanager"));
+const xpmanager_1 = __importDefault(require("./modules/xpmanager"));
+const datamanager_1 = __importDefault(require("./modules/datamanager"));
 const client = new discord_js_1.Client({ partials: [discord_js_1.Partials.Message, discord_js_1.Partials.Channel, discord_js_1.Partials.Reaction, discord_js_1.Partials.GuildMember, discord_js_1.Partials.User], intents: 131071 });
-//let game = require('./gamemanager.js');
-let axios = require('axios');
 let medals = ['🥇', '🥈', '🥉'];
 let charMap = "`~1!2@3#4$5%6^7&8*9(0)-_=+qwertyuiop[{]};:'.>,<qwertyuiopasdfghjklzxcvbnm /?|" + '"';
 function checkModerator(interaction, reply) {
@@ -63,6 +60,9 @@ function getWelcomeBanner(imagelink) {
         return canvas.toBuffer('image/png');
     });
 }
+function random(min, max) {
+    return Math.round(Math.random() * (max - min)) + min;
+}
 // async function getImage(exp: number, username: any, number: any, level: any, imagelink?: any) {
 //     let canvas = can.createCanvas(1200, 300)
 //     let context = canvas.getContext('2d')
@@ -100,108 +100,131 @@ function getWelcomeBanner(imagelink) {
 //     return canvas.toBuffer('image/png')
 // }
 client.on('ready', () => {
-    dataManager.onStart(client);
-    gameManager.setup(client);
+    datamanager_1.default.onStart(client);
+    gamemanager_1.default.setup(client);
 });
-client.on('interactionCreate', (interaction) => {
-    var _a, _b, _c, _d;
-    if (interaction.isChatInputCommand()) {
-        switch (interaction.commandName) {
-            //Xp Commands
-            case 'level':
-                {
-                    let user = interaction.options.get("user");
-                    if (!user) {
-                        user = interaction.user;
-                    }
-                    let xp = xpManager.getXP(((_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.id) ? interaction.guild.id : '', user.id);
-                    interaction.reply(xpManager.getLevel(xp).toString());
-                }
-                break;
-            case 'addbounty':
-                {
-                }
-                break;
-            case 'removebounty':
-                {
-                }
-                break;
-            case 'setup': {
-                if (checkOwner(interaction, true)) {
-                    const modal = new discord_js_1.ModalBuilder()
-                        .setCustomId('setup')
-                        .setTitle(`Don't enter anything to disable feature`);
-                    const row = new discord_js_1.ActionRowBuilder();
-                    const gameChannel = new discord_js_1.TextInputBuilder()
-                        .setCustomId('gameChannel')
-                        .setLabel('ID of Game Channel')
-                        .setStyle(discord_js_1.TextInputStyle.Short);
-                    const countChannel = new discord_js_1.TextInputBuilder()
-                        .setCustomId('countChannel')
-                        .setLabel('ID of Count Channel')
-                        .setStyle(discord_js_1.TextInputStyle.Short);
-                    const unoChannel = new discord_js_1.TextInputBuilder()
-                        .setCustomId('unoChannel')
-                        .setLabel('ID of Uno Thread')
-                        .setStyle(discord_js_1.TextInputStyle.Short);
-                    const cahChannel = new discord_js_1.TextInputBuilder()
-                        .setCustomId('cahChannel')
-                        .setLabel('ID of Cah Thread')
-                        .setStyle(discord_js_1.TextInputStyle.Short);
-                    modal.setComponents([row.setComponents([gameChannel, countChannel, unoChannel, cahChannel])]);
-                    interaction.showModal(modal);
-                }
+client.on('messageCreate', message => {
+    var _a;
+    if ((_a = message.guild) === null || _a === void 0 ? void 0 : _a.id) {
+        let datamanager = datamanager_1.default.getServer(message.guild.id);
+        let xpM = xpmanager_1.default.getXPManager(message.guild.id);
+        let guild = message.guild;
+        if (message.content.length > 5 && (guild === null || guild === void 0 ? void 0 : guild.id)) {
+            xpM.addXP(message.author.id, random(15, 25), true);
+        }
+        if (guild && datamanager.getSetting('games.channel') == message.channel.id) {
+            let values = gamemanager_1.default.getAnswer(guild.id);
+            if (values && values.currentValue == message.content && guild.id) {
+                xpM.addXP(message.author.id, values.reward, true);
+                gamemanager_1.default.answer(guild.id);
             }
-            default:
-                {
-                    if (checkModerator(interaction, true)) {
-                        switch (interaction.commandName) {
-                            case 'xp':
-                                let amount = (_b = interaction.options.get('amount')) === null || _b === void 0 ? void 0 : _b.value;
-                                let type = (_c = interaction.options.get('type')) === null || _c === void 0 ? void 0 : _c.value;
-                                let user = (_d = interaction.options.get('user')) === null || _d === void 0 ? void 0 : _d.value;
-                                if (typeof type == 'string' && typeof amount == 'number' && typeof user == 'string' && interaction.guild) {
-                                    switch (type) {
-                                        case 'set':
-                                            {
-                                                xpManager.setXP(interaction.guild.id, user, amount);
-                                                interaction.reply(`Set <@${user}>'s xp to ${amount}`);
-                                            }
-                                            break;
-                                        case 'remove':
-                                            {
-                                                xpManager.addXP(interaction.guild.id, user, -amount);
-                                                interaction.reply(`Removing ${amount} xp from <@${user}>`);
-                                            }
-                                            break;
-                                        case 'give':
-                                            {
-                                                xpManager.addXP(interaction.guild.id, user, amount);
-                                                interaction.reply(`Giving ${amount} xp to <@${user}>`);
-                                            }
-                                            break;
-                                        default:
-                                            interaction.reply('Type Error: Xp Command');
-                                            break;
-                                    }
-                                }
-                                else {
-                                    interaction.reply('Data Error: Xp Command');
-                                }
-                                break;
-                            default:
-                                {
-                                    interaction.reply('Command Unknown. (Update in Progress)');
-                                }
-                                break;
-                        }
-                    }
-                }
-                break;
         }
     }
-    else if (interaction.isModalSubmit()) {
-        if (interaction.customId == 'setup') {
+});
+client.on('interactionCreate', (interaction) => {
+    var _a, _b, _c;
+    if (interaction.guildId) {
+        let xpM = xpmanager_1.default.getXPManager(interaction.guildId);
+        if (interaction.isChatInputCommand()) {
+            switch (interaction.commandName) {
+                //Xp Commands
+                case 'level':
+                    {
+                        let user = interaction.options.get("user");
+                        if (!user) {
+                            user = interaction.user;
+                        }
+                        let xp = xpM.getXP(user.id);
+                        interaction.reply(xpmanager_1.default.getLevel(xp).toString());
+                    }
+                    break;
+                case 'addbounty':
+                    {
+                    }
+                    break;
+                case 'removebounty':
+                    {
+                    }
+                    break;
+                case 'setup':
+                    {
+                        if (checkOwner(interaction, true)) {
+                            const modal = new discord_js_1.ModalBuilder()
+                                .setCustomId('setup')
+                                .setTitle(`Setup Menu`);
+                            const row = new discord_js_1.ActionRowBuilder();
+                            const gameChannel = new discord_js_1.TextInputBuilder()
+                                .setCustomId('gameChannel')
+                                .setLabel('ID of Game Channel')
+                                .setStyle(discord_js_1.TextInputStyle.Short);
+                            const countChannel = new discord_js_1.TextInputBuilder()
+                                .setCustomId('countChannel')
+                                .setLabel('ID of Count Channel')
+                                .setStyle(discord_js_1.TextInputStyle.Short);
+                            const unoChannel = new discord_js_1.TextInputBuilder()
+                                .setCustomId('unoChannel')
+                                .setLabel('ID of Uno Thread')
+                                .setStyle(discord_js_1.TextInputStyle.Short);
+                            const cahChannel = new discord_js_1.TextInputBuilder()
+                                .setCustomId('cahChannel')
+                                .setLabel('ID of Cah Thread')
+                                .setStyle(discord_js_1.TextInputStyle.Short);
+                            modal.setComponents([row.setComponents([gameChannel, countChannel, unoChannel, cahChannel])]);
+                            interaction.showModal(modal);
+                        }
+                    }
+                    break;
+                default:
+                    {
+                        if (checkModerator(interaction, true)) {
+                            switch (interaction.commandName) {
+                                case 'xp':
+                                    let amount = (_a = interaction.options.get('amount')) === null || _a === void 0 ? void 0 : _a.value;
+                                    let type = (_b = interaction.options.get('type')) === null || _b === void 0 ? void 0 : _b.value;
+                                    let user = (_c = interaction.options.get('user')) === null || _c === void 0 ? void 0 : _c.value;
+                                    if (typeof type == 'string' && typeof amount == 'number' && typeof user == 'string' && interaction.guild) {
+                                        switch (type) {
+                                            case 'set':
+                                                {
+                                                    xpM.setXP(user, amount);
+                                                    interaction.reply(`Set <@${user}>'s xp to ${amount}`);
+                                                }
+                                                break;
+                                            case 'remove':
+                                                {
+                                                    xpM.addXP(user, -amount);
+                                                    interaction.reply(`Removing ${amount} xp from <@${user}>`);
+                                                }
+                                                break;
+                                            case 'give':
+                                                {
+                                                    xpM.addXP(user, amount);
+                                                    interaction.reply(`Giving ${amount} xp to <@${user}>`);
+                                                }
+                                                break;
+                                            default:
+                                                interaction.reply('Type Error: Xp Command');
+                                                break;
+                                        }
+                                    }
+                                    else {
+                                        interaction.reply('Data Error: Xp Command');
+                                    }
+                                    break;
+                                default:
+                                    {
+                                        interaction.reply('Command Unknown. (Update in Progress)');
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+        else if (interaction.isModalSubmit()) {
+            if (interaction.customId == 'setup') {
+            }
         }
     }
 });

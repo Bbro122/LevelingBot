@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GuildSettings = exports.UserData = void 0;
 class UserData {
     constructor(serverID) {
-        this.fileCode = "userData" + serverID;
+        this.fileCode = "userData" + (serverID ? serverID : 'global');
         this.users = [];
         this.multipliers = [];
     }

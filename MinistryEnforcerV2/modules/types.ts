@@ -1,21 +1,11 @@
 import { Client } from "discord.js"
-import { type } from "os"
-
-export type User = {
-    xp: number,
-    id: string
-}
-export type Multiplier = {
-    startTime: number,
-    endTime: number | undefined,
-    multiplier: number
-}
+import { GameValues } from "./gamemanager"
 export class UserData {
     users: User[]
     multipliers: Multiplier[]
     fileCode: string
-    constructor(serverID: string) {
-        this.fileCode = "userData" + serverID
+    constructor(serverID?: string) {
+        this.fileCode = "userData" + (serverID?serverID:'global')
         this.users = []
         this.multipliers = []
     }
@@ -32,24 +22,27 @@ export class GuildSettings {
     fileCode: string
     constructor(serverID: string) {
         this.games = {
-                delay: 2,
-                enabled: false,
-                disabledGames: [],
-                triviaForceDifficulty: -1,
-                mathForceDifficulty: -1,
-                channel: undefined
-            }
-        this.fileCode = 'guildSettings'+serverID
+            delay: 2,
+            enabled: false,
+            disabledGames: [],
+            triviaForceDifficulty: -1,
+            mathForceDifficulty: -1,
+            channel: undefined
+        }
+        this.fileCode = 'guildSettings' + serverID
     }
 }
-export type DataManager = {
-    writeFile: (path: string, data: string) => any
-    readFile: (path: string) => any
-    onStart: (client: Client) => void
-    getXPData: (serverID: string) => UserData
-    getSettings: (serverID: string) => any
-    getGlobalXPData: () => UserData
-    listServers: () => any[]
+export type FileData =
+    | UserData
+    | GuildSettings
+export type User = {
+    xp: number,
+    id: string
+}
+export type Multiplier = {
+    startTime: number,
+    endTime: number | undefined,
+    multiplier: number
 }
 export type XpManager = {
     levelRequirement: (lvl: number) => number
@@ -62,4 +55,6 @@ export type XpManager = {
 }
 export type GameManager = {
     setup: (client: Client) => void
+    getAnswer: (guildId: string) => GameValues | undefined
+    answer: (guildID: string) => boolean
 }
