@@ -245,7 +245,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                             ])
                                 .setCustomId('setup'));
                             interaction.reply({ embeds: [embed], components: [row] });
-                            let collect = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ filter: t => t.customId == 'setup', componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1 });
+                            let collect = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                             function collector(collect) {
                                 collect === null || collect === void 0 ? void 0 : collect.on('collect', (int) => __awaiter(this, void 0, void 0, function* () {
                                     var _a, _b, _c;
@@ -285,11 +285,11 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                                 ])
                                                     .setCustomId('delay'));
                                                 yield int.update({ embeds: [emb], components: [row2] });
-                                                let collect = (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.createMessageComponentCollector({ filter: t => t.customId == 'delay', componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1 });
+                                                let collect = (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.createMessageComponentCollector({ filter: t => t.customId == 'delay' && t.user.id == interaction.user.id, componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1 });
                                                 collect === null || collect === void 0 ? void 0 : collect.on('collect', (int) => __awaiter(this, void 0, void 0, function* () {
                                                     let manager = datamanager_1.default.getManager(interaction.guildId);
                                                     manager.setSetting('gameDelay', Number(int.values[0]) * 3600000);
-                                                    let collect = interaction.channel.createMessageComponentCollector();
+                                                    let collect = interaction.channel.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                                                     if (collect) {
                                                         yield int.update({ embeds: [embed], components: [row] });
                                                         collector(collect);
@@ -307,11 +307,11 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                                     .setCustomId('channel')
                                                     .setChannelTypes([discord_js_1.ChannelType.GuildText]));
                                                 yield int.update({ embeds: [emb], components: [row2] });
-                                                let collect = (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.createMessageComponentCollector({ filter: t => t.customId == 'channel', componentType: discord_js_1.ComponentType.ChannelSelect, idle: 120000, max: 1 });
+                                                let collect = (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.createMessageComponentCollector({ filter: t => t.customId == 'channel' && t.user.id == interaction.user.id, componentType: discord_js_1.ComponentType.ChannelSelect, idle: 120000, max: 1 });
                                                 collect === null || collect === void 0 ? void 0 : collect.on('collect', (channel) => __awaiter(this, void 0, void 0, function* () {
                                                     let manager = datamanager_1.default.getManager(interaction.guildId);
                                                     manager.setSetting('gameChannel', channel.values[0]);
-                                                    let collect = interaction.channel.createMessageComponentCollector();
+                                                    let collect = interaction.channel.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                                                     if (collect) {
                                                         yield channel.update({ embeds: [embed], components: [row] });
                                                         collector(collect);
@@ -337,11 +337,11 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                             ])
                                                 .setCustomId('bool'));
                                             yield int.update({ embeds: [emb], components: [row2] });
-                                            let collect = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ filter: t => t.customId == 'bool', componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1 });
+                                            let collect = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ filter: t => t.customId == 'bool' && t.user.id == interaction.user.id, componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1 });
                                             collect === null || collect === void 0 ? void 0 : collect.on('collect', (int) => __awaiter(this, void 0, void 0, function* () {
                                                 let manager = datamanager_1.default.getManager(interaction.guildId);
                                                 manager.setSetting('gameBool', eval(int.values[0]));
-                                                let collect = interaction.channel.createMessageComponentCollector();
+                                                let collect = interaction.channel.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                                                 if (collect) {
                                                     yield int.update({ embeds: [embed], components: [row] });
                                                     collector(collect);
