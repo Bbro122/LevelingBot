@@ -32,4 +32,4 @@ for (let i = 360 * resolution; i > 0; i--) {
     }
 }
 require('fs').writeFileSync('./mandel.png', can.toBuffer());
-console.log((Date.now() - timeStart) / 1000);
+console.log(`${(Date.now() - timeStart) / 1000} seconds`);
