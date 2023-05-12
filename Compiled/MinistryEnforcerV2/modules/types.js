@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GuildSettings = exports.UserData = void 0;
+exports.XPUser = exports.GuildSettings = exports.UserData = void 0;
 class UserData {
     constructor(serverID) {
         this.fileCode = "userData" + (serverID ? serverID : 'global');
@@ -23,3 +23,12 @@ class GuildSettings {
     }
 }
 exports.GuildSettings = GuildSettings;
+class XPUser {
+    constructor(id, xp) {
+        this.epoch = 0;
+        this.xp = xp ? xp : 0;
+        this.id = id;
+        this.balance = { wallet: 0, bank: 0 };
+    }
+}
+exports.XPUser = XPUser;

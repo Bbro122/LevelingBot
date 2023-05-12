@@ -1,4 +1,5 @@
-import { ActionRowBuilder, Client, ColorResolvable, ComponentType, EmbedBuilder, SelectMenuOptionBuilder, StringSelectMenuBuilder, StringSelectMenuComponent, TextChannel } from "discord.js"
+import { ActionRowBuilder, Client, ColorResolvable, ComponentType, EmbedBuilder, GuildMember, SelectMenuOptionBuilder, StringSelectMenuBuilder, StringSelectMenuComponent, TextChannel } from "discord.js"
+import dataManager from './datamanager'
 interface triviaData {
     data: {
         category: string
@@ -12,14 +13,13 @@ interface triviaData {
     }[]
 }
 let axios = require('axios')
-import dataManager = require('./datamanager')
 const easyVM = { "*": .1, "-": .3, "+": 0.3 }
 const medVM = { "*": .3, "-": .3, "+": 0.3 }
 const hardVM = { "*": .5, "-": .3, "+": 0.3 }
 let valueMap = { "+": 10, "-": 20, "*": 30, "/": 40 }
 const chanceMap = { "*": .2, "-": .3, "+": 0.3 }
 export type GameValues = { guildId: string, currentValue: string, reward: number, type: number }
-let currentValues:GameValues[]
+let currentValues: GameValues[] = []
 let client: Client
 const _ = {
     setup(bot: Client) {
@@ -30,11 +30,11 @@ const _ = {
             })
         })
     },
-    getAnswer(guildId:string) {
+    getAnswer(guildId: string) {
         return currentValues.find(value => value.guildId = guildId)
     },
-    answer(guildId:string) {
-        let value = currentValues.find(value=>value.guildId==guildId)
+    answer(guildId: string) {
+        let value = currentValues.find(value => value.guildId == guildId)
         if (value) {
             value.reward = 0
             return true
@@ -92,7 +92,7 @@ function generateEquation(vm: any) {
     }
     equation = equation + terms[terms.length - 1]
     let value = signValue + tAvg + Math.abs(eval(equation.replace('^', '**')) * (random(1, 4) / 10))
-    return [equation, (value > 300) ? 300 : value]
+    return [equation, Math.round((value > 300) ? 300 : value)] as [string, number]
 }
 function getSign(vm: any) {
     let value = undefined
@@ -126,7 +126,6 @@ function randomizeWord(word: string) {
         let b = ''
         for (let i = 0; i < array.length; i++) {
             const element = array[random(0, array.length - 1)];
-            console.log(element)
             array.splice(array.indexOf(element), 1)
             b = b + element
             i--
@@ -140,52 +139,56 @@ function isSqrt(value: number) {
     return ((value ** 0.5) == Math.floor(value ** 0.5) ? true : false)
 }
 async function startGame(serverID: string, repeat: boolean) {
-    let manager = new dataManager.ServerDataManager(serverID)
+    let manager = dataManager.getManager(serverID)
     let guild = client.guilds.cache.get(serverID)
-    let enabled = manager.getSetting('games.enabled')
-    let channelID = manager.getSetting('games.channel')
+    let delay = manager.getSetting('gameDelay')
+    let enabled = manager.getSetting('gameBool')
+    let channelID = manager.getSetting('gameChannel')
     if (enabled && channelID && serverID) {
-        let channel = guild?.channels.cache.get(channelID)
+        let channel = guild?.channels.cache.get(channelID.value)
         if (channel && channel instanceof TextChannel) {
             let game = random(1, 3)
             switch (game) {
                 case 1: {
-                    let equation
+                    let equation: [string, number]
+                    let color: ColorResolvable = 'Red'
                     switch (random(1, 3)) {
                         case 1:
                             equation = generateEquation(easyVM)
+                            color = 'Green'
                             break;
                         case 2:
                             equation = generateEquation(medVM)
+                            color = 'Yellow'
                             break
                         case 3:
                             equation = generateEquation(hardVM)
+                            color = 'Red'
                             break;
                         default:
                             equation = generateEquation(hardVM)
                             break
                     }
-                    let value = currentValues.find(guild => guild.guildId == serverID)
-                    if (value) {
-                        value.currentValue = (eval((equation[0] as string).replace('^', '**')) as number).toString()
-                        value.reward = equation[1] as number
-                        value.type = 1
-                    } else {
-                        currentValues.push({ guildId: serverID, currentValue: eval((equation[0] as string).replace('^', '**')), reward: equation[1] as number, type: 1 })
-                    }
+                    let embed = new EmbedBuilder()
+                        .setTitle('Solve the Equation')
+                        .setDescription(equation[0])
+                        .setColor(color)
+                        .setFooter({ text: `Solve for ${equation[1]} xp || Ends in ${delay.value / 3600000} hour${delay.value / 3600000 > 1 ? 's' : ''}` })
+                    channel.send({ embeds: [embed] })
+                    let collector = channel.createMessageCollector({ time: delay.value })
+                    collector.on('collect', message => {
+                        if (message.content == (eval((equation[0] as string).replace('^', '**')) as number).toString()) {
+                            let user = manager.getUser(message.author.id)
+                            user.addXP(equation[1])
+                            message.channel.send(`<@${message.author.id}> solved the problem.`)
+                            collector.stop()
+                        }
+                    })
                 }
                     break;
                 case 2: {
-                    let words: string[] = require('./scramble.json')
+                    let words: string[] = require('../data/scramble.json')
                     let word = words[random(0, words.length - 1)]
-                    let value = currentValues.find(guild => guild.guildId == serverID)
-                    if (value) {
-                        value.currentValue = word
-                        value.reward = 50 + (word.length - 4) * 10
-                    } else {
-                        currentValues.push({ guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10, type: 2 })
-                        value = { guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10, type: 2 }
-                    }
                     let color: ColorResolvable = 'Green'
                     if (word.length > 7) {
                         color = 'Red'
@@ -198,8 +201,17 @@ async function startGame(serverID: string, repeat: boolean) {
                         .setTitle('Unscramble the Word')
                         .setDescription(randomizeWord(word))
                         .setColor(color)
-                        .setFooter({ text: `Solve for ${value.reward} xp || Ends in 2 hours` })
+                        .setFooter({ text: `Solve for ${50 + (word.length - 4) * 10} xp || Ends in ${delay.value / 3600000} hour${delay.value / 3600000 > 1 ? 's' : ''}` })
                     await channel.send({ embeds: [embed] })
+                    let collector = channel.createMessageCollector({ time: delay.value })
+                    collector.on('collect', message => {
+                        if (message.content == word) {
+                            let user = manager.getUser(message.author.id)
+                            user.addXP(50 + (word.length - 4) * 10)
+                            message.channel.send(`<@${message.author.id}> solved the problem.`)
+                            collector.stop()
+                        }
+                    })
                 }
                     break;
                 case 3: {
@@ -240,11 +252,11 @@ async function startGame(serverID: string, repeat: boolean) {
                         i--
                     }
                     let embed = new EmbedBuilder()
-                        .setColor('LuminousVividPink')
+                        .setColor(color)
                         .setTitle(trivia.category)
                         .setDescription(trivia.question)
                         .addFields([{ value: answers[0], name: 'A.' }, { value: answers[1], name: 'B.' }, { value: answers[2], name: 'C.' }, { value: answers[3], name: 'D.' }])
-                        .setFooter({ text: `Choose the correct answer for ${value}` });
+                        .setFooter({ text: `Choose the correct answer for ${value} || Ends in ${delay.value / 3600000} hour${delay.value / 3600000 > 1 ? 's' : ''}` });
                     let row = new ActionRowBuilder<StringSelectMenuBuilder>()
                         .addComponents(new StringSelectMenuBuilder()
                             .setCustomId('trivia')
@@ -268,15 +280,21 @@ async function startGame(serverID: string, repeat: boolean) {
                             )
                         )
                     await channel.send({ embeds: [embed], components: [row] })
-                    let answer = currentValues.find(guild => guild.guildId == serverID)
-                    if (answer) {
-                        answer.currentValue = answers.indexOf(trivia.correctAnswer).toString()
-                        answer.reward = value
-                        answer.type = 3
-                    } else {
-                        currentValues.push({ guildId: serverID, currentValue: answers.indexOf(trivia.correctAnswer).toString(), reward: value, type: 3 })
-                    }
-                    channel.createMessageComponentCollector({componentType:ComponentType.StringSelect,})
+                    let collector = channel.createMessageComponentCollector({ componentType: ComponentType.StringSelect })
+                    let users: string[] = []
+                    console.log(trivia.correctAnswer)
+                    collector.on('collect', answer => {
+                        if (!users.includes(answer.user.id)) {
+                            if (answer.values[0] == answers.indexOf(trivia.correctAnswer).toString()) {
+                                let user = manager.getUser(answer.user.id)
+                                user.addXP(value);
+                                answer.reply(`<@${answer.user.id}> answered correctly.`);
+                            } else {
+                                answer.reply(`<@${answer.user.id}> answered incorrectly.`);
+                            }
+                        }
+                        users.push(answer.user.id)
+                    })
                 }
                     break;
             }

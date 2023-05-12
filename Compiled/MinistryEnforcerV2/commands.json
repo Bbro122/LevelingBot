@@ -150,18 +150,6 @@
       "description": "Experimental Feature"
     },
     {
-      "name": "boostingsince",
-      "description": "bruhhhhhhhh",
-      "options": [
-        {
-          "type": 6,
-          "name": "user",
-          "description": "Specify which user",
-          "required": true
-        }
-      ]
-    },
-    {
       "name": "daily",
       "description": "Receive your daily gems and xp."
     },
@@ -231,18 +219,22 @@
     },
     {
       "name": "flip",
-      "description": "flip a coin for a chance to double gems.",
+      "description": "flip a coin for a chance to double your bet.",
       "options": [
         {
           "type": 4,
-          "name": "amount",
-          "description": "the amount of gems to bet",
+          "name": "bet",
+          "description": "the amount of coins to bet",
           "required": true
         }
       ]
     },
     {
-      "name": "wallet",
+      "name": "stats",
+      "description": "Request a users stats"
+    },
+    {
+      "name": "balance",
       "description": "See your gem balance.",
       "options": [
         {

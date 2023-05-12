@@ -8,16 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
+const datamanager_1 = __importDefault(require("./datamanager"));
 let axios = require('axios');
-const dataManager = require("./datamanager");
 const easyVM = { "*": .1, "-": .3, "+": 0.3 };
 const medVM = { "*": .3, "-": .3, "+": 0.3 };
 const hardVM = { "*": .5, "-": .3, "+": 0.3 };
 let valueMap = { "+": 10, "-": 20, "*": 30, "/": 40 };
 const chanceMap = { "*": .2, "-": .3, "+": 0.3 };
-let currentValues;
+let currentValues = [];
 let client;
 const _ = {
     setup(bot) {
@@ -92,7 +95,7 @@ function generateEquation(vm) {
     }
     equation = equation + terms[terms.length - 1];
     let value = signValue + tAvg + Math.abs(eval(equation.replace('^', '**')) * (random(1, 4) / 10));
-    return [equation, (value > 300) ? 300 : value];
+    return [equation, Math.round((value > 300) ? 300 : value)];
 }
 function getSign(vm) {
     let value = undefined;
@@ -128,7 +131,6 @@ function randomizeWord(word) {
         let b = '';
         for (let i = 0; i < array.length; i++) {
             const element = array[random(0, array.length - 1)];
-            console.log(element);
             array.splice(array.indexOf(element), 1);
             b = b + element;
             i--;
@@ -143,56 +145,58 @@ function isSqrt(value) {
 }
 function startGame(serverID, repeat) {
     return __awaiter(this, void 0, void 0, function* () {
-        let manager = new dataManager.ServerDataManager(serverID);
+        let manager = datamanager_1.default.getManager(serverID);
         let guild = client.guilds.cache.get(serverID);
-        let enabled = manager.getSetting('games.enabled');
-        let channelID = manager.getSetting('games.channel');
+        let delay = manager.getSetting('gameDelay');
+        let enabled = manager.getSetting('gameBool');
+        let channelID = manager.getSetting('gameChannel');
         if (enabled && channelID && serverID) {
-            let channel = guild === null || guild === void 0 ? void 0 : guild.channels.cache.get(channelID);
+            let channel = guild === null || guild === void 0 ? void 0 : guild.channels.cache.get(channelID.value);
             if (channel && channel instanceof discord_js_1.TextChannel) {
                 let game = random(1, 3);
                 switch (game) {
                     case 1:
                         {
                             let equation;
+                            let color = 'Red';
                             switch (random(1, 3)) {
                                 case 1:
                                     equation = generateEquation(easyVM);
+                                    color = 'Green';
                                     break;
                                 case 2:
                                     equation = generateEquation(medVM);
+                                    color = 'Yellow';
                                     break;
                                 case 3:
                                     equation = generateEquation(hardVM);
+                                    color = 'Red';
                                     break;
                                 default:
                                     equation = generateEquation(hardVM);
                                     break;
                             }
-                            let value = currentValues.find(guild => guild.guildId == serverID);
-                            if (value) {
-                                value.currentValue = eval(equation[0].replace('^', '**')).toString();
-                                value.reward = equation[1];
-                                value.type = 1;
-                            }
-                            else {
-                                currentValues.push({ guildId: serverID, currentValue: eval(equation[0].replace('^', '**')), reward: equation[1], type: 1 });
-                            }
+                            let embed = new discord_js_1.EmbedBuilder()
+                                .setTitle('Solve the Equation')
+                                .setDescription(equation[0])
+                                .setColor(color)
+                                .setFooter({ text: `Solve for ${equation[1]} xp || Ends in ${delay.value / 3600000} hour${delay.value / 3600000 > 1 ? 's' : ''}` });
+                            channel.send({ embeds: [embed] });
+                            let collector = channel.createMessageCollector({ time: delay.value });
+                            collector.on('collect', message => {
+                                if (message.content == eval(equation[0].replace('^', '**')).toString()) {
+                                    let user = manager.getUser(message.author.id);
+                                    user.addXP(equation[1]);
+                                    message.channel.send(`<@${message.author.id}> solved the problem.`);
+                                    collector.stop();
+                                }
+                            });
                         }
                         break;
                     case 2:
                         {
-                            let words = require('./scramble.json');
+                            let words = require('../data/scramble.json');
                             let word = words[random(0, words.length - 1)];
-                            let value = currentValues.find(guild => guild.guildId == serverID);
-                            if (value) {
-                                value.currentValue = word;
-                                value.reward = 50 + (word.length - 4) * 10;
-                            }
-                            else {
-                                currentValues.push({ guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10, type: 2 });
-                                value = { guildId: serverID, currentValue: word, reward: 50 + (word.length - 4) * 10, type: 2 };
-                            }
                             let color = 'Green';
                             if (word.length > 7) {
                                 color = 'Red';
@@ -207,8 +211,17 @@ function startGame(serverID, repeat) {
                                 .setTitle('Unscramble the Word')
                                 .setDescription(randomizeWord(word))
                                 .setColor(color)
-                                .setFooter({ text: `Solve for ${value.reward} xp || Ends in 2 hours` });
+                                .setFooter({ text: `Solve for ${50 + (word.length - 4) * 10} xp || Ends in ${delay.value / 3600000} hour${delay.value / 3600000 > 1 ? 's' : ''}` });
                             yield channel.send({ embeds: [embed] });
+                            let collector = channel.createMessageCollector({ time: delay.value });
+                            collector.on('collect', message => {
+                                if (message.content == word) {
+                                    let user = manager.getUser(message.author.id);
+                                    user.addXP(50 + (word.length - 4) * 10);
+                                    message.channel.send(`<@${message.author.id}> solved the problem.`);
+                                    collector.stop();
+                                }
+                            });
                         }
                         break;
                     case 3:
@@ -251,11 +264,11 @@ function startGame(serverID, repeat) {
                                 i--;
                             }
                             let embed = new discord_js_1.EmbedBuilder()
-                                .setColor('LuminousVividPink')
+                                .setColor(color)
                                 .setTitle(trivia.category)
                                 .setDescription(trivia.question)
                                 .addFields([{ value: answers[0], name: 'A.' }, { value: answers[1], name: 'B.' }, { value: answers[2], name: 'C.' }, { value: answers[3], name: 'D.' }])
-                                .setFooter({ text: `Choose the correct answer for ${value}` });
+                                .setFooter({ text: `Choose the correct answer for ${value} || Ends in ${delay.value / 3600000} hour${delay.value / 3600000 > 1 ? 's' : ''}` });
                             let row = new discord_js_1.ActionRowBuilder()
                                 .addComponents(new discord_js_1.StringSelectMenuBuilder()
                                 .setCustomId('trivia')
@@ -273,16 +286,22 @@ function startGame(serverID, repeat) {
                                 .setDescription('3')
                                 .setValue('3')));
                             yield channel.send({ embeds: [embed], components: [row] });
-                            let answer = currentValues.find(guild => guild.guildId == serverID);
-                            if (answer) {
-                                answer.currentValue = answers.indexOf(trivia.correctAnswer).toString();
-                                answer.reward = value;
-                                answer.type = 3;
-                            }
-                            else {
-                                currentValues.push({ guildId: serverID, currentValue: answers.indexOf(trivia.correctAnswer).toString(), reward: value, type: 3 });
-                            }
-                            channel.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, });
+                            let collector = channel.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect });
+                            let users = [];
+                            console.log(trivia.correctAnswer);
+                            collector.on('collect', answer => {
+                                if (!users.includes(answer.user.id)) {
+                                    if (answer.values[0] == answers.indexOf(trivia.correctAnswer).toString()) {
+                                        let user = manager.getUser(answer.user.id);
+                                        user.addXP(value);
+                                        answer.reply(`<@${answer.user.id}> answered correctly.`);
+                                    }
+                                    else {
+                                        answer.reply(`<@${answer.user.id}> answered incorrectly.`);
+                                    }
+                                }
+                                users.push(answer.user.id);
+                            });
                         }
                         break;
                 }

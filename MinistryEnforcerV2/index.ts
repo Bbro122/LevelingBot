@@ -3,10 +3,7 @@
 import { AttachmentBuilder, Client, ActionRowBuilder, CommandInteraction, GuildMember, Interaction, Message, Embed, TextChannel, SelectMenuInteraction, SelectMenuBuilder, EmbedField, SelectMenuOptionBuilder, User, GuildMemberRoleManager, ButtonBuilder, ButtonInteraction, Partials, GatewayIntentBits, AnyAPIActionRowComponent, AnyComponentBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, ButtonStyle, ComponentType, StringSelectMenuInteraction, StringSelectMenuBuilder, StageChannel, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelSelectMenuBuilder, NewsChannel, PublicThreadChannel, VoiceChannel, PrivateThreadChannel, PartialDMChannel, DMChannel, InteractionCollector, CacheType } from "discord.js";
 import can from 'canvas';
 import gameManager from "./modules/gamemanager"
-import xpManager from "./modules/xpmanager"
-import dataManager from './modules/datamanager'
-import fs from 'fs'
-import axios from 'axios'
+import dataManager, { BaseUserManager } from './modules/datamanager'
 
 const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 131071 });
 let medals = ['🥇', '🥈', '🥉']
@@ -47,58 +44,59 @@ async function getWelcomeBanner(imagelink: string) {
 function random(min: number, max: number) {
     return Math.round(Math.random() * (max - min)) + min
 }
-// async function getImage(exp: number, username: any, number: any, level: any, imagelink?: any) {
-//     let canvas = can.createCanvas(1200, 300)
-//     let context = canvas.getContext('2d')
-//     context.fillStyle = '#171717'
-//     context.fillRect(0, 0, 1200, 300)
-//     context.fillStyle = '#171717'
-//     context.fillRect(325, 200, 800, 50)
-//     context.fillStyle = '#00EDFF'
-//     context.fillRect(325, 200, Math.round((exp - xpmanager.getLevel(level - 1)) / (requirement - xpmanager.getLevel(level - 1)) * 800), 50)
-//     context.drawImage(await can.loadImage(imagelink), 50, 50, 200, 200)
-//     //if (ministry) { context.drawImage(await can.loadImage('./MinistrySymbol.png'), 500, 71, 26, 30); context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300) }
-//     //else if (overwatch) { context.drawImage(await can.loadImage('./namecards/overwatch.png'), 0, 0, 1200, 300) }
-//     //else { context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300) }
-//     if (namecard) {
-//         context.drawImage(await can.loadImage((namecard && typeof namecard == 'string') ? namecard : './namecards/ministry.png'), 0, 0, 1200, 300)
-//     } else {
-//         if (ministry) {
-//             context.drawImage(await can.loadImage('./namecards/ministry.png'), 0, 0, 1200, 300)
-//         } else {
-//             context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300)
-//         }
-//     }
-//     context.fillStyle = '#ffffff'
-//     context.font = '40px Arial'
-//     context.fillText(`Rank #${rank}`, 325, 100)
-//     context.fillText(username, 325, 190)
-//     let wid = context.measureText(username).width
-//     context.font = '30px Arial'
-//     context.fillText(number, 335 + wid, 192)
-//     context.fillText(`${exp - xpmanager.getLevel(level - 1)} / ${requirement - xpmanager.getLevel(level - 1)} XP`, 1125 - context.measureText(`${exp - xpmanager.getLevel(level - 1)} / ${requirement - xpmanager.getLevel(level - 1)} XP`).width, 192)
-//     context.fillStyle = '#00EDFF'
-//     context.fillText("Level", 960, 75)
-//     context.font = '60px Arial'
-//     context.fillText(level, 1043, 75)
-//     return canvas.toBuffer('image/png')
-// }
+async function getImage(user: BaseUserManager, dUser: User) {
+    const lastRequirement = (user.level > 1) ? dataManager.levelRequirement(user.level - 1) : 0
+    const avatarURL = dUser.avatarURL({ extension: 'png' })
+    const requirement = dataManager.levelRequirement(user.level)
+    let canvas = can.createCanvas(1200, 300)
+    let context = canvas.getContext('2d')
+    context.fillStyle = '#171717'
+    context.fillRect(0, 0, 1200, 300)
+    context.fillStyle = '#171717'
+    context.fillRect(325, 200, 800, 50)
+    context.fillStyle = '#00EDFF'
+    context.fillRect(325, 200, Math.round(((user.xp - lastRequirement) / (requirement - lastRequirement)) * 800), 50)
+    context.drawImage(await can.loadImage(avatarURL ? avatarURL : '../namecards/default.png'), 50, 50, 200, 200)
+    context.drawImage(await can.loadImage('./namecards/default.pngq                                                         '), 0, 0, 1200, 300)
+    // Rank Info
+    context.fillStyle = '#ffffff'
+    context.font = '40px Arial'
+    context.fillText(`Rank #${dataManager.getGlobalRank(user.xp)}`, 325, 100)
+    // Username
+    context.fillText(dUser.username, 325, 190)
+    let wid = context.measureText(dUser.username).width
+    // Requirements + Discriminator
+    context.font = '30px Arial'
+    context.fillText(dUser.discriminator, 335 + wid, 192)
+    context.fillText(`${user.xp - lastRequirement} / ${requirement - lastRequirement} XP`, 1125 - context.measureText(`${user.xp - dataManager.getLevel(user.level - 1)} / ${dataManager.levelRequirement(user.level) - dataManager.getLevel(user.level - 1)} XP`).width, 192)
+    context.fillStyle = '#00EDFF'
+    // Top Right Level
+    context.fillText("Level", 960, 75)
+    context.font = '60px Arial'
+    context.fillText(user.level.toString(), 1043, 75)
+    return canvas.toBuffer('image/png')
+}
 client.on('ready', () => {
-    dataManager.onStart(client)
+    client.guilds.fetch()
+    client.application?.commands.set([])
+    client.guilds.cache.forEach(guild => {
+        guild.commands.set(require('./commands.json'))
+    })
+    //dataManager.onStart(client)
     gameManager.setup(client)
 })
 client.on('messageCreate', message => {
     if (message.guild?.id) {
-        let datamanager = dataManager.getServer(message.guild.id)
-        let xpM = xpManager.getXPManager(message.guild.id)
+        let serverManager = dataManager.getManager(message.guild.id)
+        let user = serverManager.getUser(message.author.id)
         let guild = message.guild
         if (message.content.length > 5 && guild?.id) {
-            xpM.addXP(message.author.id, random(15, 25), true)
+            user.addXP(random(15, 25))
         }
-        if (guild && datamanager.getSetting('games.channel') == message.channel.id) {
+        if (guild) {
             let values = gameManager.getAnswer(guild.id)
             if (values && values.currentValue == message.content && guild.id) {
-                xpM.addXP(message.author.id, values.reward, true)
+                user.addXP(values.reward)
                 gameManager.answer(guild.id)
             }
         }
@@ -106,27 +104,90 @@ client.on('messageCreate', message => {
 })
 client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.guildId) {
-        let xpM = xpManager.getXPManager(interaction.guildId)
+        let serverManager = dataManager.getManager(interaction.guildId)
+        let user = serverManager.getUser(interaction.user.id)
         if (interaction.isChatInputCommand()) {
             switch (interaction.commandName) {
                 //Xp Commands
-                case 'level': {
-                    let user = interaction.options.get("user") as unknown as User
-                    if (!user) { user = interaction.user }
-                    let xp = xpM.getXP(user.id)
-                    interaction.reply(xpManager.getLevel(xp).toString())
+                case 'level': { // Untested 
+                    let auser = interaction.options.get("user")?.user
+                    if (auser) { auser = interaction.user; user = serverManager.getUser(auser.id) }
+                    let attachment = new AttachmentBuilder(await getImage(user, interaction.user))
+                    interaction.reply({ files: [attachment] })
                 }
                     break;
-                case 'addbounty': {
-
+                case 'stats': {
+                    if (!(interaction.member instanceof GuildMember)) return
+                    let embed = new EmbedBuilder()
+                        .setAuthor({name:interaction.member.displayName,iconURL:interaction.member.displayAvatarURL()})
+                        .setFields([
+                            { name: 'XP', value: user.xp.toString(), inline: true },
+                            { name: 'Coins', value: (user.wallet+user.bank).toString(), inline: true },
+                            { name: 'Gems', value: user.getGlobalUser().gems.toString(), inline: true },
+                            { name: 'Level', value: user.level.toString(), inline: true }
+                        ])
+                        interaction.reply({embeds:[embed]})
                 }
 
                     break;
 
-                case 'removebounty': {
-
+                case 'balance': {
+                    if (!(interaction.member instanceof GuildMember)) return
+                    let embed = new EmbedBuilder()
+                        .setAuthor({name:interaction.member.displayName,iconURL:interaction.member.displayAvatarURL()})
+                        .setFields([
+                            { name: 'Wallet', value: (user.wallet).toString(), inline: true },
+                            { name: 'Bank', value: (user.bank).toString(), inline: true },
+                            { name: 'Gems', value: user.getGlobalUser().gems.toString(), inline: true },                        ])
+                        interaction.reply({embeds:[embed]})
                 }
                     break;
+                case 'daily': { // Time Delay Untested
+                    console.log(user.epoch)
+                    if (Date.now() >= (user.epoch + 64800000)) {
+                        let xp = random(150, 250)
+                        let gem = random(1, 5)
+                        let currency = random(25, 50)
+                        user.addXP(xp)
+                        user.addWallet(currency)
+                        let guser = user.getGlobalUser()
+                        guser.addGems(gem)
+                        guser.addXP(xp)
+                        let embed = new EmbedBuilder()
+                            .setColor('LuminousVividPink')
+                            .setTitle('Daily Rewards')
+                            .setDescription('Come back tomorrow for more rewards!')
+                            .setFields([{ name: 'XP', inline: true, value: xp.toString() }, { name: 'Currency', inline: true, value: currency.toString() }, { name: 'Gems', inline: true, value: gem.toString() }])
+                        user.setEpoch()
+                        interaction.reply({ embeds: [embed] })
+                    } else {
+                        interaction.reply(`You can recieve more rewards at <t:${Math.round((user.epoch + 64800000) / 1000)}:t>`)
+                    }
+                }
+                    break
+                case 'flip': { // Untested Code
+                    let bet = interaction.options.get('bet')?.value
+                    console.log(bet)
+                    console.log(user.wallet)
+                    if (typeof bet == 'number' && user.wallet > bet) {
+                        let win = random(0, 1)
+                        let embed = new EmbedBuilder()
+                            .setThumbnail(win ? 'https://cdn.discordapp.com/attachments/1040422701195603978/1106274390527705168/R.gif' : 'https://cdn.discordapp.com/attachments/858439510425337926/1106440676884893716/broken_coin.png')
+                            .setTitle(win ? `It's your Lucky day!` : `Better luck next time`)
+                            .setDescription(win ? `Successfully earned ${bet} coins` : `Lost ${bet} coins`)
+                            .setColor('Yellow')
+                        if (win == 0) {
+                            user.addWallet(-bet)
+                        } else {
+                            user.addWallet(bet)
+                        }
+                        await interaction.reply({ embeds: [embed] })
+                    } else {
+                        interaction.reply('Your gonna need more coins to make this bet.')
+                    }
+                    break;
+                }
+
                 case 'setup': {
                     if (checkOwner(interaction, true) && !(interaction.channel instanceof StageChannel)) {
                         let embed = new EmbedBuilder()
@@ -156,7 +217,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             collect?.on('collect', async int => {
                                 collect.stop()
                                 switch (int.values[0]) {
-                                    case 'gdelay':
+                                    case 'gdelay': {
                                         let emb = new EmbedBuilder()
                                             .setTitle('Set Game Delay')
                                             .setDescription('Select a number below in hours.')
@@ -190,24 +251,71 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                                 .setCustomId('delay')
                                             );
 
-                                        await (interaction as CommandInteraction).editReply({ embeds: [emb], components: [row2] });
-                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'setup', componentType: ComponentType.StringSelect, idle: 120000, max: 1 })
+                                        await int.update({ embeds: [emb], components: [row2] });
+                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'delay', componentType: ComponentType.StringSelect, idle: 120000, max: 1 })
                                         collect?.on('collect', async int => {
-                                            let settings = dataManager.getServer(interaction.guildId as string).getSettings();
-                                            settings.games.delay = Number(int.values[0]);
-                                            dataManager.write(settings);
+                                            let manager = dataManager.getManager(interaction.guildId as string)
+                                            manager.setSetting('gameDelay', Number(int.values[0]) * 3600000)
                                             let collect = (interaction.channel as TextChannel).createMessageComponentCollector();
                                             if (collect) {
-                                                await (interaction as CommandInteraction).editReply({ embeds: [embed], components: [row] });
+                                                await int.update({ embeds: [embed], components: [row] });
                                                 collector(collect as InteractionCollector<SelectMenuInteraction<CacheType>>)
                                             }
                                         })
+                                    }
                                         break;
-                                    case 'gchan':
-
+                                    case 'gchan': {
+                                        let emb = new EmbedBuilder()
+                                            .setTitle('Set Game Channel')
+                                            .setDescription('Select a channel below.')
+                                        let row2 = new ActionRowBuilder<ChannelSelectMenuBuilder>()
+                                            .addComponents(new ChannelSelectMenuBuilder()
+                                                .setCustomId('channel')
+                                                .setChannelTypes([ChannelType.GuildText])
+                                            );
+                                        await int.update({ embeds: [emb], components: [row2] });
+                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'channel', componentType: ComponentType.ChannelSelect, idle: 120000, max: 1 })
+                                        collect?.on('collect', async channel => {
+                                            let manager = dataManager.getManager(interaction.guildId as string)
+                                            manager.setSetting('gameChannel', channel.values[0])
+                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector();
+                                            if (collect) {
+                                                await channel.update({ embeds: [embed], components: [row] });
+                                                collector(collect as InteractionCollector<SelectMenuInteraction<CacheType>>)
+                                            }
+                                        })
+                                    }
                                         break;
                                     case 'gbool':
+                                        let emb = new EmbedBuilder()
+                                            .setTitle('Set if games are enabled.')
+                                            .setDescription('Select Enabled or Disabled')
+                                        let row2 = new ActionRowBuilder<StringSelectMenuBuilder>()
+                                            .addComponents(new StringSelectMenuBuilder()
+                                                .addOptions([
+                                                    {
+                                                        label: 'Enabled',
+                                                        value: 'true'
+                                                    },
+                                                    {
+                                                        label: 'Disabled',
+                                                        value: 'false'
+                                                    }
+                                                ])
+                                                .setCustomId('bool')
+                                            );
 
+                                        await int.update({ embeds: [emb], components: [row2] });
+                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'bool', componentType: ComponentType.StringSelect, idle: 120000, max: 1 })
+                                        collect?.on('collect', async int => {
+                                            let manager = dataManager.getManager(interaction.guildId as string)
+                                            manager.setSetting('gameBool', eval(int.values[0]))
+                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector();
+                                            if (collect) {
+                                                await int.update({ embeds: [embed], components: [row] });
+                                                collector(collect as InteractionCollector<SelectMenuInteraction<CacheType>>)
+                                            }
+                                        })
                                         break;
                                     default:
                                         break;
@@ -219,28 +327,28 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                         }
                     }
                 }
-                    break
+                    break;
                 default: {
                     if (checkModerator(interaction, true)) {
                         switch (interaction.commandName) {
                             case 'xp':
                                 let amount = interaction.options.get('amount')?.value
                                 let type = interaction.options.get('type')?.value
-                                let user = interaction.options.get('user')?.value
-                                if (typeof type == 'string' && typeof amount == 'number' && typeof user == 'string' && interaction.guild) {
+                                //let user = serverManager.getUser((interaction.options.get('user')?.value as unknown as User).id)
+                                if (typeof type == 'string' && typeof amount == 'number') {
                                     switch (type) {
                                         case 'set': {
-                                            xpM.setXP(user, amount)
+                                            user.setXP(amount)
                                             interaction.reply(`Set <@${user}>'s xp to ${amount}`)
                                         }
                                             break;
                                         case 'remove': {
-                                            xpM.addXP(user, -amount)
+                                            user.addXP(-amount)
                                             interaction.reply(`Removing ${amount} xp from <@${user}>`)
                                         }
                                             break;
                                         case 'give': {
-                                            xpM.addXP(user, amount)
+                                            user.addXP(amount)
                                             interaction.reply(`Giving ${amount} xp to <@${user}>`)
                                         }
                                             break;

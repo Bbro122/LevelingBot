@@ -1,5 +1,6 @@
 import { User, UserData } from './types'
 import dataManager from './datamanager'
+import { Base } from 'discord.js'
 let activeMultipliers = []
 const _ = {
     setup() {
@@ -76,12 +77,37 @@ const _ = {
         return new ServerXPManager(guildID)
     }
 }
+export class BaseUser {
+    epoch: number
+    xp: number
+    id: string
+    balance: {wallet:number,bank:number}
+    constructor(id:string,xp?:number) {
+        this.epoch = 0
+        this.xp = xp?xp:0
+        this.id = id
+        this.balance = {wallet:0,bank:0}
+    }
+}
+export class XPUser extends BaseUser {
+
+    constructor(data:UserData,userID:string) {
+        let user = data.users.find(user => user.id == userID;
+        if (user) {
+            super(userID,user.xp)
+        } else {
+            super(userID)
+        }
+        this.epoch = user?.epoch
+    }
+}
 export class ServerXPManager {
     // Get Information
     getXP: (userID: string) => number
     getUserLevel: (serverID: string, userID: string) => any
     getRank: (XP: number) => number
     // Modify Information
+    getUser: (userID: string) => XPUser
     addXP: (userID: string, xp: number, global?: boolean) => number
     setXP: (userID: string, xp: number) => number
     addMultiplier: (multiplier: number, time?: number,) => void
@@ -92,6 +118,9 @@ export class ServerXPManager {
                 let data = dataManager.getServer(guildID).getXPData()
                 data.multipliers.push({ startTime: Date.now(), endTime: Date.now() + time, multiplier: multiplier })
             }
+        }
+        this.getUser = function (userID:String) {
+            return new XPUser(data,userID)
         }
         this.getXP = function (userID: string) {
             let data = dataManager.getServer(guildID).getXPData()
