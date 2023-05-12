@@ -57,7 +57,7 @@ async function getImage(user: BaseUserManager, dUser: User) {
     context.fillStyle = '#00EDFF'
     context.fillRect(325, 200, Math.round(((user.xp - lastRequirement) / (requirement - lastRequirement)) * 800), 50)
     context.drawImage(await can.loadImage(avatarURL ? avatarURL : '../namecards/default.png'), 50, 50, 200, 200)
-    context.drawImage(await can.loadImage('./namecards/default.pngq                                                         '), 0, 0, 1200, 300)
+    context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300)
     // Rank Info
     context.fillStyle = '#ffffff'
     context.font = '40px Arial'
