@@ -307,5 +307,8 @@ function startGame(serverID, repeat) {
                 }
             }
         }
+        if (repeat) {
+            setTimeout(() => startGame(serverID, true), delay.value);
+        }
     });
 }

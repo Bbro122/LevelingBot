@@ -300,4 +300,7 @@ async function startGame(serverID: string, repeat: boolean) {
             }
         }
     }
+    if (repeat) {
+        setTimeout(() => startGame(serverID,true),delay.value)
+    }
 }
