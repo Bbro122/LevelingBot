@@ -1,4 +1,4 @@
-import { ActionRowBuilder, Client, ColorResolvable, ComponentType, EmbedBuilder, GuildMember, SelectMenuOptionBuilder, StringSelectMenuBuilder, StringSelectMenuComponent, TextChannel } from "discord.js"
+import { ActionRowBuilder, Client, ColorResolvable, ComponentType, EmbedBuilder, GuildMember, SelectMenuOptionBuilder, StringSelectMenuBuilder, StringSelectMenuComponent, StringSelectMenuOptionBuilder, TextChannel } from "discord.js"
 import dataManager from './datamanager'
 interface triviaData {
     data: {
@@ -95,7 +95,7 @@ function generateEquation(vm: any) {
     return [equation, Math.round((value > 300) ? 300 : value)] as [string, number]
 }
 function getSign(vm: any) {
-    let value = undefined
+    let value: undefined | any[] = undefined
     while (value == undefined) {
         if (Math.random() < vm["+"]) {
             value = ['+', valueMap["+"]]
@@ -167,7 +167,7 @@ async function startGame(serverID: string, repeat: boolean) {
                             break;
                         default:
                             equation = generateEquation(hardVM)
-                            break
+                            break;
                     }
                     let embed = new EmbedBuilder()
                         .setTitle('Solve the Equation')
@@ -261,26 +261,26 @@ async function startGame(serverID: string, repeat: boolean) {
                         .addComponents(new StringSelectMenuBuilder()
                             .setCustomId('trivia')
                             .setOptions(
-                                new SelectMenuOptionBuilder()
+                                new StringSelectMenuOptionBuilder()
                                     .setLabel(answers[0])
                                     .setDescription('0')
                                     .setValue('0'),
-                                new SelectMenuOptionBuilder()
+                                new StringSelectMenuOptionBuilder()
                                     .setLabel(answers[1])
                                     .setDescription('1')
                                     .setValue('1'),
-                                new SelectMenuOptionBuilder()
+                                new StringSelectMenuOptionBuilder()
                                     .setLabel(answers[2])
                                     .setDescription('2')
                                     .setValue('2'),
-                                new SelectMenuOptionBuilder()
+                                new StringSelectMenuOptionBuilder()
                                     .setLabel(answers[3])
                                     .setDescription('3')
                                     .setValue('3')
                             )
                         )
-                    await channel.send({ embeds: [embed], components: [row] })
-                    let collector = channel.createMessageComponentCollector({ componentType: ComponentType.StringSelect })
+                    let msg = await channel.send({ embeds: [embed], components: [row] })
+                    let collector = channel.createMessageComponentCollector({ componentType: ComponentType.StringSelect,time:delay.value })
                     let users: string[] = []
                     console.log(trivia.correctAnswer)
                     collector.on('collect', answer => {
@@ -295,12 +295,45 @@ async function startGame(serverID: string, repeat: boolean) {
                         }
                         users.push(answer.user.id)
                     })
+                    collector.on('end', () => {
+                        let row = new ActionRowBuilder<StringSelectMenuBuilder>()
+                        .addComponents(new StringSelectMenuBuilder()
+                            .setCustomId('trivia')
+                            .setDisabled(true)
+                            .setOptions(
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[0])
+                                    .setDescription('0')
+                                    .setValue('0'),
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[1])
+                                    .setDescription('1')
+                                    .setValue('1'),
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[2])
+                                    .setDescription('2')
+                                    .setValue('2'),
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[3])
+                                    .setDescription('3')
+                                    .setValue('3')
+                            )
+                        )
+                        msg.edit({ embeds: [embed], components: [row] })
+                    })
                 }
                     break;
             }
         }
     }
     if (repeat) {
-        setTimeout(() => startGame(serverID,true),delay.value)
+        setTimeout(() => startGame(serverID, true), delay.value)
     }
+}
+class UnoPlayer {
+    readonly hand = []
+}
+class UnoMatch {
+    readonly deck = []
+    readonly players: UnoPlayer[] = []
 }

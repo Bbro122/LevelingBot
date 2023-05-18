@@ -1,5 +1,13 @@
 [
   {
+    "name": "Report Message",
+    "type": 3
+  },
+  {
+    "name": "Warn",
+    "type": 3
+  },
+  {
     "name": "level",
     "description": "See your current level in the server.",
     "options": [
