@@ -171,11 +171,13 @@ export class LocalUserManager extends BaseUserManager {
 export class GlobalUserManager extends BaseUserManager {
     readonly gems: number
     readonly namecard: string
+    readonly rank: number
     setGems: (gems:number) => void
     addGems: (gems:number) => void
     setNamecard: (namecard: string) => void
     constructor(user:GlobalUser) {
         super(user)
+        this.rank = cacheData.users.sort((a,b) => b.xp - a.xp).indexOf(user)+1
         this.gems = user.gems
         this.namecard = user.namecard
         this.addGems = function (gems:number) {
@@ -244,7 +246,7 @@ function startCache() {
     if (JSON.stringify(cacheData)!=JSON.stringify(lastCache)) {
         console.log('Writing to file')
         lastCache = JSON.parse(JSON.stringify(cacheData))
-        fs.writeFileSync('./data/serverData.json',JSON.stringify(cacheData))
+        fs.writeFileSync('../data/serverData.json',JSON.stringify(cacheData))
     }
     setTimeout(()=>{startCache()}, 300000);
 }

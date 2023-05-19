@@ -272,21 +272,21 @@ function startGame(serverID, repeat) {
                             let row = new discord_js_1.ActionRowBuilder()
                                 .addComponents(new discord_js_1.StringSelectMenuBuilder()
                                 .setCustomId('trivia')
-                                .setOptions(new discord_js_1.SelectMenuOptionBuilder()
+                                .setOptions(new discord_js_1.StringSelectMenuOptionBuilder()
                                 .setLabel(answers[0])
                                 .setDescription('0')
-                                .setValue('0'), new discord_js_1.SelectMenuOptionBuilder()
+                                .setValue('0'), new discord_js_1.StringSelectMenuOptionBuilder()
                                 .setLabel(answers[1])
                                 .setDescription('1')
-                                .setValue('1'), new discord_js_1.SelectMenuOptionBuilder()
+                                .setValue('1'), new discord_js_1.StringSelectMenuOptionBuilder()
                                 .setLabel(answers[2])
                                 .setDescription('2')
-                                .setValue('2'), new discord_js_1.SelectMenuOptionBuilder()
+                                .setValue('2'), new discord_js_1.StringSelectMenuOptionBuilder()
                                 .setLabel(answers[3])
                                 .setDescription('3')
                                 .setValue('3')));
-                            yield channel.send({ embeds: [embed], components: [row] });
-                            let collector = channel.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect });
+                            let msg = yield channel.send({ embeds: [embed], components: [row] });
+                            let collector = channel.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, time: delay.value });
                             let users = [];
                             console.log(trivia.correctAnswer);
                             collector.on('collect', answer => {
@@ -302,6 +302,26 @@ function startGame(serverID, repeat) {
                                 }
                                 users.push(answer.user.id);
                             });
+                            collector.on('end', () => {
+                                let row = new discord_js_1.ActionRowBuilder()
+                                    .addComponents(new discord_js_1.StringSelectMenuBuilder()
+                                    .setCustomId('trivia')
+                                    .setDisabled(true)
+                                    .setOptions(new discord_js_1.StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[0])
+                                    .setDescription('0')
+                                    .setValue('0'), new discord_js_1.StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[1])
+                                    .setDescription('1')
+                                    .setValue('1'), new discord_js_1.StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[2])
+                                    .setDescription('2')
+                                    .setValue('2'), new discord_js_1.StringSelectMenuOptionBuilder()
+                                    .setLabel(answers[3])
+                                    .setDescription('3')
+                                    .setValue('3')));
+                                msg.edit({ embeds: [embed], components: [row] });
+                            });
                         }
                         break;
                 }
@@ -311,4 +331,15 @@ function startGame(serverID, repeat) {
             setTimeout(() => startGame(serverID, true), delay.value);
         }
     });
+}
+class UnoPlayer {
+    constructor() {
+        this.hand = [];
+    }
+}
+class UnoMatch {
+    constructor() {
+        this.deck = [];
+        this.players = [];
+    }
 }

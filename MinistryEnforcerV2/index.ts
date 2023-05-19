@@ -119,14 +119,14 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 case 'stats': {
                     if (!(interaction.member instanceof GuildMember)) return
                     let embed = new EmbedBuilder()
-                        .setAuthor({name:interaction.member.displayName,iconURL:interaction.member.displayAvatarURL()})
+                        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
                         .setFields([
                             { name: 'XP', value: user.xp.toString(), inline: true },
-                            { name: 'Coins', value: (user.wallet+user.bank).toString(), inline: true },
+                            { name: 'Coins', value: (user.wallet + user.bank).toString(), inline: true },
                             { name: 'Gems', value: user.getGlobalUser().gems.toString(), inline: true },
                             { name: 'Level', value: user.level.toString(), inline: true }
                         ])
-                        interaction.reply({embeds:[embed]})
+                    interaction.reply({ embeds: [embed] })
                 }
 
                     break;
@@ -134,12 +134,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 case 'balance': {
                     if (!(interaction.member instanceof GuildMember)) return
                     let embed = new EmbedBuilder()
-                        .setAuthor({name:interaction.member.displayName,iconURL:interaction.member.displayAvatarURL()})
+                        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
                         .setFields([
                             { name: 'Wallet', value: (user.wallet).toString(), inline: true },
                             { name: 'Bank', value: (user.bank).toString(), inline: true },
-                            { name: 'Gems', value: user.getGlobalUser().gems.toString(), inline: true },                        ])
-                        interaction.reply({embeds:[embed]})
+                            { name: 'Gems', value: user.getGlobalUser().gems.toString(), inline: true },])
+                    interaction.reply({ embeds: [embed] })
                 }
                     break;
                 case 'daily': { // Time Delay Untested
@@ -212,7 +212,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                 .setCustomId('setup')
                             )
                         interaction.reply({ embeds: [embed], components: [row] })
-                        let collect = interaction.channel?.createMessageComponentCollector({componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id&&c.customId == 'setup'})
+                        let collect = interaction.channel?.createMessageComponentCollector({ componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' })
                         function collector(collect: InteractionCollector<SelectMenuInteraction<CacheType>>) {
                             collect?.on('collect', async int => {
                                 collect.stop()
@@ -252,11 +252,11 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                             );
 
                                         await int.update({ embeds: [emb], components: [row2] });
-                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'delay'&&t.user.id == interaction.user.id, componentType: ComponentType.StringSelect, idle: 120000, max: 1 })
+                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'delay' && t.user.id == interaction.user.id, componentType: ComponentType.StringSelect, idle: 120000, max: 1 })
                                         collect?.on('collect', async int => {
                                             let manager = dataManager.getManager(interaction.guildId as string)
                                             manager.setSetting('gameDelay', Number(int.values[0]) * 3600000)
-                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector({componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id&&c.customId == 'setup'});
+                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector({ componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                                             if (collect) {
                                                 await int.update({ embeds: [embed], components: [row] });
                                                 collector(collect as InteractionCollector<SelectMenuInteraction<CacheType>>)
@@ -274,11 +274,11 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                                 .setChannelTypes([ChannelType.GuildText])
                                             );
                                         await int.update({ embeds: [emb], components: [row2] });
-                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'channel'&&t.user.id == interaction.user.id, componentType: ComponentType.ChannelSelect, idle: 120000, max: 1 })
+                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'channel' && t.user.id == interaction.user.id, componentType: ComponentType.ChannelSelect, idle: 120000, max: 1 })
                                         collect?.on('collect', async channel => {
                                             let manager = dataManager.getManager(interaction.guildId as string)
                                             manager.setSetting('gameChannel', channel.values[0])
-                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector({componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id&&c.customId == 'setup'});
+                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector({ componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                                             if (collect) {
                                                 await channel.update({ embeds: [embed], components: [row] });
                                                 collector(collect as InteractionCollector<SelectMenuInteraction<CacheType>>)
@@ -306,11 +306,11 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                                             );
 
                                         await int.update({ embeds: [emb], components: [row2] });
-                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'bool'&&t.user.id == interaction.user.id, componentType: ComponentType.StringSelect, idle: 120000, max: 1 })
+                                        let collect = (interaction.channel as DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel | null)?.createMessageComponentCollector({ filter: t => t.customId == 'bool' && t.user.id == interaction.user.id, componentType: ComponentType.StringSelect, idle: 120000, max: 1 })
                                         collect?.on('collect', async int => {
                                             let manager = dataManager.getManager(interaction.guildId as string)
                                             manager.setSetting('gameBool', eval(int.values[0]))
-                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector({componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id&&c.customId == 'setup'});
+                                            let collect = (interaction.channel as TextChannel).createMessageComponentCollector({ componentType: ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                                             if (collect) {
                                                 await int.update({ embeds: [embed], components: [row] });
                                                 collector(collect as InteractionCollector<SelectMenuInteraction<CacheType>>)
@@ -369,10 +369,6 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     }
                 }
                     break
-            }
-        } else if (interaction.isModalSubmit()) {
-            if (interaction.customId == 'setup') {
-
             }
         }
     }

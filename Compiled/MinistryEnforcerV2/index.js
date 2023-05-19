@@ -407,10 +407,6 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     break;
             }
         }
-        else if (interaction.isModalSubmit()) {
-            if (interaction.customId == 'setup') {
-            }
-        }
     }
 }));
 client.login(require('./token.json').token);
