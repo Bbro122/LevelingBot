@@ -56,12 +56,12 @@ async function getImage(user: BaseUserManager, dUser: User) {
     context.fillRect(325, 200, 800, 50)
     context.fillStyle = '#00EDFF'
     context.fillRect(325, 200, Math.round(((user.xp - lastRequirement) / (requirement - lastRequirement)) * 800), 50)
-    context.drawImage(await can.loadImage(avatarURL ? avatarURL : '../namecards/default.png'), 50, 50, 200, 200)
-    context.drawImage(await can.loadImage('./namecards/default.png'), 0, 0, 1200, 300)
-    // Rank Info
+    context.drawImage(await can.loadImage(avatarURL ? avatarURL : './Compiled/MinistryEnforcerV2/namecards/default.png'), 50, 50, 200, 200)
+    context.drawImage(await can.loadImage('./Compiled/MinistryEnforcerV2/namecards/default.png'), 0, 0, 1200, 300)
+    // Rank Info 
     context.fillStyle = '#ffffff'
     context.font = '40px Arial'
-    context.fillText(`Rank #${dataManager.getGlobalRank(user.xp)}`, 325, 100)
+    context.fillText(`Rank #${user.rank}`, 325, 100)
     // Username
     context.fillText(dUser.username, 325, 190)
     let wid = context.measureText(dUser.username).width
@@ -86,12 +86,16 @@ client.on('ready', () => {
     gameManager.setup(client)
 })
 client.on('messageCreate', message => {
-    if (message.guild?.id) {
+    if (message.guild?.id&&!message.author.bot) {
         let serverManager = dataManager.getManager(message.guild.id)
         let user = serverManager.getUser(message.author.id)
         let guild = message.guild
         if (message.content.length > 5 && guild?.id) {
+            const oldLevel = user.level
             user.addXP(random(15, 25))
+            if (oldLevel != user.level) {
+                message.channel.send(`<@${user.id}> You are now level ${user.level}`)
+            }
         }
         if (guild) {
             let values = gameManager.getAnswer(guild.id)
@@ -130,7 +134,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 }
 
                     break;
-
+                case 'bank':
                 case 'balance': {
                     if (!(interaction.member instanceof GuildMember)) return
                     let embed = new EmbedBuilder()
@@ -160,6 +164,9 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             .setFields([{ name: 'XP', inline: true, value: xp.toString() }, { name: 'Currency', inline: true, value: currency.toString() }, { name: 'Gems', inline: true, value: gem.toString() }])
                         user.setEpoch()
                         interaction.reply({ embeds: [embed] })
+                        console.log(user.level)
+                        user.addXP(1000)
+                        console.log(user.level)
                     } else {
                         interaction.reply(`You can recieve more rewards at <t:${Math.round((user.epoch + 64800000) / 1000)}:t>`)
                     }

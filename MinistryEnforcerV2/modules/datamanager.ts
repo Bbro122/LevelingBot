@@ -98,9 +98,10 @@ export class ServerManager {
 export class BaseUserManager {
     // Properties
     readonly xp: number
-    readonly level: number
+    level: number
     readonly id: string
     readonly epoch: number
+    rank: number
     // Methods
     setEpoch: () => void
     setXP: (xp: number) => void
@@ -114,17 +115,20 @@ export class BaseUserManager {
             } while (xp >= (5 * (level ** 2) + (50 * level) + 100))
             return level
         }
+        this.rank = 0
         this.xp = user.xp
-        this.level = level(this.xp)
+        this.level = level(user.xp)
         this.id = user.id
         this.epoch = user.epoch
         // Methods
         this.setXP = function (xp: number) {
             user.xp = xp
+            this.level = level(user.xp)
             markChange()
         }
         this.addXP = function (xp: number) {
             user.xp = user.xp + xp
+            this.level = level(user.xp)
             markChange()
         }
         this.setEpoch = function () {
@@ -138,6 +142,7 @@ export class LocalUserManager extends BaseUserManager {
     wallet: number
     bank: number
     server: Server
+    rank: number
     // Methods
     addBank: (currency: number) => void
     addWallet: (currency: number) => void
@@ -145,6 +150,7 @@ export class LocalUserManager extends BaseUserManager {
     constructor(server: Server, user: LocalUser) {
         super(user)
         // Properties
+        this.rank = server.users.sort((a,b) => b.xp - a.xp).indexOf(user)+1
         this.wallet = user.balance.wallet
         this.bank = user.balance.bank
         this.server = server
@@ -246,7 +252,7 @@ function startCache() {
     if (JSON.stringify(cacheData)!=JSON.stringify(lastCache)) {
         console.log('Writing to file')
         lastCache = JSON.parse(JSON.stringify(cacheData))
-        fs.writeFileSync('../data/serverData.json',JSON.stringify(cacheData))
+        fs.writeFileSync('./Compiled/MinistryEnforcerV2/data/serverData.json',JSON.stringify(cacheData))
     }
     setTimeout(()=>{startCache()}, 300000);
 }

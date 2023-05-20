@@ -262,19 +262,19 @@ async function startGame(serverID: string, repeat: boolean) {
                             .setCustomId('trivia')
                             .setOptions(
                                 new StringSelectMenuOptionBuilder()
-                                    .setLabel(answers[0])
+                                    .setLabel(answers[0].slice(0,99))
                                     .setDescription('0')
                                     .setValue('0'),
                                 new StringSelectMenuOptionBuilder()
-                                    .setLabel(answers[1])
+                                    .setLabel(answers[1].slice(0,99))
                                     .setDescription('1')
                                     .setValue('1'),
                                 new StringSelectMenuOptionBuilder()
-                                    .setLabel(answers[2])
+                                    .setLabel(answers[2].slice(0,99))
                                     .setDescription('2')
                                     .setValue('2'),
                                 new StringSelectMenuOptionBuilder()
-                                    .setLabel(answers[3])
+                                    .setLabel(answers[3].slice(0,99))
                                     .setDescription('3')
                                     .setValue('3')
                             )

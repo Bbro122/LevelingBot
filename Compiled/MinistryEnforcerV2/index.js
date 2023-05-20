@@ -75,12 +75,12 @@ function getImage(user, dUser) {
         context.fillRect(325, 200, 800, 50);
         context.fillStyle = '#00EDFF';
         context.fillRect(325, 200, Math.round(((user.xp - lastRequirement) / (requirement - lastRequirement)) * 800), 50);
-        context.drawImage(yield canvas_1.default.loadImage(avatarURL ? avatarURL : '../namecards/default.png'), 50, 50, 200, 200);
-        context.drawImage(yield canvas_1.default.loadImage('./namecards/default.png'), 0, 0, 1200, 300);
-        // Rank Info
+        context.drawImage(yield canvas_1.default.loadImage(avatarURL ? avatarURL : './Compiled/MinistryEnforcerV2/namecards/default.png'), 50, 50, 200, 200);
+        context.drawImage(yield canvas_1.default.loadImage('./Compiled/MinistryEnforcerV2/namecards/default.png'), 0, 0, 1200, 300);
+        // Rank Info 
         context.fillStyle = '#ffffff';
         context.font = '40px Arial';
-        context.fillText(`Rank #${datamanager_1.default.getGlobalRank(user.xp)}`, 325, 100);
+        context.fillText(`Rank #${user.rank}`, 325, 100);
         // Username
         context.fillText(dUser.username, 325, 190);
         let wid = context.measureText(dUser.username).width;
@@ -113,7 +113,11 @@ client.on('messageCreate', message => {
         let user = serverManager.getUser(message.author.id);
         let guild = message.guild;
         if (message.content.length > 5 && (guild === null || guild === void 0 ? void 0 : guild.id)) {
+            const oldLevel = user.level;
             user.addXP(random(15, 25));
+            if (oldLevel != user.level) {
+                message.channel.send(`<@${user.id}> You are now level ${user.level}`);
+            }
         }
         if (guild) {
             let values = gamemanager_1.default.getAnswer(guild.id);
@@ -158,6 +162,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         interaction.reply({ embeds: [embed] });
                     }
                     break;
+                case 'bank':
                 case 'balance':
                     {
                         if (!(interaction.member instanceof discord_js_1.GuildMember))
@@ -191,6 +196,9 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                 .setFields([{ name: 'XP', inline: true, value: xp.toString() }, { name: 'Currency', inline: true, value: currency.toString() }, { name: 'Gems', inline: true, value: gem.toString() }]);
                             user.setEpoch();
                             interaction.reply({ embeds: [embed] });
+                            console.log(user.level);
+                            user.addXP(1000);
+                            console.log(user.level);
                         }
                         else {
                             interaction.reply(`You can recieve more rewards at <t:${Math.round((user.epoch + 64800000) / 1000)}:t>`);
