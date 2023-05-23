@@ -267,7 +267,7 @@ function startGame(serverID, repeat) {
                                 .setColor(color)
                                 .setTitle(trivia.category)
                                 .setDescription(trivia.question)
-                                .addFields([{ value: answers[0], name: 'A.' }, { value: answers[1], name: 'B.' }, { value: answers[2], name: 'C.' }, { value: answers[3], name: 'D.' }])
+                                .addFields([{ value: answers[0].slice(0, 99), name: 'A.' }, { value: answers[1].slice(0, 99), name: 'B.' }, { value: answers[2].slice(0, 99), name: 'C.' }, { value: answers[3].slice(0, 99), name: 'D.' }])
                                 .setFooter({ text: `Choose the correct answer for ${value} || Ends in ${delay.value / 3600000} hour${delay.value / 3600000 > 1 ? 's' : ''}` });
                             let row = new discord_js_1.ActionRowBuilder()
                                 .addComponents(new discord_js_1.StringSelectMenuBuilder()

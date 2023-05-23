@@ -55,6 +55,7 @@ class ServerManager {
     constructor(server) {
         this.id = server.id;
         this.settings = server.settings;
+        this.users = server.users;
         this.getXPManager = function () {
             return new XPManager(server);
         };
@@ -136,6 +137,16 @@ class LocalUserManager extends BaseUserManager {
         this.addBank = function (currency) {
             user.balance.bank = user.balance.bank + currency;
             markChange();
+        };
+        this.transferToBank = function (currency) {
+            if (currency <= this.wallet) {
+                this.addWallet(-currency);
+                this.addBank(currency);
+                return true;
+            }
+            else {
+                return false;
+            }
         };
         this.getGlobalUser = function () {
             let gUser = cacheData.users.find(gUser => gUser.id == user.id);

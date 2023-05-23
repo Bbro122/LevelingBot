@@ -3,7 +3,7 @@
 import { AttachmentBuilder, Client, ActionRowBuilder, CommandInteraction, GuildMember, Interaction, Message, Embed, TextChannel, SelectMenuInteraction, SelectMenuBuilder, EmbedField, SelectMenuOptionBuilder, User, GuildMemberRoleManager, ButtonBuilder, ButtonInteraction, Partials, GatewayIntentBits, AnyAPIActionRowComponent, AnyComponentBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, ButtonStyle, ComponentType, StringSelectMenuInteraction, StringSelectMenuBuilder, StageChannel, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelSelectMenuBuilder, NewsChannel, PublicThreadChannel, VoiceChannel, PrivateThreadChannel, PartialDMChannel, DMChannel, InteractionCollector, CacheType } from "discord.js";
 import can from 'canvas';
 import gameManager from "./modules/gamemanager"
-import dataManager, { BaseUserManager } from './modules/datamanager'
+import dataManager, { BaseUser, BaseUserManager, GlobalUser, LocalUser } from './modules/datamanager'
 
 const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 131071 });
 let medals = ['🥇', '🥈', '🥉']
@@ -86,7 +86,7 @@ client.on('ready', () => {
     gameManager.setup(client)
 })
 client.on('messageCreate', message => {
-    if (message.guild?.id&&!message.author.bot) {
+    if (message.guild?.id && !message.author.bot) {
         let serverManager = dataManager.getManager(message.guild.id)
         let user = serverManager.getUser(message.author.id)
         let guild = message.guild
@@ -113,6 +113,92 @@ client.on('interactionCreate', async (interaction: Interaction) => {
         if (interaction.isChatInputCommand()) {
             switch (interaction.commandName) {
                 //Xp Commands
+                case 'leaderboard': {
+                    let list: BaseUser[] = serverManager.users.sort((a, b) => b.xp - a.xp)
+                    let users: EmbedField[] = []
+                    for (let i = 0; i < 10; i++) {
+                        const user = list[i]
+                        if (user) {
+                            let username = interaction.guild?.members.cache.get(user.id)
+                            let field: EmbedField = { name: username ? username.displayName : user.id, value: user.xp.toString(), inline: false }
+                            users.push(field)
+                        }
+                    }
+                    let embed = new EmbedBuilder()
+                        .setTitle('Server XP Leaderboard')
+                        .addFields(users)
+                    let row = new ActionRowBuilder<ButtonBuilder>()
+                        .addComponents([
+                            new ButtonBuilder()
+                                .setStyle(ButtonStyle.Primary)
+                                .setCustomId('gem')
+                                .setLabel('Gems'),
+                            new ButtonBuilder()
+                                .setStyle(ButtonStyle.Secondary)
+                                .setCustomId('gxp')
+                                .setLabel('Global XP'),
+                            new ButtonBuilder()
+                                .setStyle(ButtonStyle.Danger)
+                                .setCustomId('cur')
+                                .setLabel('Coins'),
+                            new ButtonBuilder()
+                                .setStyle(ButtonStyle.Success)
+                                .setCustomId('lxp')
+                                .setLabel('Local XP')
+                        ])
+                    let msg = await interaction.reply({ embeds: [embed], components: [row] })
+                    msg.createMessageComponentCollector({ componentType: ComponentType.Button }).on('collect', int => {
+                        users = []
+                        let title = ''
+                        switch (int.customId) {
+                            case 'gem':
+                                title = 'Global Gems Leaderboard'
+                                list = dataManager.getGlobalUsers().sort((a, b) => b.gems - a.gems)
+                                for (let i = 0; i < 10; i++) {
+                                    const user = (list[i] as GlobalUser)
+                                    if (user) {
+                                        let username = interaction.guild?.members.cache.get(user.id)
+                                        let field: EmbedField = { name: username ? username.displayName : user.id, value: user.gems.toString(), inline: false }
+                                        users.push(field)
+                                    }
+                                }
+                                break;
+                            case 'gxp':
+                                title = 'Global XP Leaderboard'
+                                list = dataManager.getGlobalUsers().sort((a, b) => b.xp - a.xp)
+                            case 'lxp':
+                                title = 'Server XP Leaderboard'
+                                list = serverManager.users.sort((a, b) => b.xp - a.xp)
+                                for (let i = 0; i < 10; i++) {
+                                    const user = list[i]
+                                    if (user) {
+                                        let username = interaction.guild?.members.cache.get(user.id)
+                                        let field: EmbedField = { name: username ? username.displayName : user.id, value: user.xp.toString(), inline: false }
+                                        users.push(field)
+                                    }
+                                }
+                                break;
+                            case 'cur':
+                                title = 'Server Coins Leaderboard'
+                                list = serverManager.users.sort((a, b) => (b.balance.bank + b.balance.wallet) - (a.balance.bank + a.balance.wallet))
+                                for (let i = 0; i < 10; i++) {
+                                    const user = (list[i] as LocalUser)
+                                    if (user) {
+                                        let username = interaction.guild?.members.cache.get(user.id)
+                                        let field: EmbedField = { name: username ? username.displayName : user.id, value: (user.balance.bank+user.balance.wallet).toString(), inline: false }
+                                        users.push(field)
+                                    }
+                                }
+                                break;
+                        }
+                        let embed = new EmbedBuilder()
+                            .setTitle(title)
+                            .setDescription('Users are sorted by XP')
+                            .addFields(users)
+                        int.update({ embeds: [embed], components: [row] })
+                    })
+                }
+                    break;
                 case 'level': { // Untested 
                     let auser = interaction.options.get("user")?.user
                     if (auser) { auser = interaction.user; user = serverManager.getUser(auser.id) }

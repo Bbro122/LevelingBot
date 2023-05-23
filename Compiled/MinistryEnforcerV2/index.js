@@ -108,7 +108,7 @@ client.on('ready', () => {
 });
 client.on('messageCreate', message => {
     var _a;
-    if ((_a = message.guild) === null || _a === void 0 ? void 0 : _a.id) {
+    if (((_a = message.guild) === null || _a === void 0 ? void 0 : _a.id) && !message.author.bot) {
         let serverManager = datamanager_1.default.getManager(message.guild.id);
         let user = serverManager.getUser(message.author.id);
         let guild = message.guild;
@@ -129,16 +129,104 @@ client.on('messageCreate', message => {
     }
 });
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     if (interaction.guildId) {
         let serverManager = datamanager_1.default.getManager(interaction.guildId);
         let user = serverManager.getUser(interaction.user.id);
         if (interaction.isChatInputCommand()) {
             switch (interaction.commandName) {
                 //Xp Commands
+                case 'leaderboard':
+                    {
+                        let list = serverManager.users.sort((a, b) => b.xp - a.xp);
+                        let users = [];
+                        for (let i = 0; i < 10; i++) {
+                            const user = list[i];
+                            if (user) {
+                                let username = (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.members.cache.get(user.id);
+                                let field = { name: username ? username.displayName : user.id, value: user.xp.toString(), inline: false };
+                                users.push(field);
+                            }
+                        }
+                        let embed = new discord_js_1.EmbedBuilder()
+                            .setTitle('Server XP Leaderboard')
+                            .addFields(users);
+                        let row = new discord_js_1.ActionRowBuilder()
+                            .addComponents([
+                            new discord_js_1.ButtonBuilder()
+                                .setStyle(discord_js_1.ButtonStyle.Primary)
+                                .setCustomId('gem')
+                                .setLabel('Gems'),
+                            new discord_js_1.ButtonBuilder()
+                                .setStyle(discord_js_1.ButtonStyle.Secondary)
+                                .setCustomId('gxp')
+                                .setLabel('Global XP'),
+                            new discord_js_1.ButtonBuilder()
+                                .setStyle(discord_js_1.ButtonStyle.Danger)
+                                .setCustomId('cur')
+                                .setLabel('Coins'),
+                            new discord_js_1.ButtonBuilder()
+                                .setStyle(discord_js_1.ButtonStyle.Success)
+                                .setCustomId('lxp')
+                                .setLabel('Local XP')
+                        ]);
+                        let msg = yield interaction.reply({ embeds: [embed], components: [row] });
+                        msg.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button }).on('collect', int => {
+                            var _a, _b, _c;
+                            users = [];
+                            let title = '';
+                            switch (int.customId) {
+                                case 'gem':
+                                    title = 'Global Gems Leaderboard';
+                                    list = datamanager_1.default.getGlobalUsers().sort((a, b) => b.gems - a.gems);
+                                    for (let i = 0; i < 10; i++) {
+                                        const user = list[i];
+                                        if (user) {
+                                            let username = (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.members.cache.get(user.id);
+                                            let field = { name: username ? username.displayName : user.id, value: user.gems.toString(), inline: false };
+                                            users.push(field);
+                                        }
+                                    }
+                                    break;
+                                case 'gxp':
+                                    title = 'Global XP Leaderboard';
+                                    list = datamanager_1.default.getGlobalUsers().sort((a, b) => b.xp - a.xp);
+                                case 'lxp':
+                                    title = 'Server XP Leaderboard';
+                                    list = serverManager.users.sort((a, b) => b.xp - a.xp);
+                                    for (let i = 0; i < 10; i++) {
+                                        const user = list[i];
+                                        if (user) {
+                                            let username = (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.cache.get(user.id);
+                                            let field = { name: username ? username.displayName : user.id, value: user.xp.toString(), inline: false };
+                                            users.push(field);
+                                        }
+                                    }
+                                    break;
+                                case 'cur':
+                                    title = 'Server Coins Leaderboard';
+                                    list = serverManager.users.sort((a, b) => (b.balance.bank + b.balance.wallet) - (a.balance.bank + a.balance.wallet));
+                                    for (let i = 0; i < 10; i++) {
+                                        const user = list[i];
+                                        if (user) {
+                                            let username = (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(user.id);
+                                            let field = { name: username ? username.displayName : user.id, value: (user.balance.bank + user.balance.wallet).toString(), inline: false };
+                                            users.push(field);
+                                        }
+                                    }
+                                    break;
+                            }
+                            let embed = new discord_js_1.EmbedBuilder()
+                                .setTitle(title)
+                                .setDescription('Users are sorted by XP')
+                                .addFields(users);
+                            int.update({ embeds: [embed], components: [row] });
+                        });
+                    }
+                    break;
                 case 'level':
                     { // Untested 
-                        let auser = (_a = interaction.options.get("user")) === null || _a === void 0 ? void 0 : _a.user;
+                        let auser = (_b = interaction.options.get("user")) === null || _b === void 0 ? void 0 : _b.user;
                         if (auser) {
                             auser = interaction.user;
                             user = serverManager.getUser(auser.id);
@@ -206,7 +294,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                     }
                     break;
                 case 'flip': { // Untested Code
-                    let bet = (_b = interaction.options.get('bet')) === null || _b === void 0 ? void 0 : _b.value;
+                    let bet = (_c = interaction.options.get('bet')) === null || _c === void 0 ? void 0 : _c.value;
                     console.log(bet);
                     console.log(user.wallet);
                     if (typeof bet == 'number' && user.wallet > bet) {
@@ -253,7 +341,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                             ])
                                 .setCustomId('setup'));
                             interaction.reply({ embeds: [embed], components: [row] });
-                            let collect = (_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
+                            let collect = (_d = interaction.channel) === null || _d === void 0 ? void 0 : _d.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.StringSelect, idle: 120000, max: 1, filter: c => c.user.id == interaction.user.id && c.customId == 'setup' });
                             function collector(collect) {
                                 collect === null || collect === void 0 ? void 0 : collect.on('collect', (int) => __awaiter(this, void 0, void 0, function* () {
                                     var _a, _b, _c;
@@ -372,8 +460,8 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         if (checkModerator(interaction, true)) {
                             switch (interaction.commandName) {
                                 case 'xp':
-                                    let amount = (_d = interaction.options.get('amount')) === null || _d === void 0 ? void 0 : _d.value;
-                                    let type = (_e = interaction.options.get('type')) === null || _e === void 0 ? void 0 : _e.value;
+                                    let amount = (_e = interaction.options.get('amount')) === null || _e === void 0 ? void 0 : _e.value;
+                                    let type = (_f = interaction.options.get('type')) === null || _f === void 0 ? void 0 : _f.value;
                                     //let user = serverManager.getUser((interaction.options.get('user')?.value as unknown as User).id)
                                     if (typeof type == 'string' && typeof amount == 'number') {
                                         switch (type) {

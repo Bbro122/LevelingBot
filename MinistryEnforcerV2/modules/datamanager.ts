@@ -58,6 +58,7 @@ export class Server {
 export class ServerManager {
     readonly id: string
     readonly settings: Setting[]
+    readonly users: LocalUser[]
     getXPManager: () => XPManager
     getUser: (UUID: string) => LocalUserManager
     getSetting: (name: string) => Setting
@@ -65,6 +66,7 @@ export class ServerManager {
     constructor(server: Server) {
         this.id = server.id
         this.settings = server.settings
+        this.users = server.users
         this.getXPManager = function () {
             return new XPManager(server)
         }
@@ -147,6 +149,7 @@ export class LocalUserManager extends BaseUserManager {
     addBank: (currency: number) => void
     addWallet: (currency: number) => void
     getGlobalUser: () => GlobalUserManager
+    transferToBank: (currency: number) => boolean
     constructor(server: Server, user: LocalUser) {
         super(user)
         // Properties
@@ -162,6 +165,15 @@ export class LocalUserManager extends BaseUserManager {
         this.addBank = function (currency: number) {
             user.balance.bank = user.balance.bank + currency
             markChange()
+        }
+        this.transferToBank = function(currency: number) {
+            if (currency <= this.wallet) {
+                this.addWallet(-currency)
+                this.addBank(currency)
+                return true
+            } else {
+                return false
+            }
         }
         this.getGlobalUser = function () {
             let gUser = cacheData.users.find(gUser => gUser.id == user.id)
