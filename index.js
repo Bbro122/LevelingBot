@@ -3,7 +3,7 @@ let { fork } = require('child_process')
 let path = require('path')
 let file = path.resolve('./Compiled/MinistryEnforcerV2/index')
 let { Partials, Client, EmbedBuilder } = require('discord.js')
-const mainChannel = '858439510425337926'
+const mainChannel = '632995958950723584'
 const client = new Client({ partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User], intents: 131071 });
 let channel
 let message
