@@ -30,7 +30,7 @@ function checkOwner(interaction) {
         return true;
     }
     else {
-        interaction.reply("Unpermitted Access- This command is only usable by the regretful one.");
+        interaction.reply("Unpermitted Access- This command is only usable by the bot owner.");
         return false;
     }
 }

@@ -19,7 +19,7 @@ function checkOwner(interaction: CommandInteraction) {
     if (interaction.user.id == '316243027423395841') {
         return true
     } else {
-        interaction.reply("Unpermitted Access- This command is only usable by the regretful one.")
+        interaction.reply("Unpermitted Access- This command is only usable by the bot owner.")
         return false
     }
 }

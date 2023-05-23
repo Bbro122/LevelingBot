@@ -4,6 +4,10 @@
         "description": "Setup a server's settings"
     },
     {
+      "name": "crash",
+      "description": "I seek death"
+  },
+    {
       "name": "level",
       "description": "See your current level in the server.",
       "options": [

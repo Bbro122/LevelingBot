@@ -172,7 +172,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         ]);
                         let msg = yield interaction.reply({ embeds: [embed], components: [row] });
                         msg.createMessageComponentCollector({ componentType: discord_js_1.ComponentType.Button }).on('collect', int => {
-                            var _a, _b, _c;
+                            var _a, _b, _c, _d;
                             users = [];
                             let title = '';
                             switch (int.customId) {
@@ -191,13 +191,22 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                 case 'gxp':
                                     title = 'Global XP Leaderboard';
                                     list = datamanager_1.default.getGlobalUsers().sort((a, b) => b.xp - a.xp);
+                                    for (let i = 0; i < 10; i++) {
+                                        const user = list[i];
+                                        if (user) {
+                                            let username = (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.cache.get(user.id);
+                                            let field = { name: username ? username.displayName : user.id, value: user.xp.toString(), inline: false };
+                                            users.push(field);
+                                        }
+                                    }
+                                    break;
                                 case 'lxp':
                                     title = 'Server XP Leaderboard';
                                     list = serverManager.users.sort((a, b) => b.xp - a.xp);
                                     for (let i = 0; i < 10; i++) {
                                         const user = list[i];
                                         if (user) {
-                                            let username = (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.members.cache.get(user.id);
+                                            let username = (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(user.id);
                                             let field = { name: username ? username.displayName : user.id, value: user.xp.toString(), inline: false };
                                             users.push(field);
                                         }
@@ -209,7 +218,7 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                                     for (let i = 0; i < 10; i++) {
                                         const user = list[i];
                                         if (user) {
-                                            let username = (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(user.id);
+                                            let username = (_d = interaction.guild) === null || _d === void 0 ? void 0 : _d.members.cache.get(user.id);
                                             let field = { name: username ? username.displayName : user.id, value: (user.balance.bank + user.balance.wallet).toString(), inline: false };
                                             users.push(field);
                                         }
@@ -316,6 +325,12 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
                         interaction.reply('Your gonna need more coins to make this bet.');
                     }
                     break;
+                }
+                case 'crash': {
+                    if (interaction.user.id == '316243027423395841') {
+                        let x;
+                        x.crash();
+                    }
                 }
                 case 'setup':
                     {

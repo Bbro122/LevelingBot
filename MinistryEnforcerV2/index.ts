@@ -166,6 +166,15 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                             case 'gxp':
                                 title = 'Global XP Leaderboard'
                                 list = dataManager.getGlobalUsers().sort((a, b) => b.xp - a.xp)
+                                for (let i = 0; i < 10; i++) {
+                                    const user = list[i]
+                                    if (user) {
+                                        let username = interaction.guild?.members.cache.get(user.id)
+                                        let field: EmbedField = { name: username ? username.displayName : user.id, value: user.xp.toString(), inline: false }
+                                        users.push(field)
+                                    }
+                                }
+                                break
                             case 'lxp':
                                 title = 'Server XP Leaderboard'
                                 list = serverManager.users.sort((a, b) => b.xp - a.xp)
@@ -280,7 +289,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     }
                     break;
                 }
-
+                case 'crash': {
+                    if (interaction.user.id=='316243027423395841') {
+                        let x
+                        (x as any).crash()
+                    }
+                }
                 case 'setup': {
                     if (checkOwner(interaction, true) && !(interaction.channel instanceof StageChannel)) {
                         let embed = new EmbedBuilder()
