@@ -215,7 +215,7 @@ function startGame(serverID, repeat) {
                             yield channel.send({ embeds: [embed] });
                             let collector = channel.createMessageCollector({ time: delay.value });
                             collector.on('collect', message => {
-                                if (message.content == word) {
+                                if (message.content.toLowerCase() == word.toLowerCase()) {
                                     let user = manager.getUser(message.author.id);
                                     user.addXP(50 + (word.length - 4) * 10);
                                     message.channel.send(`<@${message.author.id}> solved the problem.`);

@@ -1,6 +1,6 @@
 import { EmbedBuilder, ButtonInteraction, CommandInteraction, Emoji, EmojiIdentifierResolvable, Guild, GuildMember, Message, ActionRowBuilder, MessageActionRowComponent, ButtonBuilder, ButtonStyle, MessageComponent, MessageComponentInteraction, SelectMenuBuilder, SelectMenuComponentOptionData, MessageSelectOption, ComponentEmojiResolvable, ComponentType, ChannelType, RestOrArray, AnyComponentBuilder, embedLength, ThreadChannel, italic, APIEmbedField, StageChannel } from "discord.js";
 import { isThisTypeNode } from "typescript";
-import { UserProfile } from "../xpmanager";
+import { BaseUser } from "../MinistryEnforcerV2/modules/datamanager";
 const cards = require('./cards.json')
 let games: Game[] = []
 function createButtons(rawButtons: { string: string, id: string, style: ButtonStyle, emoji?: ComponentEmojiResolvable | null, disabled?: boolean }[]) { // PRIMARY:Blue DANGER:Red SUCCESS:GREEN
@@ -71,7 +71,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
       .setTitle(`${member.displayName}'s Cards Against Humanity Match`)
       .setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n1/10 players have joined`)
       .setColor('Gold')
-      .addFields([{ name: member.displayName, value: `Level ${require('../userdata.json').users.find((user: UserProfile) => user.id = interaction.user.id).level}` }])
+      .addFields([{ name: member.displayName, value: `Level ${require('../userdata.json').users.find((user: BaseUser) => user.id = interaction.user.id).level}` }])
     let cahChan = await cahthread.threads.create({ name: `${interaction.user.username}s-uno-match`, message: { embeds: [embed], components: [createButtons([{ string: "🎮 Join Match", id: "join", style: ButtonStyle.Success }, { string: "Start Match", id: "start", style: ButtonStyle.Success, emoji: "814199679704891423" }, { string: "Cancel Match", id: "cancel", style: ButtonStyle.Danger, emoji: "814199666778308638" }])] } })
     interaction.reply(`[InDev] Cards Against Humanity starting in <#${cahChan.id}>`)
     const collector = cahChan?.createMessageComponentCollector({ componentType: ComponentType.Button })
@@ -88,7 +88,7 @@ exports.createGame = async function (interaction: CommandInteraction) {
             await i.reply({ content: 'You are already in this match.', ephemeral: true })
           } else if (i.member instanceof GuildMember) {
             game.players.push(new Player(i.user.id, game))
-            let user = require('../userdata.json').users.find((user: UserProfile) => user.id == i.user?.id)
+            let user = require('../userdata.json').users.find((user: BaseUser) => user.id == i.user?.id)
             embed?.addFields({ name: i.member?.displayName, value: `Level ${user ? user.level : '<Unknown>'}`, inline: false })
             embed.setDescription(`Click the join button below to participate in the match, as the host you can start or cancel the match.\n\n${game.players.length}/4 players have joined`)
             await i.update({ embeds: [embed] })
