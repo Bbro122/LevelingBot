@@ -1,7 +1,6 @@
 let cacheData: ServerData = require('../data/serverData.json')
 let lastCache = JSON.parse(JSON.stringify(cacheData))
 import fs = require('fs')
-import hash from 'object-hash'
 const defaultSettings = [{name:'gameChannel',value:false},{name:'gameBool',value:false},{name:'gameDelay',value:3600000}]
 let change = false
 function markChange() {
