@@ -260,9 +260,8 @@ export const _ = {
 }
 export default _
 function startCache() {
-    console.log('Cache Check')
     if (JSON.stringify(cacheData)!=JSON.stringify(lastCache)) {
-        console.log('Writing to file')
+        console.log('Writing to file ' + new Date().toDateString())
         lastCache = JSON.parse(JSON.stringify(cacheData))
         fs.writeFileSync('./Compiled/MinistryEnforcerV2/data/serverData.json',JSON.stringify(cacheData))
     }

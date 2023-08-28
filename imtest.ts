@@ -12,7 +12,4 @@ async function imtest() {
     context.drawImage(await loadImage('../download.jpeg'),0,0,960,540)
     fs.writeFileSync('./imtest.png',can.toBuffer())
 }
-//imtest()
-let list = [{xp:10},{xp:5},{xp:6},{xp:7},{xp:9}]
-list.sort((a,b) => a.xp - b.xp)
-console.log(list)
+imtest()

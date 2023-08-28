@@ -51,7 +51,7 @@ function imtest() {
         fs_1.default.writeFileSync('./imtest.png', can.toBuffer());
     });
 }
-//imtest()
+imtest();
 let list = [{ xp: 10 }, { xp: 5 }, { xp: 6 }, { xp: 7 }, { xp: 9 }];
 list.sort((a, b) => a.xp - b.xp);
 console.log(list);
